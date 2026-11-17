@@ -1,0 +1,1275 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>かんたん図面</title>
+<meta name="theme-color" content="#2b6cb0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="かんたん図面">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{--bg:#f6f5f1;--fg:#222;--mut:#777;--card:#fff;--line:#e2dfd6;--acc:#2b6cb0;--room:#fffdf7;--wall:#333;--sha:#e6e1d3;--shb:#cfc9b7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1b1a;--fg:#eee;--mut:#9a9a94;--card:#262624;--line:#33332f;--acc:#6aa8ee;--room:#2c2c29;--wall:#ddd;--sha:#3a3a36;--shb:#2a2a27}}
+:root[data-theme="dark"]{--bg:#1b1b1a;--fg:#eee;--mut:#9a9a94;--card:#262624;--line:#33332f;--acc:#6aa8ee;--room:#2c2c29;--wall:#ddd;--sha:#3a3a36;--shb:#2a2a27}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:-apple-system,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;display:flex;flex-direction:column;font-size:15px}
+header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+header span{color:var(--mut);font-size:12px}
+.zl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut)}#zs{width:120px}
+button:disabled{opacity:.35}
+button{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+button.primary{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
+button.danger{color:#c0392b}
+#wbox{position:relative;flex:1;min-height:0;display:flex}
+#panel.hid{display:none}
+#cmp{position:absolute;left:6px;top:6px;z-index:2}
+#cmpB{background:none;border:0;padding:0;width:70px;height:70px;touch-action:manipulation}
+#cmpBox{margin-top:2px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px;width:240px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--fg)}
+#cmpBox[hidden]{display:none}
+body.tophide header,body.tophide #fl,body.tophide #info{display:none}
+#finWrap.hc #finChips,#finWrap.he #finEd{display:none!important}
+.pan{position:absolute;right:8px;bottom:8px;display:grid;grid-template-columns:repeat(3,36px);grid-template-rows:repeat(3,36px);gap:2px;opacity:.85;z-index:2;touch-action:none}.pan button{padding:0;background:var(--card);user-select:none;-webkit-user-select:none}
+#wrap{flex:1;overflow:auto;min-height:0;touch-action:pan-x pan-y}
+svg{display:block;touch-action:pan-x pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.room{touch-action:none;cursor:move}.item{touch-action:pan-x pan-y;cursor:grab}
+.f{fill:var(--room)}.s{stroke:var(--fg);stroke-width:1.5}
+text{fill:var(--fg);font-family:inherit;pointer-events:none}
+#panel{max-height:45%;overflow-y:auto;background:var(--card);border-top:1px solid var(--line);padding:10px 14px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.grp{flex-basis:100%;font-size:12px;font-weight:600;color:var(--mut);border-bottom:1px solid var(--line);padding-bottom:2px}
+button.opt{border-style:dashed;border-color:var(--acc);color:var(--acc)}
+.tag{font-size:12px;color:var(--acc);border:1px dashed var(--acc);border-radius:10px;padding:2px 8px}
+.dup{background:var(--card);border:1px solid var(--acc);border-radius:8px;padding:6px 8px}
+label{display:flex;align-items:center;gap:4px;color:var(--mut);font-size:13px}
+input{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+input[type=number]{width:92px}
+input[type=text]{width:110px}
+input[type=range]{flex:1;min-width:110px;padding:0}
+.hint{color:var(--mut)}
+#tabs{display:flex;gap:6px;padding:6px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+#prev svg{user-select:auto;-webkit-user-select:auto}#prev input{-webkit-user-select:text;user-select:text}
+#finEd .sw,.sw{width:26px;height:26px;padding:0;border-radius:50%;border:1px solid var(--line)}
+.tg{display:flex;align-items:center;gap:8px;color:var(--fg);font-size:14px;cursor:pointer}.tg input{display:none}.tg i{width:42px;height:24px;border-radius:12px;background:var(--line);position:relative;transition:.2s;flex:none}.tg i:after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}.tg input:checked+i{background:var(--acc)}.tg input:checked+i:after{left:20px}
+#prev{display:none;flex:1;min-height:0;overflow:hidden;padding:8px;background:var(--card)}
+#sheet .tools{justify-content:space-between;flex-wrap:nowrap}
+.tl{display:flex;flex-direction:column;gap:6px}.tr{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dpad{display:grid;grid-template-columns:repeat(3,38px);grid-template-rows:repeat(3,38px);gap:3px;flex:none}.dpad button{padding:0}
+.chip{padding:4px 10px;border-radius:14px;font-size:13px}.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+#sheet .tools{max-height:42vh;overflow-y:auto;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+#fl{display:flex;gap:6px;overflow-x:auto;align-items:center;padding:6px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+#info{display:flex;gap:6px;overflow-x:auto;padding:6px 12px;background:var(--card);border-bottom:1px solid var(--line);font-size:13px}
+#info span{white-space:nowrap;border:1px solid var(--line);border-radius:14px;padding:3px 10px;cursor:pointer}
+#info span.sel{border-color:var(--acc);color:var(--acc);font-weight:600}
+.mdlg{display:none;position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px}
+.mdlg.on{display:flex}
+.mdlg .box{background:var(--card);color:var(--fg);border-radius:12px;padding:16px;width:100%;max-width:380px;box-shadow:0 8px 30px rgba(0,0,0,.4);display:flex;flex-direction:column;gap:10px}
+.mdlg h3{margin:0;font-size:16px}
+.mdlg .err{color:#d32f2f}
+.mdlg label{display:flex;flex-direction:column;gap:3px;font-size:12px}
+.mdlg input[type=text]{font-size:16px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.mdlg .bt{display:flex;gap:8px;justify-content:flex-end}
+.crow{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px}.crow.cur{border-color:var(--acc);border-width:2px}
+.crow .ci{flex:1;min-width:0}.crow .cc{font-size:13px;color:var(--mut)}.crow .cc b{font-size:18px;color:var(--fg)}.crow .cs{font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crow .exp{color:#c0392b;font-weight:700}
+.mi.bad,.mdlg input.bad{border:2px solid #e53935!important;background:rgba(229,57,53,.08)}
+#sheet .tools>.tl>.mrow{position:sticky;top:-6px;z-index:5;background:var(--card);border:2px solid var(--acc);border-radius:10px;padding:6px 8px;margin:-2px 0 4px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.mrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.mrow input{font-size:14px;padding:4px 8px;border:1px solid var(--line);border-radius:8px;width:120px;background:var(--bg);color:var(--fg)}
+#sheet{display:none;position:fixed;inset:0;z-index:50;background:var(--bg);flex-direction:column}
+#sheet.on{display:flex}
+#sheet .bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+#sheet .bar b{flex:1}
+#sheetBody{flex:1;overflow:auto;padding:12px}
+#sheetBody>svg{display:block;width:100%;max-width:900px;height:auto;margin:0 auto;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+#panel.editing .row:not(.cur):not(.keep),#panel.editing .dup{display:none}
+#panel.editing{padding:5px 12px;gap:4px;max-height:none;position:fixed;top:0;left:0;right:0;z-index:10;border-top:0;border-bottom:1px solid var(--line);box-shadow:0 4px 12px rgba(0,0,0,.25)}
+</style>
+</head>
+<body>
+<header><button class="primary" id="add">＋ 部屋を追加</button><button id="dl">画像を保存</button><button id="un" title="元に戻す">↶</button><button id="re" title="やり直し">↷</button><button id="fsv">ファイル保存</button><button id="fld">読込</button><button id="clist">案件一覧</button><input type="file" id="fin" accept=".json,application/json" hidden><label class="zl">倍率<input type="range" id="zs" min="40" max="600" step="5" value="200"></label><span id="msg">寸法はmm・細線100/太線1000</span><a id="toSurvey" href="../" style="display:none;font-size:13px;color:var(--acc);margin-left:auto">現地調査へ ›</a></header>
+<div id="fl"></div>
+<div id="info"></div>
+<div id="tabs"><button class="chip on" data-lay="plan">平面図</button><button class="chip" data-lay="front">正面図</button><button class="chip" data-lay="fin">内装指定</button></div>
+<div id="wbox"><div id="wrap"><svg id="cv" viewBox="0 0 1000 800"></svg></div><div id="cmp"><button id="cmpB" aria-label="方位"></button><div id="cmpBox" hidden></div></div><div class="pan" title="選択中の部屋を動かす"><span></span><button data-pan="u">↑</button><span></span><button data-pan="l">←</button><button data-pan="c">●</button><button data-pan="r">→</button><span></span><button data-pan="d">↓</button><span></span></div></div>
+<div id="prev"></div>
+<div id="panel"></div>
+<div id="sheet"><div class="bar"><button id="sback">← 戻る</button><b>簡易図面</b><span id="smsg" class="hint"></span><button id="spdf">PDF保存</button><button class="primary" id="ssave">画像を保存</button></div><div class="tools"><div class="tl"><div class="mrow"><b style="font-size:12px">必須</b><span class="hint">管理番号</span><input type="text" class="mi" data-m="code" inputmode="numeric" placeholder="2605121145566-1" style="width:150px"><span class="hint">店舗</span><input type="text" class="mi" data-m="shop"><span class="hint">担当者</span><input type="text" class="mi" data-m="staff"><span class="hint">お客様名</span><input type="text" class="mi" data-m="cust"></div><div class="tr"><span class="hint">用紙</span><button class="chip" data-so="land">横</button><button class="chip" data-so="port">縦</button><button class="chip" data-sp="A4">A4</button><button class="chip" data-sp="A3">A3</button></div><div class="tr"><span class="hint">縮尺</span><button class="chip" data-ss="0">自動</button><button class="chip" data-ss="30">1/30</button><button class="chip" data-ss="50">1/50</button><button class="chip" data-ss="100">1/100</button><button class="chip" data-ss="200">1/200</button></div><div class="tr"><span class="hint">レイヤー</span><button class="chip" data-sl="plan">平面図</button><button class="chip" data-sl="front">正面図</button><button class="chip" data-sl="fin">内装指定</button></div><div class="tr"><span class="hint">階</span><span id="sFl" class="tr"></span></div><div class="tr"><span class="hint">対象の部屋</span><span id="sRooms" class="tr"></span></div><div class="tr"><span class="hint">平面図の拡大</span><button data-sv="zo">－</button><button data-sv="zi">＋</button></div></div><div class="dpad"><span></span><button data-sv="u">↑</button><span></span><button data-sv="l">←</button><button data-sv="reset">●</button><button data-sv="r">→</button><span></span><button data-sv="d">↓</button><span></span></div></div><div id="sheetBody"></div></div><div class="mdlg" id="metaDlg"><div class="box"><h3>図面情報の入力</h3><div class="hint">管理番号・店舗・担当者・お客様名を入力してください（すべて必須）</div><label>管理番号（顧客番号13桁-管理番号）<input type="text" class="mi" data-m="code" inputmode="numeric" autocomplete="off" placeholder="2605121145566-1"></label><label>店舗<input type="text" class="mi" data-m="shop" autocomplete="off"></label><label>担当者<input type="text" class="mi" data-m="staff" autocomplete="off"></label><label>お客様名<input type="text" class="mi" data-m="cust" autocomplete="off"></label><div class="bt"><button id="metaCancel">キャンセル</button><button class="primary" id="metaOk">次へ</button></div></div></div><div class="mdlg" id="clrDlg"><div class="box"><h3 class="err">内装情報の一括削除</h3><div>色・型番・ドア上壁紙の設定を削除します。（↶で元に戻せます）</div><div class="bt" style="flex-wrap:wrap"><button id="clrCancel">キャンセル</button><button class="danger" id="clrOne">この部屋だけ削除</button><button class="danger" id="clrAll">全部屋を削除</button></div></div></div><div class="mdlg" id="ldDlg"><div class="box"><h3>今の図面を上書きします</h3><div>別の案件を読み込むと、いま開いている図面<b id="ldCode"></b>は置き換わります。<br>同じ管理番号の調査データなら、図面はそのままで設備仕様だけ更新できます（次の画面で選べます）。</div><div id="ldKeep" style="color:var(--acc)">いまの図面は「案件一覧」に自動で残っています。</div><div id="ldWarn" style="color:#c0392b;font-weight:700">⚠ 管理番号がないため、この図面は案件一覧に残りません。先にファイル保存してください。</div><div class="bt" style="flex-wrap:wrap"><button id="ldCancel">キャンセル</button><button id="ldSave">保存してから読込</button><button class="primary" id="ldGo">上書きして読込</button></div></div></div><div class="mdlg" id="caseDlg"><div class="box" style="max-width:620px;max-height:88vh"><h3>案件一覧<span class="hint" style="font-size:12px;font-weight:400">　管理番号ごとに自動で保存（最後に開いてから90日）</span></h3><input type="text" id="cq" placeholder="管理番号の下4桁・案件名・お客様名・店舗で検索" autocomplete="off" style="font-size:16px;padding:8px;width:100%"><div id="cnote" class="hint" style="font-size:12px"></div><div id="clistBody" style="overflow:auto;max-height:58vh;display:flex;flex-direction:column;gap:6px"></div><div class="bt" style="flex-wrap:wrap;justify-content:space-between"><span><button id="cexp">すべて書き出す（控え）</button> <button id="cimp">控えを読み込む</button><input type="file" id="cimpf" accept=".json,application/json" hidden></span><button id="cclose">閉じる</button></div></div></div><div class="mdlg" id="upDlg"><div class="box"><h3>同じ案件の新しい調査データです</h3><div id="upMsg"></div><div class="bt" style="flex-wrap:wrap"><button id="upCancel">キャンセル</button><button id="upAll">図面も作り直す</button><button id="upDim">設備仕様と部屋の寸法を更新（記号はそのまま）</button><button class="primary" id="upSpec">設備仕様だけ更新（おすすめ）</button></div></div></div><div class="mdlg" id="errDlg" style="z-index:100"><div class="box"><h3 class="err">⚠ 入力エラー</h3><div id="errMsg"></div><div class="bt"><button class="primary" id="errOk">OK</button></div></div></div>
+<script>
+const S=50,VW=1000,VH=800;
+const st=(a)=>a;
+let stairs='';for(let i=-48;i<=48;i+=12)stairs+=`<path d="M-22 ${i}H22" class="s"/>`;
+const T={
+door:{n:'ドア',b:[-23,-46,46,50],g:`<rect x="-22.5" y="-4" width="45" height="8" class="f" stroke="none"/><path d="M-22.5 0V-45M-22.5 -45A45 45 0 0 1 22.5 0" class="s" fill="none"/>`},
+slide:{n:'引戸',b:[-23,-5,46,10],g:`<rect x="-22.5" y="-4" width="45" height="8" class="f" stroke="none"/><rect x="-22.5" y="-4" width="26" height="3.5" class="f s"/><rect x="-3.5" y="0.5" width="26" height="3.5" class="f s"/><path d="M-12 7H12M8 4.5L12 7L8 9.5" class="s" fill="none" stroke-width="1"/>`},
+win:{n:'窓',b:[-31,-5,62,10],g:`<rect x="-30" y="-4" width="60" height="8" class="f s"/><path d="M-30 0H30" class="s"/>`},
+toilet:{n:'トイレ',b:[-14,-22,28,44],g:`<rect x="-11" y="-21" width="22" height="9" rx="2.5" class="f s"/><circle cx="0" cy="-16.5" r="1.6" class="s" fill="none"/><path d="M-10 -12H10C12 -2 11 9 5.5 15Q0 19 -5.5 15C-11 9 -12 -2 -10 -12Z" class="f s"/><path d="M-6.5 -9.5H6.5C8 -1 7 7 3.5 11Q0 13.5 -3.5 11C-7 7 -8 -1 -6.5 -9.5Z" fill="none" class="s" stroke-width="1"/>`},
+bath:{n:'浴槽',b:[-41,-21,82,42],g:`<rect x="-40" y="-20" width="80" height="40" rx="6" class="f s"/><rect x="-34" y="-14" width="68" height="28" rx="12" class="f s"/>`},
+kitchen:{n:'キッチン',b:[-46,-16,92,32],g:`<rect x="-45" y="-15" width="90" height="30" class="f s"/><rect x="-38" y="-9" width="28" height="18" rx="4" class="f s"/><circle cx="18" cy="0" r="7" class="f s"/><circle cx="34" cy="0" r="5" class="f s"/>`},
+bed:{n:'ベッド',b:[-36,-51,72,102],g:`<rect x="-35" y="-50" width="70" height="100" rx="3" class="f s"/><rect x="-28" y="-44" width="56" height="20" rx="5" class="f s"/>`},
+stairs:{n:'階段',b:[-23,-61,46,122],g:`<rect x="-22" y="-60" width="44" height="120" class="f s"/>${stairs}`}
+};
+T.vanity={n:'洗面化粧台',b:[-31,-14,62,28],g:`<rect x="-30" y="-13" width="60" height="26" class="f s"/><ellipse cx="0" cy="1" rx="13" ry="8" class="f s"/><circle cx="0" cy="-8" r="2" class="f s"/>`};
+T.tpholder={n:'紙巻器',b:[-17,-11,34,22],g:`<rect x="-15" y="-9" width="30" height="18" rx="4" class="f s"/><circle cx="-2" cy="0" r="6.5" class="f s"/><circle cx="-2" cy="0" r="2.2" class="s" fill="none"/><path d="M3 6.2Q9 6 11 8" class="s" fill="none"/>`};
+T.alc={n:'アルコールディスペンサー',b:[-12,-15,24,30],g:`<rect x="-5" y="-7" width="10" height="16" rx="2" class="f s"/><path d="M-2 -7V-11H5V-8" class="s" fill="none"/>`};
+T.rail={n:'手すり',b:[-24,-8,48,16],g:`<path d="M-20 0H20" class="s" style="stroke-width:3"/><circle cx="-20" cy="0" r="2.5" class="f s"/><circle cx="20" cy="0" r="2.5" class="f s"/>`};
+const CATS=['建具','トイレ','水回り','家具','部屋の構造物'];
+const CAT={door:'建具',slide:'建具',win:'建具',toilet:['トイレ','水回り'],tpholder:'トイレ',alc:'トイレ',rail:'トイレ',bath:'水回り',kitchen:'水回り',vanity:'水回り',bed:'家具',stairs:'部屋の構造物'};
+const DSC={slide:.9,tpholder:1.5,alc:1.5,rail:1.2};
+let cat='建具',newArm=false,detail=false,dupMode=null,dupFl=0;
+const OPT=['tpholder','alc','rail'];
+const BX=t=>t==='ps'||t==='wall',wallZ=(it,H)=>Math.max(.1,Math.min(H-.02,it.zh?it.zh/1000:H-.02));
+const wallG=(hw,hh)=>`<rect x="${-hw}" y="${-hh}" width="${hw*2}" height="${hh*2}" fill="var(--wall)" fill-opacity=".6" stroke="var(--wall)" stroke-width="1.5"/>`;
+let rooms=[],floors=[{n:'1F',rooms:[]}],fi=0,selR=null,selI=null,uid=1,drag=null,holdT=null;
+const cv=document.getElementById('cv'),panel=document.getElementById('panel');
+const snap=v=>Math.round(v*10)/10, fm=v=>+(+v).toFixed(2);
+floors[0].rooms=rooms;
+const setRooms=v=>{rooms=v;floors[fi].rooms=v;};
+const room=id=>rooms.find(r=>r.id===id);
+
+function addRoom(a){
+  if(lay!=='plan')showLay('plan');
+  const first=a===true&&!rooms.length,n=rooms.length%6, r={id:uid++,x:1,y:1,w:4,h:3,ht:2400,name:'部屋'+(rooms.length+1),items:[]};
+  rooms.push(r);selR=r.id;selI=null;drawPanel();
+  if(first){const ppm=Math.min(.9*wrap.clientWidth/r.w,.8*wrap.clientHeight/r.h);zoom=Math.max(2,Math.min(6,ppm*(VW/S)/B));setSize();wrap.scrollLeft=(wrap.scrollWidth-wrap.clientWidth)/2;wrap.scrollTop=(wrap.scrollHeight-wrap.clientHeight)/2;}
+  const k=VW/(B*zoom)/S,cx=(wrap.scrollLeft+wrap.clientWidth/2)*k,cy=(wrap.scrollTop+wrap.clientHeight/2)*k;
+  r.x=snap(Math.max(.8,Math.min(Math.max(.8,VW/S-r.w),cx-r.w/2+n*.3)));
+  r.y=snap(Math.max(.8,Math.min(Math.max(.8,VH/S-r.h),cy-r.h/2+n*.3)));
+  draw();
+}
+const psG=(hw,hh)=>`<rect x="${-hw}" y="${-hh}" width="${hw*2}" height="${hh*2}" class="f s"/><path d="M${-hw} ${-hh}L${hw} ${hh}M${hw} ${-hh}L${-hw} ${hh}" class="s"/><text y="4" font-size="11" text-anchor="middle" style="paint-order:stroke;stroke:var(--room);stroke-width:3">PS</text>`;
+function draw(ex){
+  let s=ex?'':`<defs><pattern id="g1" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M5 0H0V5" fill="none" stroke="var(--line)" stroke-width=".5" opacity=".7"/></pattern><pattern id="g" width="${S}" height="${S}" patternUnits="userSpaceOnUse"><path d="M${S} 0H0V${S}" fill="none" stroke="var(--line)" stroke-width="1.2"/></pattern></defs><rect width="${VW}" height="${VH}" fill="url(#g1)"/><rect width="${VW}" height="${VH}" fill="url(#g)"/>`;
+  if(!ex&&fi>0)for(const q of floors[fi-1].rooms)s+=`<rect x="${q.x*S}" y="${q.y*S}" width="${q.w*S}" height="${q.h*S}" fill="none" stroke="#b9b3a0" stroke-width="1.5" stroke-dasharray="6 4" pointer-events="none"/><text x="${q.x*S+4}" y="${q.y*S+12}" font-size="9" fill="#b9b3a0" pointer-events="none">${esc(floors[fi-1].n)}</text>`;
+  for(const r of rooms){
+    const sel=!ex&&r.id===selR,W=r.w*S,H=r.h*S;
+    s+=`<g data-g="${r.id}" transform="translate(${r.x*S},${r.y*S})"><rect class="room" data-room="${r.id}" width="${W}" height="${H}" fill="var(--room)" stroke="${sel?'var(--acc)':'var(--wall)'}" stroke-width="${sel?2.5:1.5}"/>`;
+    if(r.wt>0){const wq=r.wt/1000*S;s+=`<path class="room" data-room="${r.id}" fill-rule="evenodd" fill="var(--wall)" fill-opacity=".22" stroke="var(--wall)" stroke-width="1" d="M${-wq} ${-wq}H${W+wq}V${H+wq}H${-wq}Z M0 0V${H}H${W}V0Z"/>`;}
+    s+=planDims(r);
+    for(const it of r.items){
+      const ps=BX(it.t),hw=it.w*S/2,hh=it.h*S/2,oh=it.t==='wall'?Math.max(hh,8):hh,t=ps?{g:it.t==='wall'?wallG(hw,hh):psG(hw,hh),b:[-hw,-oh,hw*2,oh*2]}:T[it.t],b=t.b,isel=!ex&&it.id===selI;
+      s+=`<g class="item" data-room="${r.id}" data-item="${it.id}" transform="${itf(it)}">${t.g}${it.t==='stairs'&&it.under&&it.under!=='solid'?`<text y="4" font-size="9" text-anchor="middle">${it.under==='open'?'階段下OP':'階段下収納'}</text>`:''}<rect class="ol" x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}" fill="transparent" ${isel?'stroke="var(--acc)" stroke-dasharray="4 3" stroke-width="${drag&&drag.o===it&&!drag.hold?4:2}"':''}/></g>`;
+    }
+    s+='</g>';
+  }
+  if(ex)return s;
+  cv.innerHTML=s;drawInfo();persist();if(lay!=='plan')document.getElementById('prev').innerHTML=layerPrev(lay);
+}
+function esc(t){return t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function catBtns(){
+  const ks=Object.keys(T).filter(k=>[].concat(CAT[k]).includes(cat)),mk=k=>`<button${OPT.includes(k)?' class="opt"':''} data-sym="${k}">${T[k].n}</button>`;
+  const main=ks.filter(k=>!OPT.includes(k)).map(mk),opt=ks.filter(k=>OPT.includes(k)).map(mk);
+  if(cat==='部屋の構造物')main.push('<button data-sym="ps">パイプスペース</button>','<button data-sym="wall">壁（サイズ調整可）</button>');
+  if(!opt.length)return main.join('');
+  return `<span class="grp">本体</span>${main.join('')}<span class="grp">オプション品（本体に付ける備品）</span>${opt.join('')}`;
+}
+function itemRow(r){
+  const it=selI&&r.items.find(i=>i.id===selI);if(!it)return '';
+  if(it.t==='wall'){const rv=(Math.round(it.r)%360+360)%360,zh=Math.round(wallZ(it,r.ht/1000)*1000);return `<div class="row"><span class="tag">壁</span><label>長さ<input type="number" id="iw" step="50" min="100" max="5000" value="${Math.round(it.w*1000)}">mm</label><label>厚み<input type="number" id="ih" step="10" min="100" max="5000" value="${Math.round(it.h*1000)}">mm</label><label>高さ<input type="number" id="iz" step="50" min="100" max="${r.ht}" value="${zh}">mm</label></div>
+  <div class="row"><label>長さ</label><input type="range" id="iwr" min="100" max="5000" step="50" value="${Math.round(it.w*1000)}"><label>厚み</label><input type="range" id="ihr" min="100" max="1000" step="10" value="${Math.min(1000,Math.round(it.h*1000))}"></div>
+  <div class="row"><label>回転</label><input type="range" id="rtr" min="0" max="355" step="5" value="${rv}"><label><input type="number" id="rtn" step="5" min="0" max="359" value="${rv}">°</label></div>
+  <div class="row"><button data-act="rotm">↺ 90°</button><button data-act="rot">↻ 90°</button><button data-act="dupitem">複製</button><button class="danger" data-act="delitem">削除</button></div>${detail?posRow(it):''}`;}
+  if(it.t==='ps')return `<div class="row"><label>パイプスペース</label><label>W<input type="number" id="iw" step="50" min="100" max="5000" value="${Math.round(it.w*1000)}">mm</label><label>D<input type="number" id="ih" step="50" min="100" max="5000" value="${Math.round(it.h*1000)}">mm</label><button data-act="dupitem">複製</button><button class="danger" data-act="delitem">削除</button></div>
+  <div class="row"><label>W</label><input type="range" id="iwr" min="100" max="3000" step="50" value="${Math.round(it.w*1000)}"><label>D</label><input type="range" id="ihr" min="100" max="3000" step="50" value="${Math.round(it.h*1000)}"></div>${detail?posRow(it):''}`;
+  const pct=Math.round((it.sc||1)*100);
+  return `${OPT.includes(it.t)?`<div class="row"><span class="tag">オプション品：${T[it.t].n}</span></div>`:''}<div class="row"><label>大きさ</label><input type="range" id="scr" min="20" max="500" step="5" value="${pct}"><label><input type="number" id="sc" step="5" min="20" max="500" value="${pct}">%</label></div>
+  <div class="row"><label>回転</label><input type="range" id="rtr" min="0" max="355" step="5" value="${(Math.round(it.r)%360+360)%360}"><label><input type="number" id="rtn" step="5" min="0" max="359" value="${(Math.round(it.r)%360+360)%360}">°</label></div>
+  ${it.t==='stairs'?`<div class="row"><label>階段下</label>${[['solid','中実'],['open','オープン'],['storage','収納']].map(([v,n])=>`<button class="chip${(it.under||'solid')===v?' on':''}" data-under="${v}">${n}</button>`).join('')}</div>`:''}
+  ${it.t==='door'?`<div class="row"><label>開き</label>${[['in','内開き'],['out','外開き']].map(([v,n])=>{const wl=wallOf(r,it),on=wl&&((swingOut(it,wl)?'out':'in')===v);return `<button class="chip${on?' on':''}" data-sw="${v}">${n}</button>`;}).join('')}<span class="hint" style="font-size:12px">壁に近づけると吸着</span></div>`:''}
+  <div class="row"><button data-act="rotm">↺ 90°</button><button data-act="rot">↻ 90°</button><button data-act="dupitem">複製</button><button class="danger" data-act="delitem">削除</button></div>${detail?detailRows(r,it):''}`;
+}
+function copyRoom(r,same){const c=JSON.parse(JSON.stringify(r));c.id=uid++;c.name=r.name+'コピー';if(same){c.x=snap(Math.min(r.x+.5,Math.max(.8,VW/S-r.w)));c.y=snap(Math.min(r.y+.5,Math.max(.8,VH/S-r.h)));}c.items.forEach(i=>{i.id=uid++;});return c;}
+function dupHTML(r){
+  if(!dupMode)return '';
+  const fb=`<div class="row"><span class="hint" style="font-size:12px">複製先の階</span>${floors.map((f,i)=>`<button class="chip${(dupMode==='item'?i===dupFl:false)?' on':''}" data-dfl="${i}">${esc(f.n)}${i===fi?'（この階）':''}</button>`).join('')}</div>`;
+  const rb=dupMode==='item'?`<div class="row"><span class="hint" style="font-size:12px">複製先の部屋</span>${floors[dupFl].rooms.map(q=>`<button class="chip" data-drm="${q.id}">${esc(q.name)}${q===r?'（この部屋）':''}</button>`).join('')||'<span class="hint">部屋がありません</span>'}</div>`:'';
+  return `<div class="dup"><b style="font-size:13px">${dupMode==='room'?'部屋':'記号'}を複製</b>${fb}${rb}<div class="row"><button data-act="dupcancel">キャンセル</button></div></div>`;
+}
+function posRow(it){return `<div class="row"><label>位置 X<input type="number" id="ix" step="1" value="${Math.round(it.x*1000)}">mm</label><label>Y<input type="number" id="iy" step="1" value="${Math.round(it.y*1000)}">mm</label></div>`;}
+function detailRows(r,it){
+  if(isOp(it.t)){
+    const d=opDims(it,r.ht/1000),wl=wallOf(r,it),hz=wl!=='w'&&wl!=='e';
+    return `<div class="row"><label>${it.t==='door'?'ドア':it.t==='slide'?'引戸':'窓'} W<input type="number" id="dW" step="1" min="100" value="${Math.round(T[it.t].b[2]*(it.sc||1)/S*1000)}">mm</label><label>H<input type="number" id="dH" step="1" min="100" value="${Math.round((d.z1-d.z0)*1000)}">mm</label>${it.t==='win'?`<label>腰高<input type="number" id="dS" step="1" min="0" value="${Math.round(d.z0*1000)}">mm</label>`:''}</div><div class="row"><label>壁沿いの位置<input type="number" id="dP" step="1" value="${Math.round((hz?it.x:it.y)*1000)}">mm</label></div>`;
+  }
+  return posRow(it);
+}
+function opDims(it,H){
+  const door=it.t!=='win',top=Math.min(2,H*.9),z0=door?0:(it.sill!=null?Math.max(0,Math.min(it.sill/1000,H-.1)):Math.min(.9,H*.4));
+  return{z0,z1:Math.min(H,it.dh?z0+it.dh/1000:(door?top:Math.max(z0+.3,top)))};
+}
+const tgRow=()=>`<div class="row"><label class="tg"><input type="checkbox" id="detail"${detail?' checked':''}><i></i>詳細設定</label>${detail?'<span class="hint" style="font-size:12px">寸法を1mm単位で入力できます</span>':''}</div>`;
+let lastSel=null,lastDup=null;
+function panelReveal(el){
+  if(!el)return;
+  const pr=panel.getBoundingClientRect(),er=el.getBoundingClientRect(),m=8;
+  if(er.height+m*2>pr.height||er.top<pr.top)panel.scrollTop+=er.top-pr.top-m;
+  else if(er.bottom>pr.bottom)panel.scrollTop+=er.bottom-pr.bottom+m;
+}
+function autoScroll(){
+  const sel=selI,dm=dupMode,ch=(sel&&sel!==lastSel)||!!dm;
+  lastSel=sel;lastDup=dm;
+  if(!ch)return;
+  requestAnimationFrame(()=>panelReveal(dm?panel.querySelector('.dup'):document.getElementById('itemBox')));
+}
+function drawPanel(){
+  drawInfo();
+  const r=room(selR);
+  if(!r)editId=null;
+  panel.classList.toggle('editing',!!editId);
+  panel.style.top=document.querySelector('header').offsetHeight+'px';
+  if(!r){panel.innerHTML=tgRow()+'<div class="hint">「部屋を追加」を押すか、部屋をタップして選択してください。</div>';return;}
+  panel.innerHTML=`${tgRow()}<div class="row"><label>名前<input type="text" id="nm" value="${esc(r.name)}"></label>
+  <label>W<input type="number" id="w" step="${detail?1:100}" min="500" max="20000" value="${Math.round(r.w*1000)}">mm</label>
+  <label>D<input type="number" id="h" step="${detail?1:100}" min="500" max="16000" value="${Math.round(r.h*1000)}">mm</label>
+  <label>H<input type="number" id="ht" step="${detail?1:100}" min="500" max="10000" value="${r.ht}">mm</label>
+  <button data-act="duproom">複製</button><button class="danger" data-act="delroom">部屋を削除</button></div>
+  ${detail?`<div class="row"><label>壁厚<input type="number" id="wt" step="1" min="0" max="600" value="${r.wt||0}">mm</label><span class="hint" style="font-size:12px">内寸の外側に壁を足します</span></div><div class="row hint keep" id="ar" style="font-size:13px;line-height:1.7;color:var(--fg)">${areaHTML(r)}</div><div class="row"><label>部屋位置 X<input type="number" id="rx" step="1" value="${Math.round(r.x*1000)}">mm</label><label>Y<input type="number" id="ry" step="1" value="${Math.round(r.y*1000)}">mm</label></div>`:''}
+  <div class="row">${CATS.map(c=>`<button class="chip${c===cat?' on':''}" data-cat="${c}">${c}</button>`).join('')}</div>
+  <div class="row">${catBtns()}</div>
+  <div id="itemBox">${itemRow(r)}</div>${dupHTML(r)}`;
+  {const ee=editId&&document.getElementById(editId),rw=ee&&ee.closest('.row');if(rw)rw.classList.add('cur');}
+  autoScroll();
+}
+panel.addEventListener('input',e=>{
+  if(e.target.id==='detail'){detail=e.target.checked;persist();drawPanel();return;}
+  const r=room(selR);if(!r)return;
+  if(e.target.id==='nm')r.name=e.target.value;
+  else if(e.target.id==='w'&&+e.target.value>=500)r.w=Math.min(20,+e.target.value/1000);
+  else if(e.target.id==='h'&&+e.target.value>=500)r.h=Math.min(16,+e.target.value/1000);
+  else if(e.target.id==='ht'&&+e.target.value>=500)r.ht=Math.min(10000,Math.round(+e.target.value));
+  else if(e.target.id==='wt'){if(e.target.value!==''&&+e.target.value>=0&&+e.target.value<=600)r.wt=Math.round(+e.target.value);}
+  else if(e.target.id==='rx'||e.target.id==='ry'){if(e.target.value!==''&&!isNaN(+e.target.value))r[e.target.id==='rx'?'x':'y']=+e.target.value/1000;}
+  else if(['dW','dH','dS','dP','ix','iy'].includes(e.target.id)){
+    const it=r.items.find(i=>i.id===selI),id=e.target.id,v=+e.target.value;
+    if(it&&e.target.value!==''&&!isNaN(v)){
+      if(id==='dW'){if(v>=100)it.sc=(v/1000)*S/T[it.t].b[2];}
+      else if(id==='dH'){if(v>=100)it.dh=v;}
+      else if(id==='dS'){if(v>=0)it.sill=v;}
+      else if(id==='dP'){const wl=wallOf(r,it);if(wl==='w'||wl==='e')it.y=v/1000;else it.x=v/1000;}
+      else if(id==='ix')it.x=v/1000;
+      else it.y=v/1000;
+    }
+  }
+  else if(e.target.id==='rtr'||e.target.id==='rtn'){
+    const it=r.items.find(i=>i.id===selI),v=+e.target.value;
+    if(it&&e.target.value!==''&&!isNaN(v)){it.r=((Math.round(v)%360)+360)%360;delete it.sw;document.getElementById(e.target.id==='rtr'?'rtn':'rtr').value=it.r;}
+  }
+  else if(['sc','scr','iw','ih','iwr','ihr','iz'].includes(e.target.id)){
+    const it=r.items.find(i=>i.id===selI),id=e.target.id,v=+e.target.value,gi=x=>document.getElementById(x);
+    if(it&&v>0){
+      if(id==='iz'){if(v>=100)it.zh=Math.min(v,r.ht);}
+      else if(id==='sc'||id==='scr'){if(v>=20){it.sc=Math.min(5,v/100);const pct=Math.round(it.sc*100);gi(id==='scr'?'sc':'scr').value=pct;}}
+      else if(v>=100){const m=Math.min(5,v/1000),isW=id==='iw'||id==='iwr';if(isW)it.w=m;else it.h=m;gi(isW?(id==='iw'?'iwr':'iw'):(id==='ih'?'ihr':'ih')).value=Math.round(m*1000);}
+    }
+  }
+  const arEl=document.getElementById('ar');if(arEl)arEl.innerHTML=areaHTML(r);
+  draw();
+});
+panel.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.cat){cat=b.dataset.cat;drawPanel();return;}
+  const r=room(selR);if(!r)return;
+  if(b.dataset.sym){const it={id:uid++,t:b.dataset.sym,x:snap(r.w/2),y:snap(r.h/2),r:0,sc:BX(b.dataset.sym)?1:(DSC[b.dataset.sym]||.7),w:b.dataset.sym==='wall'?1.8:.6,h:b.dataset.sym==='wall'?.1:.6};r.items.push(it);selI=it.id;}
+  else if(b.dataset.act==='delroom'){setRooms(rooms.filter(x=>x!==r));selR=selI=null;}
+  else if(b.dataset.act==='rot'){const it=r.items.find(i=>i.id===selI);if(it){it.r=(it.r+90)%360;delete it.sw;}}
+  else if(b.dataset.act==='rotm'){const it=r.items.find(i=>i.id===selI);if(it){it.r=(it.r+270)%360;delete it.sw;}}
+  else if(b.dataset.under){const it=r.items.find(i=>i.id===selI);if(it)it.under=b.dataset.under;}
+  else if(b.dataset.act==='delitem'){r.items=r.items.filter(i=>i.id!==selI);selI=null;}
+  else if(b.dataset.act==='duproom'){
+    if(floors.length>1){dupMode='room';dupFl=fi;}
+    else{const c=copyRoom(r,false);rooms.push(c);selR=c.id;selI=null;}
+  }
+  else if(b.dataset.dfl!==undefined&&dupMode==='room'){
+    const k=+b.dataset.dfl,same=k===fi,c=copyRoom(r,same);dupMode=null;
+    if(same){rooms.push(c);selR=c.id;selI=null;}
+    else{floors[k].rooms.push(c);say(floors[k].n+'に複製しました');}
+  }
+  else if(b.dataset.dfl!==undefined&&dupMode==='item'){dupFl=+b.dataset.dfl;}
+  else if(b.dataset.drm){
+    const it=r.items.find(i=>i.id===selI),t=floors[dupFl].rooms.find(q=>q.id===+b.dataset.drm);
+    if(it&&t){const c=Object.assign({},it);c.id=uid++;dupMode=null;
+      if(t===r){const wl=isOp(it.t)?wallOf(r,it):null;if(wl==='n'||wl==='s')c.x=fm(Math.min(r.w,it.x+.6));else if(wl)c.y=fm(Math.min(r.h,it.y+.6));else{c.x=fm(it.x+.3);c.y=fm(it.y+.3);}r.items.push(c);selI=c.id;}
+      else{c.x=fm(Math.min(t.w,Math.max(0,it.x)));c.y=fm(Math.min(t.h,Math.max(0,it.y)));t.items.push(c);say(floors[dupFl].n+'「'+t.name+'」に複製しました');}
+    }
+  }
+  else if(b.dataset.act==='dupcancel'){dupMode=null;}
+  else if(b.dataset.act==='dupitem'&&floors.length>1){dupMode='item';dupFl=fi;}
+  else if(b.dataset.act==='dupitem'){
+    const it=r.items.find(i=>i.id===selI);
+    if(it){const c=Object.assign({},it),wl=isOp(it.t)?wallOf(r,it):null;c.id=uid++;
+      if(wl==='n'||wl==='s')c.x=fm(Math.min(r.w,it.x+.6));else if(wl)c.y=fm(Math.min(r.h,it.y+.6));else{c.x=fm(it.x+.3);c.y=fm(it.y+.3);}
+      r.items.push(c);selI=c.id;}
+  }
+  else if(b.dataset.sw){const it=r.items.find(i=>i.id===selI),wl=it&&wallOf(r,it);if(wl){it.sw=b.dataset.sw;it.r=IB[wl]+(b.dataset.sw==='out'?180:0);}else say('壁の近くに置いてください');}
+  draw();drawPanel();
+});
+document.getElementById('add').onclick=addRoom;
+
+function pt(e){const b=cv.getBoundingClientRect(),k=VW/b.width;return{x:(e.clientX-b.left)*k,y:(e.clientY-b.top)*k};}
+cv.addEventListener('pointerdown',e=>{
+  dupMode=null;lastPE=e;
+  const it=e.target.closest('[data-item]'),rm=e.target.closest('[data-room]'),p=pt(e);
+  if(rm){
+    stopEdit();if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+    const r=room(+rm.dataset.room);selR=r.id;
+    if(it){selI=+it.dataset.item;const o=r.items.find(i=>i.id===selI),hold=e.pointerType!=='mouse';drag={o,r,p,x:o.x,y:o.y,item:true,hold,cx:e.clientX,cy:e.clientY};clearTimeout(holdT);if(hold)holdT=setTimeout(()=>{if(drag&&drag.o===o&&drag.hold){drag.hold=false;if(navigator.vibrate)navigator.vibrate(15);setPanelHid(true);if(lastPE)drag.p=pt(lastPE);drag.x=drag.o.x;drag.y=drag.o.y;markSel();}},350);}
+    else{selI=null;drag={o:r,r,p,x:r.x,y:r.y,cx:e.clientX,cy:e.clientY};}
+  }else{selR=selI=null;drag=null;}
+  markSel();drawPanel();
+});
+window.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  if(drag.hold){if(Math.hypot(e.clientX-drag.cx,e.clientY-drag.cy)>10){clearTimeout(holdT);drag=null;}return;}
+  lastPE=e;
+  if(drag.item&&Math.hypot(e.clientX-drag.cx,e.clientY-drag.cy)>6)setPanelHid(true);
+  dragTo(e);
+});
+function setPanelHid(on){panel.classList.toggle('hid',on);}
+let lastPE=null;
+function dragTo(e){
+  if(!drag||drag.hold)return;
+  const p=pt(e),dx=(p.x-drag.p.x)/S,dy=(p.y-drag.p.y)/S,{o,r}=drag;
+  if(drag.item){o.x=snap(Math.min(VW/S-r.x,Math.max(-r.x,drag.x+dx)));o.y=snap(Math.min(VH/S-r.y,Math.max(-r.y,drag.y+dy)));assist(drag);}
+  else{o.x=snap(Math.max(.8,Math.min(Math.max(.8,VW/S-r.w),drag.x+dx)));o.y=snap(Math.max(.8,Math.min(Math.max(.8,VH/S-r.h),drag.y+dy)));}
+  moveEl();
+}
+setInterval(()=>{
+  if(!drag||drag.hold||!lastPE)return;
+  if(!(Math.hypot(lastPE.clientX-drag.cx,lastPE.clientY-drag.cy)>=24))return;
+  const q=wrap.getBoundingClientRect(),x=lastPE.clientX,y=lastPE.clientY,m=28,v=10;
+  const ed=(a,lo,hi)=>a<lo+m?-v*Math.min(1,(lo+m-a)/m):a>hi-m?v*Math.min(1,(a-(hi-m))/m):0;
+  const sx=ed(x,q.left,q.right),sy=ed(y,q.top,q.bottom);
+  if(!sx&&!sy)return;
+  wrap.scrollLeft+=sx;wrap.scrollTop+=sy;dragTo(lastPE);
+},40);
+const itf=it=>`translate(${it.x*S},${it.y*S}) rotate(${it.r}) scale(${(it.sc||1)*(it.t==='ps'?1:1)})`;
+function moveEl(){
+  if(!drag)return;
+  const g=drag.item?cv.querySelector(`[data-item="${drag.o.id}"]`):cv.querySelector(`[data-g="${drag.o.id}"]`);
+  if(g)g.setAttribute('transform',drag.item?itf(drag.o):`translate(${drag.o.x*S},${drag.o.y*S})`);
+}
+function markSel(){
+  cv.querySelectorAll('[data-g]').forEach(g=>{const rr=g.querySelector('.room'),sel=+g.dataset.g===selR;rr.setAttribute('stroke',sel?'var(--acc)':'var(--wall)');rr.setAttribute('stroke-width',sel?2.5:1.5);});
+  cv.querySelectorAll('.ol').forEach(o=>{
+    if(+o.parentNode.dataset.item===selI){o.setAttribute('stroke','var(--acc)');o.setAttribute('stroke-dasharray','4 3');o.setAttribute('stroke-width',drag&&drag.o&&drag.o.id===selI&&!drag.hold?4:2);}
+    else{o.removeAttribute('stroke');o.removeAttribute('stroke-dasharray');o.removeAttribute('stroke-width');}
+  });
+  drawInfo();
+}
+function drawFloors(){
+  document.getElementById('fl').innerHTML='<span class="hint" style="font-size:12px">階</span>'+floors.map((f,i)=>`<button class="chip${i===fi?' on':''}" data-fl="${i}">${esc(f.n)}</button>`).join('')+'<button class="chip" data-fladd="1">＋階</button>'+(floors.length>1?'<button class="chip" data-fldel="1">この階を削除</button>':'');
+}
+function switchFl(i){
+  if(i<0||i>=floors.length)return;
+  floors[fi].rooms=rooms;fi=i;rooms=floors[fi].rooms;selR=selI=null;stopEdit();dupMode=null;
+  draw();drawPanel();centerPlan();
+}
+document.getElementById('fl').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.fl!==undefined)switchFl(+b.dataset.fl);
+  else if(b.dataset.fladd){floors.push({n:(Math.max(0,...floors.map(f=>parseInt(f.n)||0))+1)+'F',rooms:[]});switchFl(floors.length-1);}
+  else if(b.dataset.fldel){if(rooms.length){say('先に部屋を削除してください');return;}floors.splice(fi,1);fi=Math.min(fi,floors.length-1);rooms=floors[fi].rooms;selR=selI=null;draw();drawPanel();centerPlan();}
+});
+function drawInfo(){
+  drawFloors();
+  const el=document.getElementById('info');
+  el.innerHTML=(rooms.length?rooms.map(r=>`<span data-rid="${r.id}" class="${r.id===selR?'sel':''}">${esc(r.name)}　H ${r.ht}mm</span>`).join(''):'<span class="hint" style="border:0">部屋なし</span>')+`<span data-new="1" style="${newArm?'color:#c0392b;border-color:#c0392b':''}">${newArm?'本当に消す？':'新規作成'}</span>`;
+}
+document.getElementById('info').addEventListener('click',e=>{
+  if(e.target.closest('[data-new]')){
+    if(!newArm){newArm=true;drawInfo();setTimeout(()=>{newArm=false;drawInfo();},3000);}
+    else{newArm=false;saveCaseNow();caseKey=null;floors=[{n:'1F',rooms:[]}];fi=0;rooms=floors[0].rooms;selR=selI=null;CASE=null;ZREV={rev:0,hash:''};Object.keys(META).forEach(k=>META[k]='');metaSync();draw();drawPanel();try{localStorage.removeItem(KEY);}catch(err){}}
+    return;
+  }
+  const c=e.target.closest('[data-rid]');if(!c)return;selR=+c.dataset.rid;selI=null;markSel();drawPanel();refreshPrev();});
+function assist(d){
+  const o=d.o,r=d.r,ax=r.x+o.x,ay=r.y+o.y,TH=.12;
+  const t=[...rooms].reverse().find(q=>ax>=q.x&&ax<=q.x+q.w&&ay>=q.y&&ay<=q.y+q.h)||r;
+  const cx=t.x+t.w/2,cy=t.y+t.h/2,gx=Math.abs(ax-cx)<TH,gy=Math.abs(ay-cy)<TH;
+  if(gx)o.x=cx-r.x;
+  if(gy)o.y=cy-r.y;
+  let sw=null;
+  if(isOp(o.t)){
+    const lx=r.x+o.x-t.x,ly=r.y+o.y-t.y,dd={n:ly,w:lx,s:t.h-ly,e:t.w-lx},wh=(t.wt||0)/2000;
+    let k=null;for(const q of ['n','w','s','e'])if(dd[q]<.35&&(k===null||dd[q]<dd[k]))k=q;
+    if(k){
+      const out=o.sw==='out';
+      if(k==='n')o.y=t.y-wh-r.y;else if(k==='s')o.y=t.y+t.h+wh-r.y;else if(k==='w')o.x=t.x-wh-r.x;else o.x=t.x+t.w+wh-r.x;
+      o.r=IB[k]+(out?180:0);sw=k;
+    }
+  }
+  cv.querySelectorAll('.guide').forEach(e=>e.remove());
+  const g=cv.querySelector(`[data-g="${t.id}"]`);if(!g)return;
+  const ln=(x1,y1,x2,y2)=>`<line class="guide" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--acc)" stroke-dasharray="6 4" stroke-width="1.5" pointer-events="none"/>`;
+  if(gx&&sw!=='w'&&sw!=='e')g.insertAdjacentHTML('beforeend',ln(t.w*S/2,0,t.w*S/2,t.h*S));
+  if(gy&&sw!=='n'&&sw!=='s')g.insertAdjacentHTML('beforeend',ln(0,t.h*S/2,t.w*S,t.h*S/2));
+}
+function endDrag(drop){
+  clearTimeout(holdT);const wasHid=panel.classList.contains('hid');setPanelHid(false);cv.querySelectorAll('.guide').forEach(e=>e.remove());persist();
+  const d=drag;drag=null;
+  if(drop&&d&&d.item&&!d.hold){
+    const o=d.o,r=d.r,ax=r.x+o.x,ay=r.y+o.y;
+    const t=[...rooms].reverse().find(q=>{const m=.05+(q.wt||0)/2000;return ax>=q.x-m&&ax<=q.x+q.w+m&&ay>=q.y-m&&ay<=q.y+q.h+m;});
+    if(t&&t!==r){r.items=r.items.filter(i=>i!==o);o.x=+(ax-t.x).toFixed(4);o.y=+(ay-t.y).toFixed(4);t.items.push(o);selR=t.id;draw();drawPanel();}
+  }
+  if(wasHid&&d&&d.o){
+    const el=cv.querySelector(`[data-item="${d.o.id}"]`);
+    if(el){const q=wrap.getBoundingClientRect(),e=el.getBoundingClientRect();
+      if(e.bottom>q.bottom-12)wrap.scrollTop+=e.bottom-q.bottom+24;
+      else if(e.top<q.top+12)wrap.scrollTop-=q.top-e.top+24;}
+  }
+}
+window.addEventListener('pointerup',()=>endDrag(true));window.addEventListener('pointercancel',()=>endDrag(false));
+const LIGHT={'--room':'#fffdf7','--fg':'#222','--wall':'#333','--acc':'#2b6cb0','--line':'#e2dfd6','--sha':'#e6e1d3','--shb':'#cfc9b7','--card':'#fff'};
+const msg=document.getElementById('msg');
+function say(t){msg.textContent=t;setTimeout(()=>{msg.textContent='寸法はmm・細線100/太線1000'},3000);}
+const $=id=>document.getElementById(id);
+const sheetEl=$('sheet'),sheetBody=$('sheetBody'),sm=$('smsg');
+let sheetSvg='',sheetPf=1,sheetSize=[0,0],sheetDw=1,sheetOri='land',sheetPaper='A4',sheetScale=0,sheetFi=0,sheetLay={plan:true,front:true,fin:true},sheetRid=null,sv={z:1,x:0,y:0};
+function sayS(t){sm.textContent=t;setTimeout(()=>{sm.textContent=''},3000);}
+let lay='plan',lsl=0,lst=0;
+function dimSVG(x1,y1,x2,y2,nx,ny,off,txt,fs=9){
+  const ax=x1+nx*off,ay=y1+ny*off,bx=x2+nx*off,by=y2+ny*off,dx=bx-ax,dy=by-ay,len=Math.hypot(dx,dy)||1,tx=dx/len,ty=dy/len;
+  const ln=(a,b,c,d,w=.6)=>`<line x1="${a.toFixed(1)}" y1="${b.toFixed(1)}" x2="${c.toFixed(1)}" y2="${d.toFixed(1)}" stroke="var(--fg)" stroke-width="${w}"/>`;
+  let o=ln(x1+nx*2,y1+ny*2,ax+nx*3,ay+ny*3)+ln(x2+nx*2,y2+ny*2,bx+nx*3,by+ny*3)+ln(ax,ay,bx,by);
+  const vx=(tx-ty)*.7071*3.5,vy=(tx+ty)*.7071*3.5;
+  o+=ln(ax-vx,ay-vy,ax+vx,ay+vy,1.2)+ln(bx-vx,by-vy,bx+vx,by+vy,1.2);
+  let ang=Math.atan2(dy,dx)*180/Math.PI;if(ang>=90)ang-=180;if(ang<-90)ang+=180;
+  return o+`<text transform="translate(${((ax+bx)/2).toFixed(1)} ${((ay+by)/2).toFixed(1)}) rotate(${ang.toFixed(1)})" y="-2.5" font-size="${fs}" text-anchor="middle" fill="var(--fg)">${txt}</text>`;
+}
+function planDims(r){
+  const W=r.w*S,H=r.h*S,iv={n:[],s:[],w:[],e:[]},e=(r.wt||0)/1000*S;
+  for(const it of (detail?r.items:[])){
+    if(!isOp(it.t))continue;
+    const k=wallOf(r,it);if(!k)continue;
+    const wd=T[it.t].b[2]*(it.sc||1)/S,hz=k==='n'||k==='s',c=hz?it.x:it.y,len=hz?r.w:r.h;
+    iv[k].push([Math.max(0,c-wd/2),Math.min(len,c+wd/2)]);
+  }
+  const pts=k=>{const len=(k==='n'||k==='s')?r.w:r.h,a=iv[k].sort((p,q)=>p[0]-q[0]),o=[0];for(const [x,y] of a)o.push(x,y);o.push(len);for(let i=1;i<o.length;i++)if(o[i]<o[i-1])o[i]=o[i-1];return o;};
+  let g='';
+  const geo={n:(a,b)=>[a*S,0,b*S,0,0,-1],s:(a,b)=>[a*S,H,b*S,H,0,1],w:(a,b)=>[0,a*S,0,b*S,-1,0],e:(a,b)=>[W,a*S,W,b*S,1,0]};
+  for(const k of ['n','s','w','e']){
+    if(!iv[k].length)continue;
+    const o=pts(k);
+    for(let i=0;i<o.length-1;i++){const d=o[i+1]-o[i];if(d<.02)continue;const q=geo[k](o[i],o[i+1]);g+=dimSVG(q[0],q[1],q[2],q[3],q[4],q[5],16+e,Math.round(d*1000));}
+  }
+  g+=dimSVG(0,0,W,0,0,-1,(iv.n.length?32:16)+e,Math.round(r.w*1000));
+  g+=dimSVG(0,0,0,H,-1,0,(iv.w.length?32:16)+e,Math.round(r.h*1000));
+  return `<g pointer-events="none">${g}</g>`;
+}
+const PL=(a,f,x='',sw=1)=>`<polygon points="${a.map(p=>p.join(',')).join(' ')}" fill="${f}" stroke="var(--wall)" stroke-width="${sw}" stroke-linejoin="round" ${x}/>`;
+const FT='var(--room)',FX='var(--sha)',FY='var(--shb)';
+let north=0;
+const CARD=['北','東','南','西'];
+const wallCard=id=>CARD[Math.round((((({wN:0,wE:90,wS:180,wW:270})[id]-north)%360)+360)%360/90)%4];
+const FACES=[['ceil','天井'],['wN','北壁'],['wE','東壁'],['wS','南壁'],['wW','西壁'],['door','ドア上壁紙'],['base','巾木'],['floor','床']];
+const FN=Object.fromEntries(FACES);
+const PAL=['#ffffff','#f3ead7','#e8d9bd','#d9c8a9','#e9e4d8','#cfd8dc','#b0bec5','#c8d5b9','#f4c7c3','#f3dfa2','#b7c9e2','#9e9e9e','#5d4037','#37474f'];
+let finFace='wN';
+function finGet(r,k){
+  const f=r.fin||{};let v=f[k];
+  if(typeof v==='string')v={m:v,c:''};
+  if(!v&&k.length===2&&k[0]==='w'&&typeof f.wall==='string')v={m:f.wall,c:''};
+  return Object.assign({m:'',c:''},v||{});
+}
+function finSet(r,k,p){r.fin=r.fin||{};r.fin[k]=Object.assign(finGet(r,k),p);}
+function shd(h,k){const m=/^#([0-9a-f]{6})$/i.exec(h||'');if(!m)return h;const n=parseInt(m[1],16);return '#'+[(n>>16)&255,(n>>8)&255,n&255].map(v=>Math.max(0,Math.min(255,Math.round(v*k))).toString(16).padStart(2,'0')).join('');}
+const finRoom=()=>room(selR)||rooms[0];
+function box3(P,x0,y0,x1,y1,z0,z1,ft=FT,fx=FX,fy=FY){
+  return PL([P(x1,y0,z0),P(x1,y1,z0),P(x1,y1,z1),P(x1,y0,z1)],fx)+PL([P(x0,y1,z0),P(x1,y1,z0),P(x1,y1,z1),P(x0,y1,z1)],fy)+PL([P(x0,y0,z1),P(x1,y0,z1),P(x1,y1,z1),P(x0,y1,z1)],ft);
+}
+function prism(P,pts,z0,z1,ft){
+  const n=pts.length,cx=pts.reduce((a,p)=>a+p[0],0)/n,cy=pts.reduce((a,p)=>a+p[1],0)/n;let g='';
+  for(let i=0;i<n;i++){
+    const a=pts[i],b=pts[(i+1)%n];let nx=b[1]-a[1],ny=a[0]-b[0];
+    if(nx*((a[0]+b[0])/2-cx)+ny*((a[1]+b[1])/2-cy)<0){nx=-nx;ny=-ny;}
+    if(nx+ny>1e-6)g+=PL([P(a[0],a[1],z0),P(b[0],b[1],z0),P(b[0],b[1],z1),P(a[0],a[1],z1)],Math.abs(nx)>Math.abs(ny)?FX:FY);
+  }
+  return g+PL(pts.map(p=>P(p[0],p[1],z1)),ft);
+}
+function rect(ax,ay,x0,y0,x1,y1,deg){const c=Math.cos(deg*Math.PI/180),s=Math.sin(deg*Math.PI/180);return[[x0,y0],[x1,y0],[x1,y1],[x0,y1]].map(([x,y])=>[ax+x*c-y*s,ay+x*s+y*c]);}
+const HZ={toilet:[0,.4],bath:[0,.55],kitchen:[0,.85],vanity:[0,.8],bed:[0,.45],tpholder:[.6,.7],alc:[1,1.2],rail:[.8,.85]};
+function itemPrims(r,H){
+  const out=[];
+  for(const it of r.items){
+    const ax=r.x+it.x,ay=r.y+it.y;
+    if(isOp(it.t))continue;
+    if(BX(it.t)){out.push({pts:rect(ax,ay,-it.w/2,-it.h/2,it.w/2,it.h/2,it.t==='wall'?it.r:0),z0:0,z1:it.t==='wall'?wallZ(it,H):Math.max(.1,H-.02),ft:FT});continue;}
+    const b=T[it.t].b,k=(it.sc||1)/S;
+    if(it.t==='stairs'){
+      const n=10,y0=b[1]*k,dy=b[3]*k/n,rise=Math.min(.2,Math.max(.05,(H-.2)/n)),open=it.under==='open';
+      for(let i=0;i<n;i++){const z1=rise*(i+1);out.push({pts:rect(ax,ay,b[0]*k,y0+i*dy,(b[0]+b[2])*k,y0+(i+1)*dy,it.r),z0:open?Math.max(0,z1-.05):0,z1,ft:'var(--card)'});}
+      continue;
+    }
+    if(it.t==='toilet'){
+      const cs=Math.cos(it.r*Math.PI/180),sn=Math.sin(it.r*Math.PI/180),R=pts=>pts.map(([x,y])=>{const X=x*k,Y=y*k;return[ax+X*cs-Y*sn,ay+X*sn+Y*cs];});
+      const bowl=[[-10,-12],[10,-12],[10,-2]];for(let a=1;a<6;a++){const t=a*Math.PI/6;bowl.push([10*Math.cos(t),-2+17*Math.sin(t)]);}bowl.push([-10,-2]);
+      const hole=[];for(let a=0;a<12;a++){const t=a*Math.PI/6;hole.push([6.2*Math.cos(t),2.5+10*Math.sin(t)]);}
+      out.push({pts:R([[-5.5,-11],[5.5,-11],[5.5,6],[-5.5,6]]),z0:0,z1:.3,ft:'var(--card)'});
+      out.push({pts:R(bowl),z0:.3,z1:.42,ft:'var(--card)',top:[{pts:R(hole),z:.425,fill:'var(--shb)'}]});
+      out.push({pts:R([[-10,-21],[10,-21],[10,-12],[-10,-12]]),z0:.3,z1:.82,ft:'var(--card)',top:[{pts:R([[-1.6,-17.6],[1.6,-17.6],[1.6,-15.4],[-1.6,-15.4]]),z:.825,fill:'var(--shb)'}]});
+      continue;
+    }
+    const hz=HZ[it.t]||[0,.5];
+    out.push({pts:rect(ax,ay,b[0]*k,b[1]*k,(b[0]+b[2])*k,(b[1]+b[3])*k,it.r),z0:hz[0],z1:hz[1],ft:'var(--card)'});
+  }
+  const kk=p=>p.pts.reduce((a,q)=>a+q[0]+q[1],0)/p.pts.length;
+  return out.sort((a,b)=>kk(a)-kk(b)||a.z1-b.z1);
+}
+const isOp=t=>t==='door'||t==='slide'||t==='win';
+const IB={n:180,s:0,w:90,e:270};
+const swingOut=(it,k)=>!!k&&(it.sw?it.sw==='out':((((it.r||0)-IB[k])%360)+360)%360===180);
+const area=r=>{const m=r.w*r.h;return{m,j:m/1.62,t:m/3.305785};};
+function areaHTML(r){
+  const a=area(r),tot=rooms.reduce((q,x)=>q+x.w*x.h,0);
+  return `<b>${a.m.toFixed(2)}㎡</b>　${a.j.toFixed(1)}畳　<b>${a.t.toFixed(2)}坪</b>${r.wt>0?`<br>壁芯 ${Math.round(r.w*1000+r.wt)} × ${Math.round(r.h*1000+r.wt)} mm`:''}${rooms.length>1?`<br>全体合計 ${tot.toFixed(2)}㎡ / ${(tot/1.62).toFixed(1)}畳 / ${(tot/3.305785).toFixed(2)}坪`:''}`;
+}
+function wallOf(r,it){
+  const d={n:it.y,w:it.x,s:r.h-it.y,e:r.w-it.x};let best=null;
+  for(const k of ['n','w','s','e'])if(d[k]<.45&&(!best||d[k]<d[best]))best=k;
+  return best;
+}
+function wallQuad(P,r,it,wall,z0,z1,ins=0){
+  const b=T[it.t].b,w=b[2]*(it.sc||1)/S-ins*2,ax=r.x+it.x,ay=r.y+it.y,X1=r.x+r.w,Y1=r.y+r.h,x0=ax-w/2,x1=ax+w/2,y0=ay-w/2,y1=ay+w/2;
+  return wall==='n'?[P(x0,r.y,z0),P(x1,r.y,z0),P(x1,r.y,z1),P(x0,r.y,z1)]
+    :wall==='s'?[P(x0,Y1,z0),P(x1,Y1,z0),P(x1,Y1,z1),P(x0,Y1,z1)]
+    :wall==='w'?[P(r.x,y0,z0),P(r.x,y1,z0),P(r.x,y1,z1),P(r.x,y0,z1)]
+    :[P(X1,y0,z0),P(X1,y1,z0),P(X1,y1,z1),P(X1,y0,z1)];
+}
+function doorSVG(P,r,it,wall,H){
+  const zt=opDims(it,H).z1,m=swingOut(it,wall)?-1:1,w=T.door.b[2]*(it.sc||1)/S,ax=r.x+it.x,ay=r.y+it.y,X1=r.x+r.w,Y1=r.y+r.h;
+  const ns=wall==='n'||wall==='s',hx=ns?ax-w/2:(wall==='w'?r.x:X1),hy=ns?(wall==='n'?r.y:Y1):ay-w/2,pts=[];
+  for(let i=0;i<=8;i++){const a=i/8*Math.PI/2,c=w*Math.cos(a),s=m*w*Math.sin(a);pts.push(wall==='n'?[hx+c,hy+s]:wall==='s'?[hx+c,hy-s]:wall==='w'?[hx+s,hy+c]:[hx-s,hy+c]);}
+  const end=pts[8];
+  const floor=`<polyline points="${pts.map(p=>P(p[0],p[1],0).join(',')).join(' ')}" fill="none" stroke="var(--wall)" stroke-width=".8" stroke-dasharray="4 3"/><polyline points="${P(hx,hy,0).join(',')} ${P(end[0],end[1],0).join(',')}" fill="none" stroke="var(--wall)" stroke-width="2"/>`;
+  const kn=wall==='n'?P(ax+w/2-.1,r.y,1):wall==='s'?P(ax+w/2-.1,Y1,1):wall==='w'?P(r.x,ay+w/2-.1,1):P(X1,ay+w/2-.1,1);
+  const frame=PL(wallQuad(P,r,it,wall,0,zt),'var(--card)','',2)+PL(wallQuad(P,r,it,wall,.06,zt-.1,.06),'none','',.7)+`<circle cx="${kn[0]}" cy="${kn[1]}" r="2.4" fill="var(--fg)"/>`;
+  return{floor,frame};
+}
+function stairDoor(P,r,it,H){
+  const b=T.stairs.b,k=(it.sc||1)/S,ax=r.x+it.x,ay=r.y+it.y,c=rect(ax,ay,b[0]*k,b[1]*k,(b[0]+b[2])*k,(b[1]+b[3])*k,it.r);
+  const n=10,hh=Math.min(.2,Math.max(.05,(H-.2)/n))*n,mx=(c[0][0]+c[2][0])/2,my=(c[0][1]+c[2][1])/2;
+  const cand=[[c[2],c[3],.15,.85,Math.min(1.6,hh*.8)],[c[1],c[2],.55,.95,.85],[c[0],c[3],.55,.95,.85]];
+  for(const [A,B,s0,s1,zz] of cand){
+    let nx=B[1]-A[1],ny=A[0]-B[0];
+    if(nx*((A[0]+B[0])/2-mx)+ny*((A[1]+B[1])/2-my)<0){nx=-nx;ny=-ny;}
+    if(nx+ny<=1e-6)continue;
+    const p=s=>[A[0]+(B[0]-A[0])*s,A[1]+(B[1]-A[1])*s],a=p(s0),e=p(s1),kp=p(s1-.07),kq=P(kp[0],kp[1],zz*.5),cm=p((s0+s1)/2),cq=P(cm[0],cm[1],zz*.5);
+    return PL([P(a[0],a[1],0),P(e[0],e[1],0),P(e[0],e[1],zz),P(a[0],a[1],zz)],'var(--card)','',1.5)+`<circle cx="${kq[0]}" cy="${kq[1]}" r="2" fill="var(--fg)"/><text x="${cq[0]}" y="${cq[1]}" font-size="8" text-anchor="middle">収納</text>`;
+  }
+  return '';
+}
+function isoGen(r,opt={}){
+  const xs=[],ys=[],t=r.wt>0?r.wt/1000:.12;
+  const P=(x,y,z)=>{const p=[Math.round((x-y)*.866*S*10)/10,Math.round(((x+y)*.5-z)*S*10)/10];xs.push(p[0]);ys.push(p[1]);return p;};
+  const H=r.ht/1000,x0=r.x,y0=r.y,x1=r.x+r.w,y1=r.y+r.h,cx=r.x+r.w/2,cy=r.y+r.h/2,zt=Math.min(2,H*.9);
+  const G=k=>finGet(r,k),cN=G('wN').c,cW=G('wW').c,bc=G('base').c||'var(--card)';
+  let g=box3(P,x0,y0,x1,y1,-.15,0,G('floor').c||FT);
+  g+=box3(P,x0-t,y0-t,x1,y0,0,H,FT,FX,cN?shd(cN,.9):FY)+box3(P,x0-t,y0,x0,y1,0,H,FT,cW?shd(cW,1):FX,FY);
+  g+=PL([P(x0,y0,0),P(x1,y0,0),P(x1,y0,.09),P(x0,y0,.09)],bc,'',.6)+PL([P(x0,y0,0),P(x0,y1,0),P(x0,y1,.09),P(x0,y0,.09)],bc,'',.6);
+  let late='',dd=null;
+  for(const it of r.items){
+    if(!isOp(it.t))continue;
+    const w=wallOf(r,it),back=w==='n'||w==='w';
+    if(!w){g+=`<g transform="matrix(.866 .5 -.866 .5 0 0) translate(${r.x*S} ${r.y*S})"><g transform="${itf(it)}">${T[it.t].g}</g></g>`;continue;}
+    if(it.t==='door'){const d=doorSVG(P,r,it,w,H);g+=d.floor;if(back)g+=d.frame;else late+=d.frame;if(!dd)dd={it,w};}
+    else if(it.t==='slide'){
+      const od=opDims(it,H),Q=wallQuad(P,r,it,w,od.z0,od.z1),lp=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
+      const q=PL(Q,'var(--card)','',2)+PL([Q[0],lp(Q[0],Q[1],.55),lp(Q[3],Q[2],.55),Q[3]],'var(--acc)','fill-opacity=".22"',.8)+PL([lp(Q[0],Q[1],.45),Q[1],Q[2],lp(Q[3],Q[2],.45)],'var(--acc)','fill-opacity=".14"',.8);
+      if(back)g+=q;else late+=q;if(!dd)dd={it,w};
+    }
+    else{const od=opDims(it,H),q=PL(wallQuad(P,r,it,w,od.z0,od.z1),'var(--acc)','fill-opacity=".3"');if(back)g+=q;else late+=q;}
+  }
+  const dc=G('door').c,fx=r.x+r.w*.3;
+  const showD=r.dshow!==false,bandQ=dd?wallQuad(P,r,dd.it,dd.w,opDims(dd.it,H).z1,H):null;
+  if(dd&&showD&&(dc||opt.edit)){const b=PL(bandQ,dc||'var(--acc)',dc?'':'fill-opacity=".25" stroke-dasharray="3 2"');if(!dd||dd.w==='n'||dd.w==='w')g+=b;else late+=b;}
+  for(const p of itemPrims(r,H)){g+=prism(P,p.pts,p.z0,p.z1,p.ft);if(p.top)for(const t of p.top)g+=PL(t.pts.map(q=>P(q[0],q[1],t.z)),t.fill,'',.8);}
+  for(const it of r.items)if(it.t==='stairs'&&it.under==='storage')g+=stairDoor(P,r,it,H);
+  g+=late;
+  const q={floor:[P(x0,y0,0),P(x1,y0,0),P(x1,y1,0),P(x0,y1,0)],ceil:[P(x0,y0,H),P(x1,y0,H),P(x1,y1,H),P(x0,y1,H)],
+    wN:[P(x0,y0,0),P(x1,y0,0),P(x1,y0,H),P(x0,y0,H)],wW:[P(x0,y0,0),P(x0,y1,0),P(x0,y1,H),P(x0,y0,H)],
+    wS:[P(x0,y1,0),P(x1,y1,0),P(x1,y1,H),P(x0,y1,H)],wE:[P(x1,y0,0),P(x1,y1,0),P(x1,y1,H),P(x1,y0,H)]};
+  const gh=(k,def)=>{const c=G(k).c;return(c||opt.edit)?PL(q[k],c||def,`fill-opacity="${c?.4:.12}" stroke-dasharray="4 3"`,.8):'';};
+  g+=gh('wS','var(--sha)')+gh('wE','var(--sha)')+gh('ceil','var(--acc)');
+  const bq=[[P(x0,y0,0),P(x1,y0,0),P(x1,y0,.09),P(x0,y0,.09)],[P(x0,y0,0),P(x0,y1,0),P(x0,y1,.09),P(x0,y0,.09)]];
+  if(opt.edit)for(const k of ['floor','ceil','wS','wE','wN','wW','door','base']){
+    const sel=k===finFace;
+    for(const pq of k==='door'?(dd&&showD?[bandQ]:[]):k==='base'?bq:[q[k]])g+=`<polygon data-face="${k}" points="${pq.map(a=>a.join(',')).join(' ')}" fill="${sel?'var(--acc)':'transparent'}" fill-opacity=".14" stroke="${sel?'var(--acc)':'none'}" stroke-width="2.5" style="cursor:pointer"/>`;
+  }
+  const zm=((dd?opDims(dd.it,H).z1:zt)+H)/2,df=dd?(dd.w==='n'?P(r.x+dd.it.x,y0,zm):dd.w==='w'?P(x0,r.y+dd.it.y,zm):dd.w==='s'?P(r.x+dd.it.x,y1,zm):P(x1,r.y+dd.it.y,zm)):P(fx,y0,zm);
+  const anch={ceil:P(cx,cy,H),wN:P(r.x+r.w*.55,y0,H*.5),wW:P(x0,r.y+r.h*.55,H*.5),wS:P(cx,y1,H*.5),wE:P(x1,cy,H*.5),door:df,base:P(r.x+r.w*.8,y0,.045),floor:P(cx,cy,0)};
+  const mg=opt.edit?8:30;
+  return{g,anch,dband:!!dd&&showD,bb:[Math.min(...xs)-mg,Math.min(...ys)-mg-50,Math.max(...xs)+mg,Math.max(...ys)+mg]};
+}
+const cut=(t,n)=>t.length>n?t.slice(0,n-1)+'…':t;
+function finView(r,opt={}){
+  const o=isoGen(r,opt),b=o.bb,A=o.anch,LW=140,LH=20,list=[];
+  if(opt.edit){const f=finGet(r,finFace);if(finFace!=='door'||o.dband)list.push({k:finFace,t:`${FN[finFace]}：${f.m||'型番未入力'}`,c:f.c});}
+  else for(const [k,nm] of FACES){const f=finGet(r,k);if(k==='door'&&!o.dband)continue;if(f.m)list.push({k,t:`${nm} ${f.m}`,c:f.c});}
+  const mx=(b[0]+b[2])/2,Ls=[],Rs=[];
+  for(const it of list)(A[it.k][0]<mx?Ls:Rs).push(it);
+  let g=o.g+'<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="var(--acc)"/></marker></defs>',y1=b[3];
+  const place=(arr,left)=>{
+    arr.sort((p,q)=>A[p.k][1]-A[q.k][1]);let last=b[1]-LH;
+    for(const it of arr){
+      const a=A[it.k],y=opt.edit?b[3]-LH-6:Math.max(a[1]-LH/2,last+LH+4),x=opt.edit?(left?b[0]+4:b[2]-LW-4):(left?b[0]-LW-10:b[2]+10);last=y;y1=Math.max(y1,y+LH);
+      g+=`<line x1="${left?x+LW:x}" y1="${y+LH/2}" x2="${a[0]}" y2="${a[1]}" stroke="var(--acc)" stroke-width="1.2" marker-end="url(#ah)"/><rect x="${x}" y="${y}" width="${LW}" height="${LH}" rx="3" fill="var(--card)" stroke="var(--acc)"/>`;
+      if(it.c)g+=`<rect x="${x+4}" y="${y+5}" width="10" height="10" fill="${it.c}" stroke="var(--wall)" stroke-width=".6"/>`;
+      g+=`<text x="${x+(it.c?18:6)}" y="${y+14}" font-size="10">${esc(cut(it.t,it.c?12:13))}</text>`;
+    }
+  };
+  place(Ls,true);place(Rs,false);
+  {
+    const cx=b[2]-42,cy=b[1]+30,L=20,dirs=[0,1,2,3].map(k=>{const th=(k*90+north)*Math.PI/180,dx=Math.sin(th),dy=-Math.cos(th);return[CARD[k],(dx-dy)*.866,(dx+dy)*.5,k===0?1:0];});
+    let c=`<g pointer-events="none"><ellipse cx="${cx}" cy="${cy}" rx="${L*1.15}" ry="${L*.66}" fill="var(--card)" fill-opacity=".85" stroke="var(--line)" stroke-width="1"/>`;
+    for(const [t,sx,sy,n] of dirs){
+      const vx=sx*L,vy=sy*L,ex=cx+vx,ey=cy+vy,tx=cx+vx*1.62,ty=cy+vy*1.62+3.5;
+      if(n){const ux=vx/Math.hypot(vx,vy),uy=vy/Math.hypot(vx,vy);c+=`<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="var(--acc)" stroke-width="2"/><path d="M${ex+ux*5} ${ey+uy*5}L${ex-uy*3.2-ux*2} ${ey+ux*3.2-uy*2}L${ex+uy*3.2-ux*2} ${ey-ux*3.2-uy*2}Z" fill="var(--acc)"/>`;}
+      else c+=`<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="var(--fg)" stroke-width="1"/>`;
+      c+=`<text x="${tx}" y="${ty}" font-size="${n?12:10}" font-weight="${n?800:600}" text-anchor="middle" fill="${n?'var(--acc)':'var(--fg)'}" style="paint-order:stroke;stroke:var(--room);stroke-width:2.5px">${t}</text>`;
+    }
+    g+=c+'</g>';
+  }
+  if(opt.edit)return{g,bb:[b[0],b[1]-4,b[2],b[3]+4]};
+  return{g,bb:[Ls.length?b[0]-LW-14:b[0],b[1]-4,Rs.length?b[2]+LW+14:b[2],y1+4]};
+}
+const WALLS=[['wN','北壁','n'],['wE','東壁','e'],['wS','南壁','s'],['wW','西壁','w']];
+function compassPlan(a,R){
+  let o=`<circle r="${R}" fill="var(--card)" fill-opacity=".9" stroke="var(--line)"/>`;
+  for(let k=0;k<4;k++){
+    const th=(k*90+a)*Math.PI/180,dx=Math.sin(th),dy=-Math.cos(th),px=-dy,py=dx;
+    if(k===0)o+=`<line x1="0" y1="0" x2="${dx*R*.8}" y2="${dy*R*.8}" stroke="var(--acc)" stroke-width="2.2"/><path d="M${dx*R*.95} ${dy*R*.95}L${dx*R*.5+px*R*.2} ${dy*R*.5+py*R*.2}L${dx*R*.5-px*R*.2} ${dy*R*.5-py*R*.2}Z" fill="var(--acc)"/>`;
+    else o+=`<line x1="0" y1="0" x2="${dx*R*.7}" y2="${dy*R*.7}" stroke="var(--fg)" stroke-width="1"/>`;
+    o+=`<text x="${dx*R*1.38}" y="${dy*R*1.38+3.5}" font-size="${k===0?12:9.5}" font-weight="${k===0?800:600}" text-anchor="middle" fill="${k===0?'var(--acc)':'var(--fg)'}">${CARD[k]}</text>`;
+  }
+  return o;
+}
+function applyNorth(){for(const f of FACES)if(/^w[NESW]$/.test(f[0]))f[1]=wallCard(f[0])+'壁';for(const w of WALLS)w[1]=wallCard(w[0])+'壁';}
+let frontWall='wN';
+function wallElev(r,k,nm,wl){
+  const H=r.ht/1000,HH=H*S,hz=wl==='n'||wl==='s',len=hz?r.w:r.h,L=len*S,f=finGet(r,k),bs=finGet(r,'base'),dc=finGet(r,'door').c,fs=9,mm=v=>Math.round(v*1000);
+  let g=`<rect x="0" y="${-HH}" width="${L}" height="${HH}" fill="${f.c||'var(--room)'}" stroke="var(--wall)" stroke-width="1.2"/><rect x="0" y="${-.09*S}" width="${L}" height="${.09*S}" fill="${bs.c||'var(--card)'}" stroke="var(--wall)" stroke-width=".6"/>`;
+  g+=`<path d="M-10 0H${L+10}M0 ${-HH}H${L}" stroke="var(--fg)" stroke-width="2"/><text x="${L+4}" y="${-HH+3}" font-size="7">CH</text><text x="${L+4}" y="-2" font-size="7">FL</text>`;
+  g+=`<text x="0" y="${-HH-12}" font-size="11" font-weight="600">${nm}</text>`;
+  if(f.c||f.m){const tx=nm.length*12+8;g+=(f.c?`<rect x="${tx}" y="${-HH-20}" width="9" height="9" fill="${f.c}" stroke="var(--wall)" stroke-width=".6"/>`:'')+`<text x="${tx+(f.c?13:0)}" y="${-HH-12}" font-size="9">${esc(f.m||'')}</text>`;}
+  const ops=[],labs=[];
+  for(const it of r.items){
+    if(it.t==='stairs')continue;
+    const d={n:it.y,s:r.h-it.y,w:it.x,e:r.w-it.x}[wl],pos=wl==='n'?it.x:wl==='e'?it.y:wl==='s'?r.w-it.x:r.h-it.y;
+    if(isOp(it.t)){
+      if(wallOf(r,it)!==wl)continue;
+      const w=T[it.t].b[2]*(it.sc||1)/S,od=opDims(it,H);
+      ops.push({it,a:Math.max(0,pos-w/2),b:Math.min(len,pos+w/2),z0:od.z0,z1:od.z1});continue;
+    }
+    let ext,z0=0,z1=.5,nmI;
+    if(it.t==='wall'){const c0=Math.abs(Math.cos(it.r*Math.PI/180)),s0=Math.abs(Math.sin(it.r*Math.PI/180)),pd=hz?it.w*s0+it.h*c0:it.w*c0+it.h*s0;if(d-pd/2>.3)continue;ext=hz?it.w*c0+it.h*s0:it.w*s0+it.h*c0;z1=wallZ(it,H);nmI='壁';}
+    else if(it.t==='ps'){if(d>.5)continue;ext=hz?it.w:it.h;z1=Math.max(.1,H-.02);nmI='PS';}
+    else{
+      if(d>.75)continue;
+      const b=T[it.t].b,bw=b[2]*(it.sc||1)/S,bd=b[3]*(it.sc||1)/S,c=Math.abs(Math.cos(it.r*Math.PI/180)),sn=Math.abs(Math.sin(it.r*Math.PI/180));
+      ext=hz?bw*c+bd*sn:bw*sn+bd*c;const h=HZ[it.t]||[0,.5];z0=h[0];z1=h[1];nmI=T[it.t].n;
+    }
+    const x0=(pos-ext/2)*S,cxp=pos*S,wpx=ext*S,hpx=(z1-z0)*S,sf='fill="var(--acc)" fill-opacity=".16" stroke="var(--fg)" stroke-width="1.5" stroke-linejoin="round"',sf2='fill="none" stroke="var(--fg)" stroke-width="1" stroke-linecap="round"';
+    let topY=-z1*S;
+    if(it.t==='toilet'){
+      const w=Math.max(wpx,20),bw=w*1.0,tw=w*.86,h4=.4*S,h8=.8*S;topY=-h8;
+      g+=`<path d="M${cxp-bw*.3} 0H${cxp+bw*.3}L${cxp+bw*.42} ${-h4+5}H${cxp-bw*.42}Z" ${sf}/><rect x="${cxp-bw/2}" y="${-h4-3}" width="${bw}" height="8" rx="4" ${sf}/><rect x="${cxp-tw/2}" y="${-h8}" width="${tw}" height="${h8-h4-3}" rx="3" ${sf}/><path d="M${cxp-tw/2} ${-h8+4}H${cxp+tw/2}" ${sf2}/><circle cx="${cxp}" cy="${-h8+2}" r="1.6" fill="var(--fg)"/>`;
+    }else if(it.t==='wall'){
+      g+=`<rect x="${x0}" y="${-z1*S}" width="${wpx}" height="${hpx}" fill="var(--wall)" fill-opacity=".45" stroke="var(--fg)" stroke-width="1.5"/>`;
+    }else if(it.t==='ps'){
+      g+=`<rect x="${x0}" y="${-z1*S}" width="${wpx}" height="${hpx}" ${sf}/><path d="M${x0} ${-z1*S}L${x0+wpx} ${-z0*S}M${x0+wpx} ${-z1*S}L${x0} ${-z0*S}" ${sf2}/>`;
+    }else{
+      const mn=OPT.includes(it.t)?13:10,mw=Math.max(wpx,mn),mh=Math.max(hpx,mn),mx=cxp-mw/2,my=-(z0+z1)/2*S-mh/2;topY=my;
+      if(it.t==='tpholder')g+=`<rect x="${mx}" y="${my}" width="${mw}" height="${mh}" rx="2" ${sf}/><circle cx="${cxp}" cy="${my+mh/2}" r="${Math.max(2,mh*.28)}" ${sf2}/>`;
+      else if(it.t==='alc')g+=`<rect x="${mx}" y="${my}" width="${mw}" height="${mh}" rx="2" ${sf}/><path d="M${cxp-mw*.2} ${my+mh}V${my+mh+3}H${cxp+mw*.2}V${my+mh}" ${sf2}/>`;
+      else if(it.t==='rail')g+=`<rect x="${x0}" y="${my}" width="${Math.max(wpx,18)}" height="${Math.max(mh,5)}" rx="2.5" ${sf}/><path d="M${x0+3} ${my+Math.max(mh,5)}V${my+Math.max(mh,5)+4}M${x0+Math.max(wpx,18)-3} ${my+Math.max(mh,5)}V${my+Math.max(mh,5)+4}" ${sf2}/>`;
+      else g+=`<rect x="${mx}" y="${my}" width="${mw}" height="${mh}" ${sf}/>`;
+    }
+    if(!BX(it.t)&&!OPT.includes(it.t))labs.push({x:cxp,top:topY,txt:nmI+(z0>.01&&it.t!=='toilet'?' FL+'+mm(z0):'')});
+  }
+  labs.sort((a,b)=>a.x-b.x);
+  const lv=[];let lg='';
+  labs.forEach(q=>{
+    const hw=[...q.txt].reduce((w,c)=>w+(/[ -~]/.test(c)?5:9),0)/2+3;
+    let n=0;while(lv.some(o=>o.n===n&&Math.abs(o.x-q.x)<o.hw+hw))n++;
+    lv.push({n,x:q.x,hw});
+    const ly=Math.max(-HH+9,q.top-7-n*11);
+    lg+=`<path d="M${q.x} ${q.top-1}V${ly+2}" stroke="var(--fg)" stroke-width=".6"/><text x="${q.x}" y="${ly}" font-size="8.5" font-weight="600" text-anchor="middle" style="paint-order:stroke;stroke:var(--room);stroke-width:3px;stroke-linejoin:round">${esc(q.txt)}</text>`;
+  });
+  ops.sort((p,q)=>p.a-q.a);
+  for(const o of ops){
+    const ox=o.a*S,ow=(o.b-o.a)*S,top=-o.z1*S,hh=(o.z1-o.z0)*S;
+    if(o.it.t==='slide'){
+      const pw=ow*.55;
+      g+=`<rect x="${ox}" y="${top}" width="${ow}" height="${hh}" fill="var(--card)" stroke="var(--wall)" stroke-width="1.5"/><rect x="${ox+2}" y="${top+2}" width="${pw}" height="${hh-4}" fill="var(--acc)" fill-opacity=".22" stroke="var(--wall)" stroke-width="1"/><rect x="${ox+ow-pw-2}" y="${top+2}" width="${pw}" height="${hh-4}" fill="var(--acc)" fill-opacity=".1" stroke="var(--wall)" stroke-width="1"/><path d="M${ox+ow*.3} ${top+hh/2}H${ox+ow*.7}M${ox+ow*.7-4} ${top+hh/2-3}L${ox+ow*.7} ${top+hh/2}L${ox+ow*.7-4} ${top+hh/2+3}" fill="none" stroke="var(--fg)" stroke-width="1"/>`;
+      if(r.dshow!==false&&H>o.z1+.02)g+=`<rect x="${ox}" y="${-HH}" width="${ow}" height="${(H-o.z1)*S}" fill="${dc||'none'}" ${dc?'':'stroke-dasharray="3 2"'} stroke="var(--wall)" stroke-width=".6"/>`;
+    }else if(o.it.t==='door'){
+      g+=`<rect x="${ox}" y="${top}" width="${ow}" height="${hh}" fill="var(--card)" stroke="var(--wall)" stroke-width="1.2"/><rect x="${ox+3}" y="${top+3}" width="${ow-6}" height="${hh-6}" fill="none" stroke="var(--wall)" stroke-width=".6"/><path d="M${ox+ow-3} ${top+3}L${ox+3} ${top+hh/2}L${ox+ow-3} ${top+hh-3}" fill="none" stroke="var(--wall)" stroke-width=".5" stroke-dasharray="3 2"/><circle cx="${ox+ow-6}" cy="${-S}" r="1.8" fill="var(--fg)"/>`;
+      if(r.dshow!==false&&H>o.z1+.02)g+=`<rect x="${ox}" y="${-HH}" width="${ow}" height="${(H-o.z1)*S}" fill="${dc||'none'}" ${dc?'':'stroke-dasharray="3 2"'} stroke="var(--wall)" stroke-width=".6"/>`;
+    }else g+=`<rect x="${ox}" y="${top}" width="${ow}" height="${hh}" fill="var(--acc)" fill-opacity=".3" stroke="var(--wall)" stroke-width="1.2"/><path d="M${ox+ow/2} ${top}V${top+hh}M${ox} ${top+hh/2}H${ox+ow}" stroke="var(--wall)" stroke-width=".5"/>`;
+    if(detail)g+=dimSVG(o.b*S,-o.z0*S,o.b*S,top,1,0,8,mm(o.z1-o.z0),fs);
+    if(detail&&o.z0>.01)g+=dimSVG(o.a*S,0,o.a*S,-o.z0*S,-1,0,8,mm(o.z0),fs);
+  }
+  g+=lg;
+  const pts=[0];for(const o of ops)pts.push(o.a,o.b);pts.push(len);for(let i=1;i<pts.length;i++)if(pts[i]<pts[i-1])pts[i]=pts[i-1];
+  if(detail&&ops.length)for(let i=0;i<pts.length-1;i++){const d=pts[i+1]-pts[i];if(d>=.02)g+=dimSVG(pts[i]*S,0,pts[i+1]*S,0,0,1,14,mm(d),fs);}
+  g+=dimSVG(0,0,L,0,0,1,detail&&ops.length?28:14,mm(len),fs);
+  g+=dimSVG(0,0,0,-HH,-1,0,22,r.ht,fs);
+  return g;
+}
+function frontGen(r,mode){
+  const HH=r.ht/1000*S,row=mode==='row',grid=mode==='grid'||mode==='all'||row,sel=WALLS.filter(w=>grid||w[0]===mode),cell=Math.max(r.w,r.h)*S+92,rowH=HH+104;
+  let g='',xs=[0],ys=[-HH-56,56];
+  let cx=0;
+  sel.forEach((w,i)=>{
+    const L=((w[2]==='n'||w[2]==='s')?r.w:r.h)*S,X=row?cx:grid?(i%2)*cell:0,Y=row?0:grid?Math.floor(i/2)*rowH:0;cx+=L+(row?78:0);
+    g+=`<g transform="translate(${X} ${Y})">${wallElev(r,w[0],w[1],w[2])}</g>`;
+    xs.push(X+L+26,X-48);ys.push(Y+56,Y-HH-56);
+  });
+  if(row||mode==='grid')g=g.replace(/font-size="(7|9|11)"/g,(m,n)=>`font-size="${{7:11,9:13,11:15}[n]}"`);
+  return{g,bb:[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)]};
+}
+function finChips(r){return FACES.map(([k,nm])=>{const f=finGet(r,k);return `<button class="chip${k===finFace?' on':''}" data-face="${k}"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle;border:1px solid var(--line);background:${f.c||'transparent'}"></span>${nm}</button>`;}).join('');}
+let finZ=1,finHide={c:false,e:true,t:true};
+function applyTop(){document.body.classList.toggle('tophide',lay==='fin'&&finHide.t);}
+function finSvg(r){const o=finView(r,{edit:true}),b=o.bb;return `<svg viewBox="${b[0]} ${b[1]} ${b[2]-b[0]} ${b[3]-b[1]}" style="width:${finZ*100}%;height:${finZ*100}%;display:block">${o.g}</svg>`;}
+function finEd(r){
+  const f=finGet(r,finFace),w=finFace.length===2&&finFace[0]==='w',hasD=r.items.some(i=>i.t==='door'||i.t==='slide');
+  return `<div class="row"><label class="tg"><input type="checkbox" id="finDshow"${r.dshow!==false?' checked':''}><i></i>ドア上壁紙を表示</label><span class="hint" style="font-size:12px">${hasD?'ドアの位置に自動で連動':'ドアを置くと表示されます'}</span></div>`+`<div class="row"><label>${FN[finFace]}の色</label>${PAL.map(c=>`<button class="sw" data-col="${c}" style="background:${c}"></button>`).join('')}<input type="color" id="finCol" value="${f.c||'#ffffff'}" style="width:40px;height:30px;padding:0"><button data-col="">色なし</button>${w?'<button data-wall4="1">壁4面に同色・同品番</button>':''}</div><div class="row"><label>型番<input type="text" id="finM" value="${esc(f.m)}" placeholder="型番を入力" style="width:180px"></label><button class="danger" data-fclr="1">内装情報を一括削除</button></div>`;
+}
+function layerPrev(k){
+  if(!rooms.length)return '<div class="hint" style="padding:12px">部屋がありません</div>';
+  const r=finRoom();
+  if(k==='front'){
+    const o=frontGen(r,frontWall),b=o.bb,chips=[...WALLS.map(w=>[w[0],w[1]]),['all','全て']].map(([v,n])=>`<button class="chip${v===frontWall?' on':''}" data-fw="${v}">${n}</button>`).join('');
+    return `<div style="display:flex;flex-direction:column;height:100%;gap:6px"><div class="row" style="flex:none">${chips}</div><div class="hint" style="font-size:12px;flex:none">正面図：${esc(r.name)}　単位mm（上の部屋の表示欄で切り替え）</div><svg viewBox="${b[0]} ${b[1]} ${b[2]-b[0]} ${b[3]-b[1]}" style="flex:1;min-height:0;width:100%;display:block">${o.g}</svg></div>`;
+  }
+  return `<div id="finWrap" class="${finHide.c?'hc ':''}${finHide.e?'he':''}" style="display:flex;flex-direction:column;height:100%;gap:6px"><div class="row" style="flex:none;gap:6px">${[['t','上部'],['c','面の選択'],['e','色・型番']].map(([k,n])=>`<button class="chip${finHide[k]?'':' on'}" data-fold="${k}">${n} ${finHide[k]?'▸':'▾'}</button>`).join('')}<button data-fsheet="1" class="chip">保存</button><input type="range" id="fz" min="50" max="300" step="5" value="${Math.round(finZ*200)}" style="width:80px" title="倍率"></div>${rooms.length>1?`<div class="row" style="flex:none;gap:6px"><span class="hint" style="font-size:12px">部屋</span>${rooms.map(q=>`<button class="chip${q===r?' on':''}" data-frm="${q.id}">${esc(q.name)}</button>`).join('')}</div>`:''}<div id="finChips" class="row" style="flex:none">${finChips(r)}</div><div id="finSvg" style="flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch">${finSvg(r)}</div><div id="finEd" style="flex:none;display:flex;flex-direction:column;gap:6px">${finEd(r)}</div></div>`;
+}
+function refreshPrev(){if(lay!=='plan')document.getElementById('prev').innerHTML=layerPrev(lay);}
+function finPart(){const r=finRoom();if(!r)return;document.getElementById('finSvg').innerHTML=finSvg(r);document.getElementById('finChips').innerHTML=finChips(r);}
+function finCol(c){const r=finRoom();if(!r)return;finSet(r,finFace,{c});persist();const i=document.getElementById('finCol');if(i)i.value=c||'#ffffff';finPart();}
+document.getElementById('prev').addEventListener('click',e=>{
+  const fw=e.target.closest('[data-fw]');if(fw){frontWall=fw.dataset.fw;refreshPrev();return;}
+  const fd=e.target.closest('[data-fold]');if(fd){finHide[fd.dataset.fold]=!finHide[fd.dataset.fold];applyTop();refreshPrev();return;}
+  if(e.target.closest('[data-fsheet]')){document.getElementById('dl').click();return;}
+  const fm=e.target.closest('[data-frm]');if(fm){selR=+fm.dataset.frm;selI=null;drawInfo();refreshPrev();return;}
+  const f=e.target.closest('[data-face]');if(f){finFace=f.dataset.face;if(f.tagName.toLowerCase()==='polygon')finHide.e=false;refreshPrev();return;}
+  const c=e.target.closest('[data-col]');if(c){finCol(c.dataset.col);return;}
+  if(e.target.closest('[data-wall4]')){const r=finRoom();if(!r)return;const g0=finGet(r,finFace);for(const k of ['wN','wE','wS','wW'])finSet(r,k,{c:g0.c,m:g0.m});persist();refreshPrev();return;}
+  if(e.target.closest('[data-fclr]')){document.getElementById('clrDlg').classList.add('on');return;}
+});
+document.getElementById('prev').addEventListener('input',e=>{
+  const r=finRoom();if(!r)return;
+  if(e.target.id==='fz'){setFinZ(+e.target.value/200);syncZs();return;}
+  if(e.target.id==='finM'){finSet(r,finFace,{m:e.target.value});persist();finPart();}
+  else if(e.target.id==='finCol')finCol(e.target.value);
+  else if(e.target.id==='finDshow'){r.dshow=e.target.checked;persist();finPart();}
+});
+function showLay(k){
+  if(lay==='plan'){lsl=wrap.scrollLeft;lst=wrap.scrollTop;}
+  lay=k;
+  document.querySelectorAll('#tabs [data-lay]').forEach(b=>b.classList.toggle('on',b.dataset.lay===k));
+  const pv=document.getElementById('prev');
+  if(k==='plan'){pv.style.display='none';panel.style.display='';wrap.style.display='';document.getElementById('wbox').style.display='';centerPlan();}
+  else{stopEdit();wrap.style.display='none';document.getElementById('wbox').style.display='none';panel.style.display='none';pv.style.display='block';pv.innerHTML=layerPrev(k);}
+  applyTop();syncZs();
+}
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-lay]');if(b)showLay(b.dataset.lay);});
+const sheetRoom=()=>room(sheetRid)||room(selR)||rooms[0];
+// 設備仕様表（現地調査アプリのデータから）：2列に「項目　内容」を並べる
+// 文字数で折り返す（切らない）
+const wrapC=(t,n)=>{t=String(t||'');const o=[];for(let i=0;i<t.length;i+=n)o.push(t.slice(i,i+n));return o.length?o:[''];};
+function specLayout(aw,land){
+  if(!CASE||!CASE.spec)return{h:0};
+  const fs=land?14:12,rh=24,lh=fs+4,cw=aw/2,lab=land?190:150,chars=Math.max(6,Math.floor((cw-lab-12)/(fs*1.02))),wchars=Math.floor((aw-20)/(fs*1.02));
+  const blocks=(CASE.spec.blocks||[]).filter(b=>b.rows&&b.rows.length).map(b=>{const pairs=[];
+    for(let i=0;i<b.rows.length;i+=2){const p=[b.rows[i],b.rows[i+1]].filter(Boolean).map(r=>({r,ls:wrapC(r[1],chars)}));pairs.push({p,h:rh+(Math.max(...p.map(x=>x.ls.length))-1)*lh});}
+    return {title:b.title,pairs};});
+  const warns=(CASE.spec.warns||[]).map(w=>wrapC('・'+w,wchars));
+  let h=40+(warns.length?rh+warns.reduce((q,w)=>q+w.length*lh+6,0)+8:0);
+  blocks.forEach(b=>{h+=rh+4+b.pairs.reduce((q,p)=>q+p.h,0)+10;});
+  return{h:h+10,fs,rh,lh,cw,lab,chars,blocks,warns};
+}
+function specSVG(L,x0,y0){
+  const cutc=(t,n)=>{t=String(t||'');return t.length>n?t.slice(0,n-1)+'…':t;};
+  let o=`<text x="${x0}" y="${y0-10}" font-size="18" font-weight="700">設備仕様（現地調査報告 第${CASE.rev||1}版より）</text>`,y=y0+4;
+  const aw=L.cw*2;
+  if(L.warns.length){
+    o+=`<rect x="${x0}" y="${y}" width="${aw}" height="${L.rh}" fill="#c0392b"/><text x="${x0+8}" y="${y+17}" font-size="${L.fs}" font-weight="700" fill="#fff">注意事項（工事前に要確認）</text>`;y+=L.rh+4;
+    L.warns.forEach(ls=>{ls.forEach((l,k)=>{o+=`<text x="${x0+8+(k?14:0)}" y="${y+14+k*L.lh}" font-size="${L.fs}" fill="#c0392b">${esc(l)}</text>`;});y+=ls.length*L.lh+6;});y+=8;
+  }
+  L.blocks.forEach(b=>{
+    o+=`<rect x="${x0}" y="${y}" width="${aw}" height="${L.rh}" fill="#2c3a4b"/><text x="${x0+8}" y="${y+17}" font-size="${L.fs}" font-weight="700" fill="#fff">【${esc(b.title)}】</text>`;y+=L.rh+4;
+    b.pairs.forEach(pr=>{
+      pr.p.forEach(({r,ls},j)=>{const x=x0+j*L.cw;
+        o+=`<rect x="${x}" y="${y}" width="${L.cw}" height="${pr.h}" fill="${r[2]?'#fdf0ee':'none'}" stroke="#bbb" stroke-width=".8"/><text x="${x+6}" y="${y+17}" font-size="${L.fs-1}" font-weight="700" fill="#4a525c">${esc(cutc(r[0],Math.floor(L.lab/(L.fs*.95))))}</text>`;
+        ls.forEach((l,k)=>{o+=`<text x="${x+L.lab}" y="${y+17+k*L.lh}" font-size="${L.fs}"${r[2]?' fill="#c0392b" font-weight="700"':''}>${esc(l)}</text>`;});});
+      y+=pr.h;
+    });
+    y+=10;
+  });
+  return o;
+}
+function sheetBuild(){
+  const land=sheetOri==='land',pad=40,top=124,rh=34,gap=10,sr=sheetRoom();
+  const multi=floors.filter(f=>f.rooms.length).length>1,grp0=multi?floors.filter(f=>f.rooms.length):[{n:'',rooms}],W=land?1200:849,th=(2+grp0.reduce((q,f)=>q+f.rooms.length,0))*rh,rhs0=land?46:54,pf=sheetPaper==='A3'?420/297:1;let over=false,nTxt='';
+  const hasFin=rooms.some(r=>FACES.some(([k])=>{const f=finGet(r,k);return f.m||f.c;})),th2=hasFin?rh+rhs0*rooms.length+40:0;
+  const SP=specLayout(W-pad*2,land),th3=SP.h;
+  const ord=CASE&&CASE.spec,H=Math.max(land?849:1200,top+(ord?(land?430:560):(land?260:340))+30+th+th2+th3+50);
+  const aw=W-pad*2,ty=H-th-th2-th3-50,ph=ty-30-top,X=pad,Y=top;
+  const L=['plan','front','fin'].filter(k=>sheetLay[k]),names={plan:'平面図',front:'正面図',fin:'内装指定'},n=L.length;
+  let fr;
+  if(n===1)fr=[[L[0],X,Y,aw,ph]];
+  else if(n===2){const wt={plan:1,fin:1.5,front:.8},a=wt[L[0]],b=wt[L[1]];if(land){const w=(aw-gap)*a/(a+b);fr=[[L[0],X,Y,w,ph],[L[1],X+w+gap,Y,aw-gap-w,ph]];}else{const h=(ph-gap)*a/(a+b);fr=[[L[0],X,Y,aw,h],[L[1],X,Y+h+gap,aw,ph-gap-h]];}}
+  else if(land){const w1=(aw-gap)*.6,h1=ph*.5;fr=[['plan',X,Y,w1,h1],['front',X,Y+h1+gap,w1,ph-h1-gap],['fin',X+w1+gap,Y,aw-gap-w1,ph]];}
+  else{const h1=ph*.26,h2=ph*.44;fr=[['plan',X,Y,aw,h1],['fin',X,Y+h1+gap,aw,h2],['front',X,Y+h1+h2+2*gap,aw,ph-h1-h2-2*gap]];}
+  let t=`<svg xmlns="http://www.w3.org/2000/svg" width="${W*1.5}" height="${H*1.5}" viewBox="0 0 ${W} ${H}"><style>.f{fill:#fffdf7}.s{stroke:#222;stroke-width:1.5}text{fill:#222;font-family:'Hiragino Sans','Noto Sans JP',sans-serif}</style><rect width="${W}" height="${H}" fill="#fff"/><rect x="12" y="12" width="${W-24}" height="${H-24}" fill="none" stroke="#222" stroke-width="2"/>`;
+  t+=`<text x="${pad}" y="70" font-size="34" font-weight="700">${sheetTitle()}${floors.length>1?'　'+esc(floors[sheetFi].n):''}</text><text x="${W-pad}" y="42" font-size="16" text-anchor="end">管理番号 ${esc(META.code||'—')}　${ZREV.rev?'第'+ZREV.rev+'版':''}</text><text x="${W-pad}" y="70" font-size="18" text-anchor="end">${new Date().toLocaleDateString('ja-JP')}　単位:mm（内寸）</text><path d="M${pad} 86H${W-pad}" stroke="#222" stroke-width="2"/><text x="${pad}" y="111" font-size="19" font-weight="700">店舗：${esc(META.shop)}　　担当者：${esc(META.staff)}　　お客様名：${esc(META.cust)} 様</text>${CASE&&CASE.spec?`<text x="${W-pad}" y="${H-20}" font-size="13" text-anchor="end">元データ：現地調査報告 第${CASE.rev||1}版（${esc(CASE.exportedAt||'')}）　管理番号 ${esc(META.code||'')}</text>`:''}`;
+  for(const [k,x,y,w,h] of fr){
+    let vb,body;
+    if(k==='plan'){
+      const mg=(CASE&&CASE.spec?.6:1.0)*S,x0=Math.min(...rooms.map(r=>r.x*S))-mg,y0=Math.min(...rooms.map(r=>r.y*S))-mg,x1=Math.max(...rooms.map(r=>(r.x+r.w)*S))+mg,y1=Math.max(...rooms.map(r=>(r.y+r.h)*S))+mg;
+      const fixed=sheetScale>0,sc=fixed?(1200/297)*(1000/sheetScale)/pf/S:Math.min(w/(x1-x0),h/(y1-y0),3),zz=fixed?1:sv.z;sheetDw=w/sc;
+      if(fixed&&((x1-x0-2*mg)*sc>w+1||(y1-y0-2*mg)*sc>h+1))over=true;
+      nTxt=String(Math.round((1000*1200/297)/(pf*S*sc*zz)));
+      const vw=w/(sc*zz),vh=h/(sc*zz),cx=(x0+x1)/2+sv.x,cy=(y0+y1)/2+sv.y;
+      vb=`${cx-vw/2} ${cy-vh/2} ${vw} ${vh}`;body=draw(true);
+    }else{const o=k==='front'?frontGen(sr,land&&(n===1||n===3)?'row':'grid'):finView(sr,{}),b=o.bb;vb=`${b[0]} ${b[1]} ${b[2]-b[0]} ${b[3]-b[1]}`;body=o.g;}
+    t+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="#999"/><svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="${vb}">${body}</svg>${k==='plan'?`<g transform="translate(${x+w-38} ${y+40}) scale(.9)">${compassPlan(north,19)}</g>`:''}<text x="${x+8}" y="${y+20}" font-size="15" font-weight="700">${names[k]}${k==='plan'?'':'　'+esc(sr.name)}</text>`;
+  }
+  const hdr=(y0,heads,cols,fs)=>{let o=`<rect x="${pad}" y="${y0}" width="${aw}" height="${rh}" fill="#eee" stroke="#222"/>`;heads.forEach((h,i)=>{o+=`<text x="${cols[i]}" y="${y0+23}" font-size="${fs}" font-weight="700">${h}</text>`;});return o;};
+  t+=`<text x="${pad+sheetTitle().length*35+(floors.length>1?80:0)+16}" y="70" font-size="17">${sheetPaper}${land?'横':'縦'}　縮尺 ${sheetScale?'1:'+sheetScale:(nTxt?'約1:'+nTxt:'-')}</text>`;
+  const cols1=land?[pad+12,420,540,660,770,880,980,1080]:[pad+8,230,330,420,505,595,680,765],fs1=land?18:15,cn=land?16:10;
+  t+=hdr(ty,['部屋名','内寸W','内寸D','H','壁厚','㎡','畳','坪'],cols1,fs1);
+  const rowT=(y,vals,bold)=>{t+=`<rect x="${pad}" y="${y}" width="${aw}" height="${rh}" fill="${bold?'#f6f6f6':'none'}" stroke="#222"/>`;vals.forEach((v,i)=>{t+=`<text x="${cols1[i]}" y="${y+23}" font-size="${fs1}"${bold?' font-weight="700"':''}>${v}</text>`;});};
+  {
+    let ri=1,gt=0;const f2=(m)=>[m.toFixed(2),(m/1.62).toFixed(1),(m/3.305785).toFixed(2)];
+    for(const f of grp0){
+      f.rooms.forEach(r=>{const a=area(r);gt+=a.m;rowT(ty+rh*ri++,[esc(cut((multi?f.n+' ':'')+r.name,cn)),Math.round(r.w*1000),Math.round(r.h*1000),r.ht,r.wt||0,...f2(a.m)]);});
+    }
+    rowT(ty+rh*ri,[multi?'全階合計':'合計','','','','',...f2(gt)],true);
+  }
+  if(hasFin){
+    const y2=ty+th+40,nw=land?120:92,cw=land?112:78,fs=land?12:10,cols=[pad+12,...FACES.map((_,i)=>pad+12+nw+i*cw)],rhs=land?46:54,mxl=3,lh=fs+2;
+    t+=`<text x="${pad}" y="${y2-10}" font-size="18" font-weight="700">内装仕様（色・型番）</text>`+hdr(y2,['部屋名','天井',...WALLS.map(w=>w[1]),'ドア上','巾木','床'],cols,fs+1);
+    rooms.forEach((r,j)=>{
+      const y=y2+rh+rhs*j;t+=`<rect x="${pad}" y="${y}" width="${aw}" height="${rhs}" fill="none" stroke="#222"/><text x="${cols[0]}" y="${y+22}" font-size="${fs+1}">${esc(cut(r.name,land?9:6))}</text>`;
+      FACES.forEach(([k],i)=>{
+        const f=finGet(r,k),cx=cols[i+1],ind=f.c?17:0,n=Math.max(4,Math.floor((cw-ind-4)/(fs*.62)));
+        if(f.c)t+=`<rect x="${cx}" y="${y+8}" width="13" height="13" fill="${f.c}" stroke="#222" stroke-width=".8"/>`;
+        const txt=f.m||(f.c?'':'-'),ls=[];for(let p=0;p<txt.length&&ls.length<mxl;p+=n)ls.push(txt.slice(p,p+n));
+        if(txt.length>n*mxl)ls[mxl-1]=ls[mxl-1].slice(0,-1)+'…';
+        ls.forEach((l,q)=>{t+=`<text x="${cx+ind}" y="${y+19+q*lh}" font-size="${fs}">${esc(l)}</text>`;});
+      });
+    });
+  }
+  if(th3)t+=specSVG(SP,pad,ty+th+th2+40);
+  return{svg:(t+'</svg>').replace(/var\((--[a-z]+)\)/g,(m,k)=>LIGHT[k]||'#000'),W,H,pf,over};
+}
+const META={code:'',shop:'',staff:'',cust:''},MLAB={code:'管理番号',shop:'店舗',staff:'担当者',cust:'お客様名'};let metaBad=false;
+function metaMissing(){return Object.keys(META).filter(k=>!META[k].trim()||(k==='code'&&!/^\d{13}-\d{1,4}$/.test(META.code.trim())));}
+function metaSync(){document.querySelectorAll('.mi').forEach(i=>{const k=i.dataset.m;if(document.activeElement!==i)i.value=META[k];i.classList.toggle('bad',metaBad&&!META[k].trim());});}
+function metaErr(){metaBad=true;metaSync();document.getElementById('errMsg').innerHTML='次の項目が未入力か、形式が違います：<br><b>'+metaMissing().map(k=>MLAB[k]).join('、')+'</b><br>'+(metaMissing().includes('code')?'管理番号は「顧客番号13桁-管理番号」（例：2605121145566-1）です。<br>':'')+'入力してから進んでください。';document.getElementById('errDlg').classList.add('on');}
+function metaCheck(){META.code=normCode(META.code);if(metaMissing().length){metaErr();return false;}metaBad=false;metaSync();return true;}
+// 管理番号の確定：別の既存案件を上書きしない
+async function commitCode(){
+  const nc=normCode(META.code);if(!codeOK(nc))return false;META.code=nc;metaSync();
+  if(nc===caseKey){rememberMeta();return true;}
+  const ex=await CDB.get(nc);
+  if(ex){document.getElementById('errMsg').innerHTML=`管理番号 <b>${esc(nc)}</b> は案件一覧に既にあります。<br>上書きを防ぐため、この番号には変更できません。<br>その案件を開くときは「案件一覧」から開いてください。`;document.getElementById('errDlg').classList.add('on');
+    if(caseKey){META.code=caseKey;metaSync();}return false;}
+  const old=caseKey;caseKey=nc;recallMeta();await saveCaseNow();if(old)await CDB.del(old);rememberMeta();persist();return true;
+}
+// 確定しないで閉じたら、管理番号を元に戻す（保存先と表示がずれないように）
+function revertCode(){if(caseKey&&normCode(META.code)!==caseKey){META.code=caseKey;metaSync();say('管理番号の変更は確定していないため元に戻しました');}}
+document.addEventListener('input',e=>{const i=e.target.closest&&e.target.closest('.mi');if(!i)return;META[i.dataset.m]=i.value;metaSync();persist();if(sheetEl.classList.contains('on'))sheetShow();});
+const clrDo=all=>{document.getElementById('clrDlg').classList.remove('on');const r=finRoom();(all?floors.flatMap(f=>f.rooms):(r?[r]:[])).forEach(q=>{delete q.fin;delete q.dshow;});persist();refreshPrev();};
+document.getElementById('clrCancel').onclick=()=>document.getElementById('clrDlg').classList.remove('on');
+document.getElementById('clrOne').onclick=()=>clrDo(false);document.getElementById('clrAll').onclick=()=>clrDo(true);
+document.getElementById('errOk').onclick=()=>{document.getElementById('errDlg').classList.remove('on');const b=document.querySelector('#metaDlg.on .mi.bad,#sheet .mi.bad');if(b)b.focus();};
+document.getElementById('metaCancel').onclick=()=>{revertCode();document.getElementById('metaDlg').classList.remove('on');metaBad=false;metaSync();};
+let sheetOriSet=false;
+function openSheet(){
+  // 工事発注図面は縦向き・平面図と正面図を基本に（内装の指定があれば内装指定も）
+  if(CASE&&CASE.spec&&!sheetOriSet){sheetOri='port';sheetLay={plan:true,front:true,fin:rooms.some(r=>FACES.some(([k])=>{const f=finGet(r,k);return f.m||f.c;}))};}
+  floors[fi].rooms=rooms;sheetFi=fi;sheetRid=selR||(rooms[0]&&rooms[0].id);sv={z:1,x:0,y:0};sheetShow();sheetBody.scrollTop=0;stopEdit();sheetEl.classList.add('on');}
+document.getElementById('metaOk').onclick=async()=>{if(!metaCheck())return;if(!(await commitCode()))return;document.getElementById('metaDlg').classList.remove('on');openSheet();};
+$('dl').onclick=()=>{
+  if(!floors.some(x=>x.rooms.length)){say('部屋がありません');return;}
+  stopEdit();metaSync();document.getElementById('metaDlg').classList.add('on');
+};
+function sheetShow(){
+  const keep=rooms;if(!floors[sheetFi]||!floors[sheetFi].rooms.length)sheetFi=floors.findIndex(x=>x.rooms.length);if(sheetFi<0)sheetFi=0;
+  rooms=floors[sheetFi].rooms;try{sheetShow0();}finally{rooms=keep;}
+  document.getElementById('sFl').innerHTML=floors.map((f,i)=>f.rooms.length?`<button class="chip${i===sheetFi?' on':''}" data-sf="${i}">${esc(f.n)}</button>`:'').join('');
+}
+function sheetShow0(){const st=sheetBody.scrollTop,r=sheetBuild();sheetSvg=r.svg;sheetSize=[r.W,r.H];sheetPf=r.pf;if(r.over)sayS('この縮尺では図面が枠に収まりません');sheetBody.innerHTML=sheetSvg;sheetBody.scrollTop=st;document.querySelectorAll('#sheet [data-so]').forEach(b=>b.classList.toggle('on',b.dataset.so===sheetOri));document.querySelectorAll('#sheet [data-sp]').forEach(b=>b.classList.toggle('on',b.dataset.sp===sheetPaper));document.querySelectorAll('#sheet [data-ss]').forEach(b=>b.classList.toggle('on',+b.dataset.ss===sheetScale));document.getElementById('sRooms').innerHTML=rooms.map(x=>`<button class="chip${x===sheetRoom()?' on':''}" data-sr="${x.id}">${esc(x.name)}</button>`).join('');document.querySelectorAll('#sheet [data-sl]').forEach(b=>b.classList.toggle('on',!!sheetLay[b.dataset.sl]));}
+document.querySelector('#sheet .tools').addEventListener('click',e=>{
+  const o=e.target.closest('[data-so]');if(o){sheetOri=o.dataset.so;sheetOriSet=true;sheetShow();return;}
+  const sf=e.target.closest('[data-sf]');if(sf){sheetFi=+sf.dataset.sf;sheetRid=null;sheetShow();return;}
+  const sp=e.target.closest('[data-sp]');if(sp){sheetPaper=sp.dataset.sp;sheetShow();return;}
+  const ss=e.target.closest('[data-ss]');if(ss){sheetScale=+ss.dataset.ss;sv={z:1,x:0,y:0};sheetShow();return;}
+  const sr=e.target.closest('[data-sr]');if(sr){sheetRid=+sr.dataset.sr;sheetShow();return;}
+  const l=e.target.closest('[data-sl]');if(l){sheetOriSet=true;const k=l.dataset.sl,n=Object.values(sheetLay).filter(Boolean).length;if(sheetLay[k]&&n<=1)return;sheetLay[k]=!sheetLay[k];sheetShow();return;}
+  const b=e.target.closest('[data-sv]');if(!b)return;
+  const k=b.dataset.sv,st=sheetDw/sv.z/100;
+  if(k==='zi')sv.z=Math.min(4,sv.z*1.25);
+  else if(k==='zo')sv.z=Math.max(.3,sv.z/1.25);
+  else if(k==='l')sv.x+=st;
+  else if(k==='r')sv.x-=st;
+  else if(k==='u')sv.y+=st;
+  else if(k==='d')sv.y-=st;
+  else sv={z:1,x:0,y:0};
+  sheetShow();
+});
+$('sback').onclick=()=>{revertCode();sheetEl.classList.remove('on');if(lay==='plan')centerPlan();};
+async function sheetCanvas(K){
+  const img=new Image();
+  await new Promise((ok,ng)=>{img.onload=ok;img.onerror=ng;img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(sheetSvg);});
+  K=Math.min(K,Math.sqrt(15e6/(sheetSize[0]*sheetSize[1])));const c=document.createElement('canvas');c.width=Math.round(sheetSize[0]*K);c.height=Math.round(sheetSize[1]*K);
+  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);
+  return c;
+}
+function buildPdf(jpg,pw,ph,wpt,hpt){
+  const enc=new TextEncoder(),parts=[],offs=[];let len=0;
+  const push=b=>{if(typeof b==='string')b=enc.encode(b);parts.push(b);len+=b.length;};
+  const obj=(n,body,stream)=>{offs[n]=len;push(`${n} 0 obj\n${body}\n`);if(stream){push('stream\n');push(stream);push('\nendstream\n');}push('endobj\n');};
+  push('%PDF-1.4\n');
+  obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2,'<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+  obj(3,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${wpt} ${hpt}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`);
+  obj(4,`<< /Type /XObject /Subtype /Image /Width ${pw} /Height ${ph} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.length} >>`,jpg);
+  const k=Math.min(wpt/pw,hpt/ph),dw=(pw*k).toFixed(2),dh=(ph*k).toFixed(2),ox=((wpt-pw*k)/2).toFixed(2),oy=((hpt-ph*k)/2).toFixed(2);
+  const cs=`q ${dw} 0 0 ${dh} ${ox} ${oy} cm /Im0 Do Q`;
+  obj(5,`<< /Length ${cs.length} >>`,cs);
+  const xr=len;push('xref\n0 6\n0000000000 65535 f \n');
+  for(let n=1;n<=5;n++)push(String(offs[n]).padStart(10,'0')+' 00000 n \n');
+  push(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF\n`);
+  return new Blob(parts,{type:'application/pdf'});
+}
+async function saveFile(name,blob){
+  try{
+    if(window.claude&&claude.use){const d=await claude.use('downloads');if(d&&d.save){await d.save({filename:name,data:blob});return true;}}
+  }catch(e){if(e&&e.code==='declined')return false;}
+  try{
+    const u=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=u;a.download=name;a.rel='noopener';a.style.display='none';document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),10000);return true;
+  }catch(e){return false;}
+}
+function metaName(ext,dflt){const n=['cust','shop','staff'].map(k=>META[k].trim().replace(/[\\\/:*?"<>|\s]+/g,'')).filter(Boolean).join('_');return (n||dflt)+'.'+ext;}
+// ファイル名にお客様名は入れない：管理番号_日付_種類_第n版
+function ymd(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}`}
+function outName(kind,ext){const c=(META.code||'').trim().replace(/[\\\/:*?"<>|\s]+/g,'')||'管理番号なし';return [c,ymd(),kind,ZREV.rev?`第${ZREV.rev}版`:''].filter(Boolean).join('_')+'.'+ext}
+// 前回の出力から図面が変わっていたら版を上げる
+function bumpZrev(){const h=curHash();if(!ZREV.rev||ZREV.hash!==h){ZREV={rev:Math.max(ZREV.rev||0,revMax(META.code))+1,hash:h};setRevMax(META.code,ZREV.rev);persist();}savedHash=h;}
+const sheetTitle=()=>CASE&&CASE.spec?'工事発注図面':'簡易図面';
+async function saveSheet(kind){
+  if(!metaCheck())return;
+  if(!(await commitCode()))return;
+  rememberMeta();bumpZrev();sheetShow();
+  try{
+    let ok=false;
+    if(kind==='png'){
+      const c=await sheetCanvas(3.5*sheetPf),blob=await new Promise(ok=>c.toBlob(ok,'image/png'));
+      ok=await saveFile(outName(sheetTitle(),'png'),blob);
+    }else{
+      const c=await sheetCanvas(3.2*sheetPf),jb=await new Promise(ok=>c.toBlob(ok,'image/jpeg',.95)),jpg=new Uint8Array(await jb.arrayBuffer());
+      const a3=sheetPaper==='A3',sh=a3?[841.89,1190.55]:[595.28,841.89],land=sheetOri==='land',wpt=(land?sh[1]:sh[0]).toFixed(2),hpt=(land?sh[0]:sh[1]).toFixed(2);
+      ok=await saveFile(outName(sheetTitle(),'pdf'),buildPdf(jpg,c.width,c.height,wpt,hpt));
+    }
+    if(ok)sayS('保存しました');
+  }catch(err){sayS('保存できませんでした');}
+}
+$('ssave').onclick=()=>saveSheet('png');
+$('spdf').onclick=()=>saveSheet('pdf');
+let zoom=2;const wrap=document.getElementById('wrap'),B=Math.max(wrap.clientWidth,720);
+function centerPlan(){
+  if(!rooms.length){wrap.scrollLeft=(wrap.scrollWidth-wrap.clientWidth)/2;wrap.scrollTop=(wrap.scrollHeight-wrap.clientHeight)/2;return;}
+  const x0=Math.min(...rooms.map(r=>r.x)),x1=Math.max(...rooms.map(r=>r.x+r.w)),y0=Math.min(...rooms.map(r=>r.y)),y1=Math.max(...rooms.map(r=>r.y+r.h)),k=B*zoom/VW*S;
+  wrap.scrollLeft=(x0+x1)/2*k-wrap.clientWidth/2;wrap.scrollTop=(y0+y1)/2*k-wrap.clientHeight/2;
+}
+function setSize(){const zs=document.getElementById('zs');if(zs&&lay==='plan')zs.value=Math.round(zoom*100);cv.style.minWidth='0';cv.style.width=B*zoom+'px';cv.style.height=B*zoom*.8+'px';}
+setSize();
+function zoomTo(z,cx,cy,px=cx,py=cy){
+  z=Math.max(.4,Math.min(6,z));const k=z/zoom;
+  const r=wrap.getBoundingClientRect(),ox=wrap.scrollLeft+px-r.left,oy=wrap.scrollTop+py-r.top;
+  zoom=z;setSize();
+  wrap.scrollLeft=ox*k-(cx-r.left);wrap.scrollTop=oy*k-(cy-r.top);
+}
+const zb=f=>{const r=wrap.getBoundingClientRect();zoomTo(zoom*f,r.left+r.width/2,r.top+r.height/2);const el=editId&&document.getElementById(editId);if(el)el.focus({preventScroll:true});};
+function setFinZ(z){
+  finZ=Math.max(.5,Math.min(3,z));
+  const c=document.getElementById('finSvg'),v=c&&c.querySelector('svg');if(!v)return;
+  const fx=(c.scrollLeft+c.clientWidth/2)/Math.max(1,c.scrollWidth),fy=(c.scrollTop+c.clientHeight/2)/Math.max(1,c.scrollHeight);
+  v.style.width=finZ*100+'%';v.style.height=finZ*100+'%';
+  c.scrollLeft=fx*c.scrollWidth-c.clientWidth/2;c.scrollTop=fy*c.scrollHeight-c.clientHeight/2;
+}
+function syncZs(){const z=document.getElementById('zs');if(!z)return;z.disabled=lay==='front';z.value=lay==='fin'?Math.round(finZ*200):Math.round(zoom*100);}
+document.getElementById('zs').addEventListener('input',e=>{if(lay==='fin'){setFinZ(+e.target.value/200);return;}if(lay!=='plan')return;const q=wrap.getBoundingClientRect();zoomTo(+e.target.value/100,q.left+q.width/2,q.top+q.height/2);});
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+window.addEventListener('touchmove',e=>{if(drag&&drag.item&&!drag.hold)e.preventDefault();},{passive:false});
+const vv=window.visualViewport;
+if(vv){const fit=()=>{document.body.style.height=vv.height+'px';document.body.style.transform=vv.offsetTop?`translateY(${vv.offsetTop}px)`:'';};vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);fit();}
+let editId=null;
+const stopEdit=()=>{editId=null;panel.classList.remove('editing');};
+panel.addEventListener('focusin',e=>{if(e.target.tagName==='INPUT'&&e.target.type!=='range'&&e.target.type!=='checkbox'){editId=e.target.id;panel.querySelectorAll('.cur').forEach(x=>x.classList.remove('cur'));const rw=e.target.closest('.row');if(rw)rw.classList.add('cur');panel.classList.add('editing');panel.style.top=document.querySelector('header').offsetHeight+'px';}});
+panel.addEventListener('focusout',()=>setTimeout(()=>{if(!editId)panel.classList.remove('editing');},150));
+panel.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.target.blur();stopEdit();}});
+panel.addEventListener('click',e=>{if(e.target.closest('button'))stopEdit();},true);
+document.querySelector('header').addEventListener('click',e=>{if(!e.target.closest('#zs'))stopEdit();});
+wrap.addEventListener('touchend',e=>{if(!editId||e.touches.length)return;const el=document.getElementById(editId);if(el&&document.activeElement!==el)el.focus({preventScroll:true});},{passive:true});
+function updCmp(){
+  const b=document.getElementById('cmpB'),r=document.getElementById('cmpR'),v=document.getElementById('cmpV');
+  if(b)b.innerHTML=`<svg viewBox="-35 -35 70 70" width="70" height="70">${compassPlan(north,19)}</svg>`;
+  if(r&&+r.value!==north)r.value=north;if(v)v.textContent=north+'°';
+}
+(()=>{
+  const box=document.getElementById('cmpBox');
+  box.innerHTML='<div>北の向き（図面の上から時計回り）</div><div class="row" style="gap:8px"><input type="range" id="cmpR" min="0" max="359" step="1" value="0" style="flex:1"><b id="cmpV">0°</b></div><div class="row" style="gap:6px"><button data-n="0">上が北</button><button data-n="90">右が北</button><button data-n="180">下が北</button><button data-n="270">左が北</button></div>';
+  document.getElementById('cmpB').addEventListener('click',()=>{box.hidden=!box.hidden;});
+  box.addEventListener('input',e=>{if(e.target.id==='cmpR'){north=+e.target.value;applyNorth();updCmp();persist();}});
+  box.addEventListener('click',e=>{const b=e.target.closest('[data-n]');if(b){north=+b.dataset.n;applyNorth();updCmp();persist();}});
+  updCmp();
+})();
+const KEY='floorplan:v1';let pT=null,hist=[],hi=-1;
+// 現地調査アプリから受け取ったデータ（設備仕様・版）。図面と一緒に保存し、消さない
+let CASE=null,ZREV={rev:0,hash:''},savedHash='';
+const LS=(k,v)=>{try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'{}');localStorage.setItem(k,JSON.stringify(v));}catch(e){return {};}};
+const codeOK=c=>/^\d{13}-\d{1,4}$/.test(String(c||'').trim());
+// 「2605121145566-01」→「2605121145566-1」（全角も半角に）
+const normCode=c=>{c=String(c||'').replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-0xFEE0)).replace(/[ー－―]/g,'-').trim();const m=/^(\d{13})-(\d{1,4})$/.exec(c);return m?`${m[1]}-${+m[2]}`:c;};
+// 案件一覧の保存先：開いた（読み込んだ・確定した）ときの管理番号に固定する
+let caseKey=null;
+// 管理番号ごとに、出した版の最大値と店舗・お客様名を覚える
+function rememberMeta(){if(!codeOK(META.code))return;const m=LS('floorplan:meta');m[META.code]={shop:META.shop,cust:META.cust};LS('floorplan:meta',m);}
+function recallMeta(){if(!codeOK(META.code))return;const m=LS('floorplan:meta')[META.code];if(m){if(!META.shop)META.shop=m.shop||'';if(!META.cust)META.cust=m.cust||'';}}
+const revMax=c=>(LS('floorplan:zrevmax')[c]||0);
+function setRevMax(c,r){if(!codeOK(c))return;const m=LS('floorplan:zrevmax');m[c]=Math.max(m[c]||0,r);LS('floorplan:zrevmax',m);}
+const curHash=()=>JSON.stringify({floors,meta:META,c:CASE&&CASE.rev});
+// ===== 案件の保存（管理番号ごと・IndexedDB）=====
+const KEEP_DAYS=90,GRACE_DAYS=7,DAY=864e5;
+const CDB=(()=>{let p=null;const open=()=>p||(p=new Promise(res=>{try{const r=indexedDB.open('zumen-cases',1);r.onupgradeneeded=()=>r.result.createObjectStore('cases',{keyPath:'code'});r.onsuccess=()=>res(r.result);r.onerror=()=>res(null);}catch(e){res(null);}}));
+  const tx=async(m,f)=>{const db=await open();if(!db)return null;return new Promise(res=>{try{const st=db.transaction('cases',m).objectStore('cases'),r=f(st);r.onsuccess=()=>res(r.result);r.onerror=()=>res(null);}catch(e){res(null);}});};
+  return{ok:async()=>!!(await open()),get:c=>tx('readonly',s=>s.get(c)),all:async()=>(await tx('readonly',s=>s.getAll()))||[],put:v=>tx('readwrite',s=>s.put(v)),del:c=>tx('readwrite',s=>s.delete(c))};})();
+const snapState=()=>({floors,fi,uid,detail,north,meta:Object.assign({},META),case:CASE,zrev:ZREV,saved:savedHash});
+let cT=null;
+function saveCaseSoon(){clearTimeout(cT);cT=setTimeout(saveCaseNow,700);}
+async function saveCaseNow(){
+  clearTimeout(cT);if(!caseKey||normCode(META.code)!==caseKey||!floors.some(x=>x.rooms.length))return;
+  // 先に今の状態を写し取ってから保存（保存中に別の案件へ切り替わっても混ざらない）
+  floors[fi].rooms=rooms;
+  const code=caseKey,rec={code,title:CASE&&CASE.title||'',data:JSON.parse(JSON.stringify(snapState())),updatedAt:Date.now(),shop:META.shop,cust:META.cust,staff:META.staff,crev:CASE&&CASE.rev||0,zrev:ZREV.rev||0,rooms:floors.reduce((q,f)=>q+f.rooms.length,0)};
+  const old=await CDB.get(code);rec.keep=!!(old&&old.keep);await CDB.put(rec);
+}
+// 90日を過ぎた案件：まず知らせて、7日後に削除（「残す」にしたものは消さない）
+async function markListBtn(){const all=await CDB.all();const n=all.filter(r=>r.expireAt&&!r.keep).length;const b=document.getElementById('clist');if(b){b.textContent=n?`案件一覧 ⚠${n}`:'案件一覧';b.style.color=n?'#c0392b':'';}}
+async function caseSweep(){
+  const all=await CDB.all(),now=Date.now();let soon=0;
+  for(const r of all){
+    if(r.keep)continue;
+    if(now-r.updatedAt>KEEP_DAYS*DAY){if(!r.expireAt){r.expireAt=now+GRACE_DAYS*DAY;await CDB.put(r);soon++;}else if(now>r.expireAt){await CDB.del(r.code);}else soon++;}
+  }
+  markListBtn();
+  return soon;
+}
+// 調査データの部屋（階・名前で対応、なければ順番）と、いまの図面の寸法を比べる
+function pairRooms(nf){const out=[];nf.forEach(f=>{const cf=floors.find(x=>x.n===f.n);(f.rooms||[]).forEach((r,i)=>{let c=cf&&(cf.rooms.find(q=>q.name===r.name)||cf.rooms[i]);out.push({f:f.n,n:r,c});});});return out;}
+function roomDiffs(nf){const d=[],mm=v=>Math.round(v*1000);
+  for(const {f,n,c} of pairRooms(nf)){const nm=`${f} ${n.name}`;
+    if(!c){d.push(`${nm}：いまの図面にない部屋`);continue;}
+    if(mm(n.w)!==mm(c.w))d.push(`${nm}：幅 ${mm(c.w)} → ${mm(n.w)}mm`);
+    if(mm(n.h)!==mm(c.h))d.push(`${nm}：奥行 ${mm(c.h)} → ${mm(n.h)}mm`);
+    if((+n.ht||0)!==(+c.ht||0))d.push(`${nm}：天井高 ${c.ht} → ${n.ht}mm`);
+    const cnt=r=>r.items.filter(i=>['door','slide','win','toilet','vanity','kitchen','bath'].includes(i.t)).length;
+    if(cnt(n)!==cnt(c))d.push(`${nm}：ドア・窓・設備の数 ${cnt(c)} → ${cnt(n)}（記号は手で直してください）`);}
+  return d;}
+function applyDims(nf){for(const {n,c} of pairRooms(nf))if(c){c.w=n.w;c.h=n.h;c.ht=n.ht;}}
+function applyState(o){
+  floors=o.floors;floors.forEach((x,k)=>{x.n=x.n||(k+1)+'F';});fi=Math.min(Math.max(0,+o.fi||0),floors.length-1);rooms=floors[fi].rooms;
+  uid=Math.max(+o.uid||0,Math.max(0,...floors.flatMap(x=>x.rooms.flatMap(r=>[r.id,...r.items.map(i=>i.id||0)])))+1);
+  north=+o.north||0;applyNorth();updCmp();Object.keys(META).forEach(k=>{META[k]=String((o.meta&&o.meta[k])||'');});
+  META.code=normCode(META.code);caseKey=codeOK(META.code)?META.code:null;
+  CASE=o.case||null;ZREV=o.zrev||{rev:0,hash:''};if(codeOK(META.code)&&revMax(META.code)>ZREV.rev)ZREV={rev:revMax(META.code),hash:''};
+  savedHash=o.saved||'';if(typeof o.detail==='boolean')detail=o.detail;
+  selR=selI=null;metaBad=false;metaSync();hist=[];hi=-1;if(lay!=='plan')showLay('plan');draw();drawPanel();flush();centerPlan();
+}
+async function openCase(code){
+  await saveCaseNow();
+  const r=await CDB.get(code);if(!r)return say('見つかりませんでした');
+  r.updatedAt=Date.now();delete r.expireAt;await CDB.put(r);
+  applyState(r.data);document.getElementById('caseDlg').classList.remove('on');say(`${code} を開きました`);
+}
+const fmtD=t=>{const d=new Date(t);return `${d.getMonth()+1}/${d.getDate()}`;};
+async function drawCaseList(){
+  const body=document.getElementById('clistBody'),q=(document.getElementById('cq').value||'').trim();
+  if(!(await CDB.ok())){body.innerHTML='<div class="hint">この表示では案件一覧を使えません（ファイル保存・読込を使ってください）</div>';return;}
+  const all=(await CDB.all()).sort((a,b)=>b.updatedAt-a.updatedAt),now=Date.now();
+  const list=all.filter(r=>!q||r.code.includes(q)||(r.cust||'').includes(q)||(r.shop||'').includes(q)||(r.title||'').includes(q));
+  const soon=all.filter(r=>r.expireAt&&!r.keep).length;
+  let le=0;try{le=+localStorage.getItem('floorplan:lastExport')||0;}catch(e){}
+  const needExp=all.length&&Date.now()-le>7*DAY;
+  document.getElementById('cnote').innerHTML=`${needExp?`<div style="color:#c0392b;font-weight:700">⚠ ${le?'7日以上':'まだ一度も'}「すべて書き出す」をしていません。ブラウザのデータが消えた時のために控えを残してください。</div>`:''}${all.length}件${soon?`　<span style="color:#c0392b;font-weight:700">⚠ 90日を過ぎた案件が${soon}件あります（★で残すか、開くと期限が延びます）</span>`:''}${caseKey?'':'　<span style="color:#c0392b">いまの図面は管理番号が確定していないため一覧に残りません</span>'}`;
+  body.innerHTML=list.length?list.map(r=>{const [c1,c2]=r.code.split('-'),cur=r.code===caseKey;
+    return `<div class="crow${cur?' cur':''}"><div class="ci"><div class="cc">${esc(c1.slice(0,9))}<b>${esc(c1.slice(9))}-${esc(c2||'')}</b>${cur?'　<span style="color:var(--acc);font-weight:700">表示中</span>':''}</div>
+      <div class="cs">${r.title?`<b style="color:var(--fg)">${esc(r.title)}</b>　`:''}${r.cust?esc(r.cust)+' 様　':''}${esc(r.shop||'')}　調査 第${r.crev||'-'}版・図面 第${r.zrev||'-'}版　更新 ${fmtD(r.updatedAt)}${r.expireAt&&!r.keep?`　<span class="exp">${fmtD(r.expireAt)}に削除予定</span>`:''}</div></div>
+      <button data-ck="${esc(r.code)}" title="残す（自動で消さない）" style="${r.keep?'color:#d4a017;border-color:#d4a017':''}">${r.keep?'★':'☆'}</button>${cur?'':`<button class="primary" data-co="${esc(r.code)}">開く</button>`}<button class="danger" data-cd="${esc(r.code)}">削除</button></div>`;}).join(''):'<div class="hint">該当する案件がありません</div>';
+}
+document.getElementById('clist').onclick=async()=>{flush();await saveCaseNow();await caseSweep();document.getElementById('cq').value='';document.getElementById('caseDlg').classList.add('on');drawCaseList();};
+document.getElementById('cexp').onclick=async()=>{await saveCaseNow();const all=await CDB.all();if(!all.length){say('案件がありません');return;}
+  const ok=await saveFile(`案件一覧_控え_${ymd()}_${all.length}件.json`,new Blob([JSON.stringify({app:'zumen-cases',v:1,exportedAt:new Date().toISOString(),cases:all})],{type:'application/json'}));
+  if(ok){try{localStorage.setItem('floorplan:lastExport',String(Date.now()));}catch(e){}say(`${all.length}件を書き出しました`);drawCaseList();}};
+document.getElementById('cimp').onclick=()=>document.getElementById('cimpf').click();
+document.getElementById('cimpf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{const j=JSON.parse(await f.text());if(j.app!=='zumen-cases'||!Array.isArray(j.cases))throw 0;let n=0,sk=0;
+    for(const r of j.cases){if(!r||!codeOK(r.code)||!r.data)continue;const cur=await CDB.get(r.code);if(cur&&cur.updatedAt>=r.updatedAt){sk++;continue;}await CDB.put(r);n++;}
+    say(`${n}件を読み込みました${sk?`（新しい方を残したもの${sk}件）`:''}`);drawCaseList();}catch(err){say('読み込めませんでした');}};
+document.getElementById('cclose').onclick=()=>document.getElementById('caseDlg').classList.remove('on');
+document.getElementById('cq').addEventListener('input',drawCaseList);
+document.getElementById('clistBody').addEventListener('click',async e=>{
+  const o=e.target.closest('[data-co]'),k=e.target.closest('[data-ck]'),d=e.target.closest('[data-cd]');
+  if(o){
+    if(!caseKey&&floors.some(x=>x.rooms.length)&&curHash()!==savedHash&&!confirmInline(o,'いまの図面は管理番号がなく一覧に残りません。開きますか？'))return;
+    await openCase(o.dataset.co);
+  }else if(k){const r=await CDB.get(k.dataset.ck);if(r){r.keep=!r.keep;delete r.expireAt;await CDB.put(r);drawCaseList();}}
+  else if(d){if(!confirmInline(d,'もう一度押すと削除します'))return;await CDB.del(d.dataset.cd);drawCaseList();}
+});
+// 2回押しで確定（ブラウザの確認ダイアログを使わない）
+function confirmInline(btn,msg){if(btn.dataset.arm==='1')return true;btn.dataset.arm='1';const t=btn.textContent;btn.textContent='本当に？';say(msg);setTimeout(()=>{btn.dataset.arm='';btn.textContent=t;},3000);return false;}
+function updUndo(){$('un').disabled=hi<=0;$('re').disabled=hi>=hist.length-1;}
+function flush(){
+  clearTimeout(pT);pT=null;
+  floors[fi].rooms=rooms;let js;try{js=JSON.stringify({f:floors,i:fi,n:north});}catch(e){return;}
+  if(js!==hist[hi]){hist.length=hi+1;hist.push(js);if(hist.length>100)hist.shift();hi=hist.length-1;}
+  try{localStorage.setItem(KEY,JSON.stringify({floors,fi,north,meta:META,uid,zoom,detail,case:CASE,zrev:ZREV,saved:savedHash,caseKey,sl:wrap.scrollLeft,st:wrap.scrollTop}));}catch(e){}
+  saveCaseSoon();
+  updUndo();
+}
+function persist(){clearTimeout(pT);pT=setTimeout(flush,400);}
+function goHist(d){
+  flush();const n=hi+d;if(n<0||n>=hist.length)return;
+  hi=n;{const o=JSON.parse(hist[hi]);floors=o.f;fi=o.i;rooms=floors[fi].rooms;north=o.n||0;applyNorth();updCmp();}
+  const r=room(selR);if(!r){selR=null;selI=null;}else if(selI&&!r.items.some(i=>i.id===selI))selI=null;
+  draw();drawPanel();updUndo();
+}
+$('un').onclick=()=>goHist(-1);$('re').onclick=()=>goHist(1);
+window.addEventListener('keydown',e=>{
+  if(!(e.ctrlKey||e.metaKey)||/INPUT|TEXTAREA/.test(document.activeElement&&document.activeElement.tagName))return;
+  const k=e.key.toLowerCase();
+  if(k==='z'){e.preventDefault();goHist(e.shiftKey?1:-1);}else if(k==='y'){e.preventDefault();goHist(1);}
+});
+$('fsv').onclick=async()=>{
+  try{
+    flush();
+    savedHash=curHash();
+    if(await saveFile(outName('図面データ','json'),new Blob([JSON.stringify({v:4,floors,fi,uid,detail,north,meta:META,case:CASE,zrev:ZREV})],{type:'application/json'})))say('ファイルを保存しました');
+  }catch(err){say('保存できませんでした');}
+};
+$('fld').onclick=()=>{
+  flush();
+  if(!floors.some(x=>x.rooms.length)){$('fin').click();return;}
+  const dirty=!caseKey&&curHash()!==savedHash;
+  document.getElementById('ldWarn').style.display=dirty?'':'none';
+  document.getElementById('ldKeep').style.display=caseKey?'':'none';
+  document.getElementById('ldSave').className=dirty?'primary':'';document.getElementById('ldGo').className=dirty?'danger':'primary';
+  document.getElementById('ldDlg').classList.add('on');
+};
+$('fin').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{
+    const o=JSON.parse(await f.text());
+    // 同じ管理番号の調査データ：図面は残して設備仕様・注意事項だけ差し替えを選べる
+    let stored=null;
+    if(o.case){o.case.code=normCode(o.case.code);if(o.meta)o.meta.code=normCode(o.meta.code);}
+    if(o.case&&o.case.app==='genchi-chousa'&&codeOK(o.case.code)&&o.case.code!==caseKey)stored=await CDB.get(o.case.code);
+    if(stored){await saveCaseNow();applyState(stored.data);}
+    if(o.case&&o.case.app==='genchi-chousa'&&caseKey&&o.case.code===caseKey&&floors.some(x=>x.rooms.length)){
+      const cr=(CASE&&CASE.rev)||0,nr=o.case.rev||0,older=cr&&nr<cr,diffs=roomDiffs(o.floors||[]);
+      const choice=await new Promise(res=>{const d=document.getElementById('upDlg');
+        document.getElementById('upMsg').innerHTML=`管理番号 <b>${esc(META.code)}</b><br>いまの図面：調査 第${cr||'?'}版 → 読み込むファイル：調査 第${nr||'?'}版`
+          +(older?`<div style="color:#c0392b;font-weight:700;margin-top:6px">⚠ 読み込むファイルの方が古い版です。通常はキャンセルしてください。</div>`:'')
+          +(diffs.length?`<div style="margin-top:6px"><b style="color:#c0392b">現地の採寸に違いがあります：</b><ul style="margin:4px 0;padding-left:18px">${diffs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>「設備仕様だけ更新」では、この違いは図面に入りません。</div>`:'<div style="margin-top:6px">採寸の違いはありません。事務所で描いた図面・店舗・お客様名はそのまま残ります。</div>');
+        const bs=document.getElementById('upSpec'),bd=document.getElementById('upDim'),bc=document.getElementById('upCancel');
+        bd.style.display=diffs.length?'':'none';
+        bs.className=(!older&&!diffs.length)?'primary':'';bd.className=(!older&&diffs.length)?'primary':'';bc.className=older?'primary':'';
+        bs.textContent=diffs.length?'設備仕様だけ更新（寸法はそのまま）':'設備仕様だけ更新（おすすめ）';
+        d.classList.add('on');const done=v=>{d.classList.remove('on');res(v);};
+        bc.onclick=()=>done('cancel');document.getElementById('upAll').onclick=()=>done('all');bs.onclick=()=>done('spec');bd.onclick=()=>done('dim');});
+      if(choice==='cancel')return;
+      if(choice==='dim'){applyDims(o.floors||[]);}
+      if(choice==='spec'||choice==='dim'){CASE=o.case;if(!META.staff&&o.meta&&o.meta.staff)META.staff=String(o.meta.staff);metaSync();draw();drawPanel();flush();say(`調査 第${CASE.rev||1}版の設備仕様・注意事項${choice==='dim'?'と部屋の寸法':''}に更新しました（記号はそのまま）`);return;}
+    }
+    let fl=Array.isArray(o.floors)?o.floors:(Array.isArray(o.rooms)?[{n:'1F',rooms:o.rooms}]:null);
+    const okR=r=>r&&typeof r.w==='number'&&typeof r.h==='number'&&Array.isArray(r.items);
+    if(!fl||!fl.length||!fl.every(x=>x&&Array.isArray(x.rooms)&&x.rooms.every(okR))||!fl.some(x=>x.rooms.length))throw new Error('bad');
+    flush();await saveCaseNow();
+    fl.forEach((x,k)=>{x.n=x.n||(k+1)+'F';x.rooms.forEach((r,i)=>{r.id=r.id||(uid+k*100+i+1000);r.x=+r.x||1;r.y=+r.y||1;r.ht=+r.ht||2400;r.name=r.name||'部屋'+(i+1);});});
+    floors=fl;fi=Math.min(Math.max(0,+o.fi||0),fl.length-1);rooms=floors[fi].rooms;
+    uid=Math.max(uid,+o.uid||0,Math.max(0,...floors.flatMap(x=>x.rooms.flatMap(r=>[r.id,...r.items.map(i=>i.id||0)])))+1);
+    north=+o.north||0;applyNorth();updCmp();Object.keys(META).forEach(k=>{META[k]=String((o.meta&&o.meta[k])||'');});
+    // 現地調査アプリのファイルなら、管理番号と設備仕様を引き継ぐ
+    if(o.case&&o.case.app==='genchi-chousa'){CASE=o.case;if(o.case.code)META.code=String(o.case.code);}else CASE=o.case||null;
+    ZREV=o.zrev||{rev:0,hash:''};if(codeOK(META.code)&&revMax(META.code)>ZREV.rev)ZREV={rev:revMax(META.code),hash:''};
+    recallMeta();savedHash=curHash();metaBad=false;metaSync();
+    if(typeof o.detail==='boolean')detail=o.detail;
+    selR=selI=null;if(lay!=='plan')showLay('plan');
+    META.code=normCode(META.code);caseKey=codeOK(META.code)?META.code:null;metaSync();
+    draw();drawPanel();flush();centerPlan();say(CASE&&CASE.app==='genchi-chousa'?`現地調査データ（第${CASE.rev||1}版）を読み込みました`:'読み込みました');
+  }catch(err){say('読み込めませんでした');}
+};
+wrap.addEventListener('scroll',persist,{passive:true});
+{const dl=document.getElementById('ldDlg'),close=()=>dl.classList.remove('on');
+  document.getElementById('ldCancel').onclick=close;
+  document.getElementById('ldGo').onclick=()=>{close();$('fin').click();};
+  document.getElementById('ldSave').onclick=async()=>{close();await $('fsv').onclick();$('fin').click();};
+  const obs=new MutationObserver(()=>{if(dl.classList.contains('on'))document.getElementById('ldCode').textContent=META.code?'（'+META.code+'）':'';});obs.observe(dl,{attributes:true});}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist();}catch(e){}
+if(/\/zumen\/?/.test(location.pathname)&&!window.claude){document.getElementById('toSurvey').style.display='';
+  if('serviceWorker' in navigator){let had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!had){had=true;return;}if(document.getElementById('updBar'))return;document.body.insertAdjacentHTML('afterbegin','<div id="updBar" style="background:#c0392b;color:#fff;padding:10px 14px;font-weight:700;cursor:pointer;text-align:center">アプリの新しい版があります。ここを押して更新してください</div>');document.getElementById('updBar').onclick=()=>{flush();location.reload();};});}
+  if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
+requestAnimationFrame(()=>{
+  let sd=null;try{sd=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
+  if(sd&&!sd.floors&&Array.isArray(sd.rooms))sd.floors=[{n:'1F',rooms:sd.rooms}];
+  if(sd&&Array.isArray(sd.floors)&&sd.floors.some(x=>x.rooms.length)){
+    floors=sd.floors;fi=Math.min(Math.max(0,sd.fi||0),floors.length-1);rooms=floors[fi].rooms;uid=sd.uid||(Math.max(0,...floors.flatMap(x=>x.rooms.flatMap(r=>[r.id,...r.items.map(i=>i.id)])))+1);
+    north=+sd.north||0;applyNorth();updCmp();Object.keys(META).forEach(k=>{META[k]=String((sd.meta&&sd.meta[k])||'');});CASE=sd.case||null;ZREV=sd.zrev||{rev:0,hash:''};savedHash=sd.saved||'';META.code=normCode(META.code);caseKey=sd.caseKey!==undefined?sd.caseKey:(codeOK(META.code)?META.code:null);metaSync();detail=!!sd.detail;zoom=sd.zoom||zoom;setSize();selR=null;selI=null;draw();drawPanel();
+    wrap.scrollLeft=sd.sl!=null?sd.sl:(wrap.scrollWidth-wrap.clientWidth)/2;
+    wrap.scrollTop=sd.st!=null?sd.st:(wrap.scrollHeight-wrap.clientHeight)/2;
+    say('前回の編集を復元しました');
+    caseSweep().then(n=>{if(n)say(`⚠ 90日を過ぎた案件が${n}件あります（案件一覧で確認）`);});
+  }else addRoom(true);
+});
+(()=>{
+  let tm=null,t0=null,t1=null;const nm={v:1};
+  const stop=()=>{clearInterval(tm);clearTimeout(t0);clearTimeout(t1);tm=t0=t1=null;nm.v=1;};
+  const mv={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]};
+  const nudge=k=>{
+    const r=room(selR);if(!r){say('部屋を選択してください');stop();return;}
+    const st=(detail?.001:.05)*(nm.v||1),[dx,dy]=mv[k];
+    const nx=r.x+dx*st,ny=r.y+dy*st,xh=Math.max(.8,VW/S-r.w),yh=Math.max(.8,VH/S-r.h);
+    r.x=+Math.min(Math.max(nx,Math.min(r.x,.8)),Math.max(r.x,xh)).toFixed(3);
+    r.y=+Math.min(Math.max(ny,Math.min(r.y,.8)),Math.max(r.y,yh)).toFixed(3);
+    draw();
+    for(const [id,v] of [['rx',r.x],['ry',r.y]]){const el=document.getElementById(id);if(el&&document.activeElement!==el)el.value=Math.round(v*1000);}
+  };
+  const pan=document.querySelector('.pan');
+  pan.addEventListener('pointerdown',e=>{
+    const b=e.target.closest('button');if(!b)return;e.preventDefault();stop();
+    const k=b.dataset.pan;
+    if(k==='c'){const r=room(selR);if(!r){say('部屋を選択してください');return;}const q=B*zoom/VW*S;wrap.scrollLeft=(r.x+r.w/2)*q-wrap.clientWidth/2;wrap.scrollTop=(r.y+r.h/2)*q-wrap.clientHeight/2;return;}
+    nudge(k);
+    t0=setTimeout(()=>{tm=setInterval(()=>nudge(k),70);t1=setTimeout(()=>{nm.v=detail?10:4;},1200);},350);
+  });
+  pan.addEventListener('mousedown',e=>e.preventDefault());
+  for(const ev of ['pointerup','pointercancel'])window.addEventListener(ev,stop);
+})();
+</script>
+</body>
+</html>
+
+<!-- merged onto live 1794228285-0ffc: elevation removed, door/finish/stair-under added -->
