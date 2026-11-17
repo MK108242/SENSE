@@ -438,13 +438,13 @@ function newSurvey(){
     targets:[],common:{},measures:[],createdAt:Date.now(),updatedAt:Date.now()};
 }
 const toHalf=v=>String(v||'').replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0));
-const validCode=s=>/^\d{13}-\d{1,4}$/.test(String(s.code||''));
+const validCode=s=>/^\d{11}-\d{1,4}$/.test(String(s.code||''));
 function setCode(s){s.code=s.custNo&&s.seq?`${s.custNo}-${s.seq}`:(s.custNo||'')}
 function codeHint(){const el=$('#codeHint');if(!el)return;const c=cur.custNo||'',q=cur.seq||'';
   el.innerHTML=validCode(cur)?`管理番号：<b style="color:var(--navy);font-size:19px">${esc(cur.code)}</b>`
-   :c.length&&c.length!==13?`<span style="color:var(--repair)">顧客番号は13桁です（いま${c.length}桁）</span>`:c&&!q?'<span style="color:var(--repair)">管理番号（枝番）を入力してください</span>':'例：2605121145566-1';}
+   :c.length&&c.length!==11?`<span style="color:var(--repair)">顧客番号は11桁です（いま${c.length}桁）</span>`:c&&!q?'<span style="color:var(--repair)">管理番号（枝番）を入力してください</span>':'例：26051211455-1';}
 function normalize(s){s.targets=s.targets||[];s.common=s.common||{};s.measures=s.measures||[];
-  if(s.code&&s.custNo===undefined){const m=/^(\d{13})-(\d{1,4})$/.exec(s.code);if(m){s.custNo=m[1];s.seq=m[2]}}
+  if(s.code&&s.custNo===undefined){const m=/^(\d{11})-(\d{1,4})$/.exec(s.code);if(m){s.custNo=m[1];s.seq=m[2]}}
   // 部屋の紐づけを名前から番号へ（旧データの移行）
   s.measures.forEach(m=>{if((m.kind==='開口部'||m.kind==='設備')&&m.room&&!m.roomId){const r=s.measures.find(x=>x.kind==='部屋'&&x.place===m.room);if(r)m.roomId=r.id}});
   return s}
@@ -557,7 +557,7 @@ function renderInfo(){
   <div class="card">
     <label class="f"><span>案件名</span><input class="inp" data-f="title" value="${esc(s.title)}" placeholder="例：〇〇様邸 トイレ交換"></label>
     <div class="grid2">
-      <label class="f"><span>顧客番号（13桁）</span><input class="inp" data-c="custNo" inputmode="numeric" maxlength="13" value="${esc(s.custNo)}" placeholder="2605121145566"></label>
+      <label class="f"><span>顧客番号（11桁）</span><input class="inp" data-c="custNo" inputmode="numeric" maxlength="11" value="${esc(s.custNo)}" placeholder="26051211455"></label>
       <label class="f"><span>管理番号（4桁まで）</span><input class="inp" data-c="seq" inputmode="numeric" maxlength="4" value="${esc(s.seq)}" placeholder="1"></label>
     </div>
     <div id="codeHint" class="muted" style="margin:-8px 0 14px"></div>
@@ -848,14 +848,23 @@ async function bumpRev(){clearTimeout(saveTimer);if(!cur.rev||(cur.repAt&&cur.up
 async function sendToOffice(){
   await bumpRev();
   const c=caseFile(cur);
-  const name=[cur.code?safeName(cur.code):'管理番号なし',safeName(cur.title),cur.date||'','現調データ',`第${cur.rev}版`].filter(Boolean).join('_')+'.json';
-  const go=()=>saveFile(name,JSON.stringify(c.data));
+  const name=[cur.code?safeName(cur.code):'管理番号なし','現調データ',`第${cur.rev}版`].join('_')+'.json';
+  const go=async()=>{const ok=await saveFile(name,JSON.stringify(c.data));if(!ok)return;
+    modal(`<div class="box"><h3>図面用データを作りました</h3>
+      <p style="margin:0 0 6px;font-size:16px;word-break:break-all"><b>${esc(name)}</b></p>
+      <p class="muted" style="margin:0 0 10px">このファイルは、事務所で図面を作るための元データです。</p>
+      <ol style="margin:0 0 12px;padding-left:22px;font-size:17px;line-height:1.7">
+        <li>このファイルを、LINEやメールで事務所へ送る</li>
+        <li>事務所：かんたん図面を開き、上の「<b>読込</b>」を押してこのファイルを選ぶ</li>
+        <li>管理番号・部屋・設備が自動で入ります</li></ol>
+      <p class="muted" style="margin:0 0 12px">報告書（読む用）は別です。ファイルの名前は変えずに送ってください。</p>
+      <div class="row" style="justify-content:flex-end"><button class="btn" id="mo">閉じる</button></div></div>`);$('#mo').onclick=closeModal};
   const notes=[...(c.rooms?[]:['採寸に「部屋」がないため、図面の下書きは入りません（図面アプリでは読み込めません）']),...c.warn];
   if(cur.pdfRev!==cur.rev)notes.unshift(`現地調査報告書の第${cur.rev}版がまだ作られていません。報告書も作り直して一緒に送ってください`);
   if(!notes.length&&validCode(cur))return go();
-  modal(`<div class="box"><h3>事務所へ送る前に</h3><p class="muted" style="margin:0 0 8px">第${cur.rev}版として送ります</p>${validCode(cur)?'':'<p style="color:var(--repair);font-weight:700;margin:0 0 8px">管理番号が未入力か、形式が違います</p>'}
+  modal(`<div class="box"><h3>図面用データを作る前に</h3><p class="muted" style="margin:0 0 8px">第${cur.rev}版として保存します</p>${validCode(cur)?'':'<p style="color:var(--repair);font-weight:700;margin:0 0 8px">管理番号が未入力か、形式が違います</p>'}
     ${notes.length?`<p class="muted" style="margin:0 0 6px">確認してください：</p><ul style="margin:0 0 10px;padding-left:20px;font-size:16px">${notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}
-    <div class="row" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="mc">戻って直す</button><button class="btn" id="mo">このまま送る</button></div></div>`);
+    <div class="row" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="mc">戻って直す</button><button class="btn" id="mo">このまま保存</button></div></div>`);
   $('#mc').onclick=closeModal;$('#mo').onclick=()=>{closeModal();go()};
 }
 
@@ -867,8 +876,10 @@ function renderReport(){
    <div class="card">
      <div class="sw"><span>未確認のポイントも載せる</span><input type="checkbox" id="o1" ${rOpt.unchecked?'checked':''}></div>
      <button class="btn block" id="gen" style="margin-top:8px">現地調査報告書を作成</button>
-     <button class="btn sec block" id="send" style="margin-top:10px">事務所へ送る（図面用データ）</button>
-     <p class="muted" style="margin:6px 0 0">送ったファイルは、かんたん図面の「読込」で部屋・ドア・窓・設備の下書きとして開けます。</p>
+     <p class="muted" style="margin:6px 0 0">↑ 読む用：画像やPDFにして、事務所へ共有できます。</p>
+     <hr style="border:0;border-top:1px solid var(--line,#d9dde3);margin:14px 0">
+     <button class="btn sec block" id="send">図面用データを保存して送る</button>
+     <p class="muted" style="margin:6px 0 0">事務所が「かんたん図面」で図面を作るための元データです（報告書とは別のファイル）。保存すると、送り方と事務所での読み込み方が表示されます。</p>
      <p class="muted" style="margin-bottom:0">交換対象 ${cur.targets.length}件 ・ 確認 ${st.done}/${st.total} ・ 注意 ${st.warn}件</p>
    </div>
    <div id="rp"></div>`;
@@ -880,7 +891,7 @@ function renderReport(){
     b.disabled=false;b.textContent='報告書を作り直す';showReport()};
   $('#gen').onclick=()=>{
     if(validCode(cur))return gen();
-    modal(`<div class="box"><h3>管理番号が未入力か、形式が違います</h3><p class="muted">「顧客番号13桁-管理番号」（例：2605121145566-1）で入力してください。事務所で案件を見分ける目印になります。</p>
+    modal(`<div class="box"><h3>管理番号が未入力か、形式が違います</h3><p class="muted">「顧客番号11桁-管理番号」（例：26051211455-1）で入力してください。事務所で案件を見分ける目印になります。</p>
       <div class="row" style="justify-content:flex-end;margin-top:14px;flex-wrap:wrap"><button class="btn sec" id="mc">このまま作成</button><button class="btn" id="mo">入力する</button></div></div>`);
     $('#mc').onclick=()=>{closeModal();gen()};
     $('#mo').onclick=()=>{closeModal();tab='info';render();scrollTo(0,0);setTimeout(()=>{const el=document.querySelector('[data-c=custNo]');if(el)el.focus()},100)};
