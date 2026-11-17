@@ -115,6 +115,12 @@ textarea.inp{min-height:110px;resize:vertical}
 .pt .lb{font-size:19px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px}
 .pt .lb .hint{order:3;flex-basis:100%;font-size:15px;font-weight:400;color:var(--sub)}
 .pt .lb .done{margin-left:auto;color:var(--good);font-size:22px}
+.reqb{font-size:13px;font-weight:700;color:#fff;background:var(--repair);border-radius:6px;padding:1px 7px}
+.miss{font-size:15px;font-weight:700;color:var(--repair)}
+.opt-hdr{font-size:16px;font-weight:700;color:var(--sub);background:#f4f5f7;padding:10px 14px}
+.inp.ro{background:#f4f5f7;color:var(--navy);font-weight:700}
+.pwarn{margin-top:10px;padding:12px;border-radius:10px;background:#fdecea;border:2px solid var(--repair);color:var(--repair);font-size:18px;font-weight:700}
+.pnote{margin-top:8px;padding:6px 10px;border-left:4px solid var(--watch);background:#fff8e6;font-size:15px;color:#7a5a00}
 .chip.on.warn{background:var(--repair);border-color:var(--repair)}
 .chip.warn{border-color:#e7b4ad}
 .numrow{display:flex;align-items:center;gap:10px}
@@ -156,6 +162,16 @@ const isGas=v=>v==='都市ガス'||v==='LPガス';
 const GAS_H=a=>isGas(a.gas)||/ガス/.test(a.kind||'');      // 給湯器
 const GAS_K=a=>isGas(a.gas)||a.stove==='ガス';             // キッチン
 const GAS_O=a=>a.gaswork==='あり';                         // その他
+const ECO=a=>a.kind==='エコキュート',NECO=a=>!ECO(a);
+const APP_O=['C4','店舗','営業','お客様'];                  // ガス工事の申請者
+const hasEco=s=>(s.targets||[]).some(t=>t.type==='heater'&&ECO(t.ans||{}));
+// 水圧の変化：高圧→標準圧は目立つ注意、標準圧→高圧は控えめな注意
+function pressChange(a){const c=a.ecopress,n=a.econewpress,pc=+a.ecopcur||0,pn=+a.ecopnew||0;
+  if(c==='高圧'&&n==='標準圧')return 'down';if(c==='標準圧'&&n==='高圧')return 'up';
+  if(pc&&pn&&pn<pc)return 'down';if(pc&&pn&&pn>pc)return 'up';return ''}
+function pressHtml(a){const k=pressChange(a);
+  if(k==='down')return '<div class="pwarn">⚠ 水圧が下がります。お客様へ説明済みか確認</div>';
+  if(k==='up')return '<div class="pnote">水圧が上がります。配管の状態を確認</div>';return ''}
 const TYPES=[
  {k:'toilet',name:'トイレ',points:[
   P('cur','現在の便器','sel',['組み合わせ便器','一体型','タンクレス','!和式']),
@@ -178,20 +194,59 @@ const TYPES=[
   P('model','現在のメーカー・型番','text')]},
  {k:'heater',name:'給湯器',points:[
   P('kind','種類','sel',['ガス給湯専用','ガス追い焚き付き','ガス暖房付き','石油給湯器','電気温水器','エコキュート']),
-  P('gas','ガス種','sel',['都市ガス','LPガス','該当なし']),
-  P('cap','号数・容量','sel',['16号','20号','24号','その他']),
-  P('place','設置タイプ','sel',['壁掛','据置','PS設置','PS扉内','屋内設置']),
-  P('exhaust','排気方式','sel',['屋外式','!屋内FE','!屋内FF','PS前方排気','PS上方排気']),
-  P('remote','リモコン','sel',['台所＋浴室','台所のみ','浴室のみ','なし']),
-  P('pipe','配管の状態','sel',['良好','!保温材の劣化','!サビ・漏れ']),
-  P('power','電源','sel',['コンセント','直結','!電源なし']),
+  // ---- エコキュート：必須（先に出す。未入力は止めずに「未測」） ----
+  P('ecocur','今の機器','sel',['ガス給湯器','石油給湯器','電気温水器','エコキュート','なし（新築など）'],{req:1,show:ECO,hint:'エコキュートなら「交換」、それ以外は「新規」になります'}),
+  P('ecojob','案件の種類','ro',[],{hint:'今の機器から自動で決まります',show:a=>ECO(a)&&!!a.ecocur}),
+  P('ecow','置き場所の幅','num',[],{u:'mm',req:1,show:ECO}),
+  P('ecod','置き場所の奥行','num',[],{u:'mm',req:1,show:ECO}),
+  P('ecoh','置き場所の高さ','num',[],{u:'mm',req:1,show:ECO}),
+  P('ecobase','タンクの基礎の種類','sel',['土間コンクリート','置き基礎（エコベースなど）','!仮基礎・なし'],{req:1,show:ECO}),
+  P('ecobasecond','基礎の状態','sel',['良好','!ひび・傾き・沈みあり'],{req:a=>a.ecocur==='エコキュート',show:ECO}),
+  P('ecopanel','分電盤の確認','sel',['確認した'],{req:1,show:ECO,hint:'写真は会社のシステムへ。200Vの回路と空きは事務所が写真で判断します'}),
+  P('subsidy','補助金の説明','sel',['説明済み','!未説明'],{req:1,show:ECO}),
+  // ---- 今の機器ごとの項目 ----
+  P('gas','ガス種','sel',['都市ガス','LPガス','該当なし'],{show:a=>!ECO(a)||a.ecocur==='ガス給湯器'}),
+  P('gaspipe','ガス管の種類','sel',['フレキ管','鉄管'],{hint:'フレキ管＝自在に曲がる管／鉄管＝まっすぐ伸びた管',show:a=>ECO(a)&&a.ecocur==='ガス給湯器'}),
+  P('gasapp','ガス工事の申請者','sel',APP_O,{show:a=>ECO(a)&&a.ecocur==='ガス給湯器'}),
+  P('oilpipe','灯油配管の処理','sel',['撤去不要','地上のみ撤去','!地中の撤去が必要（要相談）'],{hint:'灯油タンクはセットで撤去が基本',show:a=>ECO(a)&&a.ecocur==='石油給湯器'}),
+  P('flue','排気筒（煙突）の穴','sel',['!塞ぐ必要あり','なし'],{show:a=>ECO(a)&&a.ecocur==='石油給湯器'}),
+  P('oldplace','今のタンクの設置場所','sel',['屋外','!屋内'],{show:a=>ECO(a)&&a.ecocur==='電気温水器'}),
+  P('oldcap','今のタンク容量','num',[],{u:'L',show:a=>ECO(a)&&a.ecocur==='電気温水器'}),
+  P('midnight','深夜電力','sel',['深夜電力の契約','深夜電力ではない'],{show:a=>ECO(a)&&a.ecocur==='電気温水器'}),
+  P('oldmodel','今のメーカー・型番','text',[],{show:a=>ECO(a)&&a.ecocur==='エコキュート'}),
+  P('pipeok','配管の接続','sel',['そのまま使える','!使えない・要確認'],{show:a=>ECO(a)&&a.ecocur==='エコキュート'}),
+  P('basereuse','基礎の流用','sel',['流用する','!流用できない（作り直し）'],{show:a=>ECO(a)&&a.ecocur==='エコキュート'}),
+  // ---- エコキュート：任意（あとで入れてもOK） ----
+  P('ecoopt','あとで入れてもOK（任意）','hdr',[],{show:ECO}),
+  P('ecocap','タンク容量','sel',['300L','370L','460L','550L'],{show:ECO,hint:'お客様と決まったら'}),
+  P('ecoshape','タンクの形','sel',['角型','薄型','コンパクト'],{show:ECO}),
+  P('ecotype','給湯タイプ','sel',['フルオート','オート','給湯専用'],{show:ECO}),
+  P('ecopress','給水圧（今）','sel',['標準圧','高圧'],{show:ECO}),
+  P('ecopcur','今の水圧','num',[],{u:'kPa',show:ECO,hint:'水圧計を当てられたときだけ',rerender:1}),
+  P('econewpress','給水圧（新しい機器）','sel',['標準圧','高圧'],{show:ECO,hint:'商品が決まってから事務所で入力'}),
+  P('ecopnew','新しい機器の水圧','num',[],{u:'kPa',show:ECO,hint:'商品が決まってから事務所で入力',rerender:1,after:a=>pressHtml(a)}),
+  P('ecocold','寒冷地・塩害地の仕様','sel',['不要','寒冷地','塩害'],{show:ECO}),
+  P('hpbase','ヒートポンプの基礎','sel',['土間コンクリート','置き基礎','!なし'],{show:ECO}),
+  P('hppos','ヒートポンプの設置場所','sel',['タンクの隣','建物の反対側','屋上'],{show:ECO}),
+  P('hpdist','ヒートポンプからタンクまでの距離','num',[],{u:'m',show:ECO}),
+  P('neighbor','隣の家との距離','sel',['十分','!近い（音に注意）'],{show:ECO}),
+  P('contract','電気の契約','sel',['時間帯別プラン','!従量電灯（変更が必要）'],{show:ECO}),
+  P('leak','タンクまわりの水漏れ','sel',['なし','!あり（要確認）'],{show:ECO}),
+  P('ecodrain','排水先','sel',['雨水桝','側溝','なし'],{show:ECO}),
   P('adapter','循環アダプター','sel',['1つ穴','2つ穴','なし']),
-  P('space','周囲の離隔・スペース','sel',['十分','!狭い・要確認']),
-  P('gasco','ガス会社','text',[],{sug:'gascos',hint:'ガス工事がある場合',show:GAS_H}),
-  P('gasapp','ガス工事の申請者','sel',['自社','ガス会社','お客様','協力業者'],{show:GAS_H}),
-  P('gaspipe','ガス管の種類','sel',['フレキ管','鉄管'],{hint:'フレキ管＝自在に曲がる管／鉄管＝まっすぐ伸びた管',show:GAS_H}),
-  P('year','製造年','text'),
-  P('model','現在のメーカー・型番','text')]},
+  // ---- ガス・石油・電気温水器（エコキュート以外） ----
+  P('cap','号数・容量','sel',['16号','20号','24号','その他'],{show:NECO}),
+  P('place','設置タイプ','sel',['壁掛','据置','PS設置','PS扉内','屋内設置'],{show:NECO}),
+  P('exhaust','排気方式','sel',['屋外式','!屋内FE','!屋内FF','PS前方排気','PS上方排気'],{show:NECO}),
+  P('remote','リモコン','sel',['台所＋浴室','台所のみ','浴室のみ','なし'],{show:NECO}),
+  P('pipe','配管の状態','sel',['良好','!保温材の劣化','!サビ・漏れ'],{show:NECO}),
+  P('power','電源','sel',['コンセント','直結','!電源なし'],{show:NECO}),
+  P('space','周囲の離隔・スペース','sel',['十分','!狭い・要確認'],{show:NECO}),
+  P('gasco','ガス会社','text',[],{sug:'gascos',hint:'ガス工事がある場合',show:a=>NECO(a)&&GAS_H(a)}),
+  P('gasapp','ガス工事の申請者','sel',APP_O,{show:a=>NECO(a)&&GAS_H(a)}),
+  P('gaspipe','ガス管の種類','sel',['フレキ管','鉄管'],{hint:'フレキ管＝自在に曲がる管／鉄管＝まっすぐ伸びた管',show:a=>NECO(a)&&GAS_H(a)}),
+  P('year','製造年','text',[],{show:NECO}),
+  P('model','現在のメーカー・型番','text',[],{show:NECO})]},
  {k:'kitchen',name:'キッチン',points:[
   P('layout','レイアウト','sel',['I型','L型','対面（ペニンシュラ）','アイランド']),
   P('width','間口','num',[],{u:'mm',hint:'例 2550'}),
@@ -201,7 +256,7 @@ const TYPES=[
   P('gas','ガス種','sel',['都市ガス','LPガス','該当なし']),
   P('ih200','IH用200V電源','sel',['あり','!なし（新設が必要）','該当なし']),
   P('gasco','ガス会社','text',[],{sug:'gascos',hint:'ガス工事がある場合',show:GAS_K}),
-  P('gasapp','ガス工事の申請者','sel',['自社','ガス会社','お客様','協力業者'],{show:GAS_K}),
+  P('gasapp','ガス工事の申請者','sel',APP_O,{show:GAS_K}),
   P('gaspipe','ガス管の種類','sel',['フレキ管','鉄管'],{hint:'フレキ管＝自在に曲がる管／鉄管＝まっすぐ伸びた管',show:GAS_K}),
 
   P('hood','換気扇','sel',['レンジフード（シロッコ）','プロペラファン']),
@@ -260,7 +315,7 @@ const TYPES=[
   P('what','交換するもの','text'),
   P('gaswork','ガス工事','sel',['あり','なし']),
   P('gasco','ガス会社','text',[],{sug:'gascos',hint:'ガス工事がある場合',show:GAS_O}),
-  P('gasapp','ガス工事の申請者','sel',['自社','ガス会社','お客様','協力業者'],{show:GAS_O}),
+  P('gasapp','ガス工事の申請者','sel',APP_O,{show:GAS_O}),
   P('gaspipe','ガス管の種類','sel',['フレキ管','鉄管'],{hint:'フレキ管＝自在に曲がる管／鉄管＝まっすぐ伸びた管',show:GAS_O}),
 
   P('model','現在のメーカー・型番','text')]}
@@ -269,9 +324,11 @@ const COMMON=[
   P('park','駐車スペース','sel',['あり','!なし（近隣パーキング）']),
   P('ev','エレベーター','sel',['あり','なし','該当なし（戸建）']),
   P('route','搬入経路','sel',['問題なし','!狭い・要確認']),
-  P('narrowplace','一番狭いところ（場所）','text',[],{hint:'例：階段の曲がり、玄関ドア、廊下の角'}),
-  P('narroww','一番狭いところ（幅）','num',[],{u:'mm'}),
-  P('narrowh','一番狭いところ（高さ）','num',[],{u:'mm'}),
+  P('narrowplace','一番狭いところ（場所）','text',[],{hint:'例：階段の曲がり、玄関ドア、廊下の角',req:a=>a._eco}),
+  P('narroww','一番狭いところ（幅）','num',[],{u:'mm',req:a=>a._eco}),
+  P('narrowh','一番狭いところ（高さ）','num',[],{u:'mm',req:a=>a._eco}),
+  P('fence','フェンスの脱着','sel',['不要','!必要'],{req:1,show:a=>a._eco,hint:'エコキュートの搬入・設置のため'}),
+  P('fenceplace','フェンスの場所','text',[],{hint:'例：北側の境界フェンス 2枚',show:a=>a._eco&&a.fence==='!必要'}),
   P('cure','養生の範囲','multi',['玄関','廊下','階段','共用部']),
   P('watersrc','給水の種類','sel',['上水道','!井戸水','!上水道と井戸水の併用']),
   P('warranty','当社保証の説明（井戸水）','sel',['説明済み','!未説明'],{hint:'井戸水の場合の保証内容をお客様に説明したか',show:a=>a.watersrc&&a.watersrc!=='上水道'}),
@@ -451,17 +508,24 @@ function normalize(s){s.targets=s.targets||[];s.common=s.common||{};s.measures=s
 const vis=(pts,ans)=>pts.filter(p=>!p.show||p.show(ans||{}));
 const WANT=P('want','希望の商品・色（決まっていれば）','text');
 function pointsOf(t){return vis([...TYPE[t.type].points,WANT,...(t.extra||[])],t.ans)}
-const commonPts=s=>vis(COMMON,s.common);
+const cAns=s=>Object.assign({},s.common,{_eco:hasEco(s)});
+const commonPts=s=>vis(COMMON,cAns(s));
+const isHdr=p=>p.t==='hdr';
+const isReq=(p,a)=>typeof p.req==='function'?!!p.req(a||{}):!!p.req;
+// 必須で未入力の項目（止めずに「未測」と出す）
+const missReq=(pts,a)=>pts.filter(p=>!isHdr(p)&&isReq(p,a)&&!answered(p,a[p.id]));
+function deriveAns(t){if(t.type==='heater'&&t.ans){const c=t.ans.ecocur;t.ans.ecojob=c?(c==='エコキュート'?'交換':'新規'):''}}
 // 表示を切り替える元になる項目
-const CTRL=new Set(['gas','kind','stove','gaswork','mgmt','drain','outlet','watersrc','mgmtby','water','width']);
+const CTRL=new Set(['ecocur','fence','ecopress','econewpress','gas','kind','stove','gaswork','mgmt','drain','outlet','watersrc','mgmtby','water','width']);
 const answered=(p,v)=>p.t==='multi'?(v||[]).length>0:(v!==undefined&&v!==null&&String(v).trim()!=='');
-function tStats(t){const ps=pointsOf(t);return {total:ps.length,done:ps.filter(p=>answered(p,t.ans[p.id])).length}}
-function stats(s){let total=0,done=0,warn=0;
-  s.targets.forEach(t=>{const st=tStats(t);total+=st.total;done+=st.done;if(t.type==='toilet'){const pc=pitchCheck(t.ans);if(pc&&!pc.ok)warn++}pointsOf(t).forEach(p=>{const v=t.ans[p.id];if((Array.isArray(v)?v:[v]).some(isWarn))warn++})});
+function tStats(t){const ps=pointsOf(t).filter(p=>!isHdr(p));return {total:ps.length,done:ps.filter(p=>answered(p,t.ans[p.id])).length}}
+function stats(s){let total=0,done=0,warn=0,miss=0;
+  s.targets.forEach(t=>{const st=tStats(t);total+=st.total;done+=st.done;if(t.type==='toilet'){const pc=pitchCheck(t.ans);if(pc&&!pc.ok)warn++}pointsOf(t).forEach(p=>{const v=t.ans[p.id];if((Array.isArray(v)?v:[v]).some(isWarn))warn++});miss+=missReq(pointsOf(t),t.ans).length;if(t.type==='heater'&&pressChange(t.ans)==='down')warn++});
   commonPts(s).forEach(p=>{total++;const v=s.common[p.id];if(answered(p,v))done++;if((Array.isArray(v)?v:[v]).some(isWarn))warn++});
-  return {total,done,warn}}
+  miss+=missReq(commonPts(s),cAns(s)).length;
+  return {total,done,warn,miss}}
 function touch(){
-  if(!cur) return; cur.updatedAt=Date.now(); report=null; setStat('保存中…');
+  if(!cur) return; (cur.targets||[]).forEach(deriveAns); cur.updatedAt=Date.now(); report=null; setStat('保存中…');
   clearTimeout(saveTimer); saveTimer=setTimeout(async()=>{await Store.put(cur); setStat(Store.ok?'保存済み':'一時保存のみ');},400);
 }
 function setStat(t){const el=$('#hstat'); if(el) el.textContent=t}
@@ -589,32 +653,36 @@ function renderInfo(){
 function doneMark(p,v,ok){if(!ok)return '';if(p.t==='bowl'&&!bowlLookup(v).exact)return '<span style="color:var(--watch);font-size:15px">未登録</span>';return '✓'}
 function pointHtml(scope,p,v){
   const key=`${scope}|${p.id}`;const ok=answered(p,v);
+  if(isHdr(p))return `<div class="pt opt-hdr">${esc(p.label)}</div>`;
+  const sc=getScope(scope)||{};const ra=sc.ra||sc.ans||{};const req=isReq(p,ra);
   let body='';
   if(p.t==='sel'||p.t==='multi'){
-    const arr=p.t==='multi'?(v||[]):[v];
-    body=`<div class="chips">${p.o.map(o=>`<button class="chip ${isWarn(o)?'warn':''} ${arr.includes(o)?'on':''}" data-pick="${esc(key)}" data-o="${esc(o)}">${esc(optTxt(o))}</button>`).join('')}</div>`;
+    const arr=p.t==='multi'?(v||[]):[v];const olds=arr.filter(x=>x&&!p.o.includes(x));
+    body=`<div class="chips">${[...p.o,...olds].map(o=>`<button class="chip ${isWarn(o)?'warn':''} ${arr.includes(o)?'on':''}" data-pick="${esc(key)}" data-o="${esc(o)}">${esc(optTxt(o))}</button>`).join('')}</div>`;
   }else if(p.t==='bowl'){
     body=`<input class="inp" data-bowl="${esc(key)}" value="${esc(v)}" placeholder="例：CS380B、BC-120S" autocapitalize="characters" autocomplete="off">
       <div data-bowlres="${esc(key)}">${bowlResultHtml(scope,v)}</div>`;
   }else if(p.t==='dim'){
     body=`<div class="numrow"><input class="inp" data-in="${esc(key)}" value="${esc(v)}" inputmode="text" placeholder="例：200"><span class="u">${esc(p.u||'')}</span></div>
       <div class="chips dimchips">${p.o.map(o=>`<button class="chip ${String(v)===o?'on':''}" data-dim="${esc(key)}" data-o="${esc(o)}">${esc(o)}</button>`).join('')}</div>${p.id==='newrange'?compatHtml(scope):''}`;
+  }else if(p.t==='ro'){
+    body=`<div class="inp ro">${esc(v)||'—'}</div>`;
   }else if(p.t==='num'){
     body=`<div class="numrow"><input class="inp" type="number" inputmode="decimal" data-in="${esc(key)}" value="${esc(v)}"><span class="u">${esc(p.u||'')}</span></div>`;
   }else{
     body=`<input class="inp" data-in="${esc(key)}" value="${esc(v)}" placeholder="入力"${p.sug?` list="${p.sug}"`:''}>`;
   }
-  return `<div class="pt" id="pt-${esc(key).replace(/\|/g,'_')}"><div class="lb">${esc(p.label)}${p.hint?`<span class="hint">${esc(p.hint)}</span>`:''}<span class="done">${doneMark(p,v,ok)}</span></div>${body}</div>`;
+  return `<div class="pt" id="pt-${esc(key).replace(/\|/g,'_')}"><div class="lb">${esc(p.label)}${req?'<span class="reqb">必須</span>':''}${p.hint?`<span class="hint">${esc(p.hint)}</span>`:''}<span class="done">${ok?doneMark(p,v,ok):req?'<span class="miss">未測</span>':''}</span></div>${body}${p.after?p.after(ra):''}</div>`;
 }
 function getScope(scope){
-  if(scope==='common')return {pts:commonPts(cur),ans:cur.common};
+  if(scope==='common')return {pts:commonPts(cur),ans:cur.common,ra:cAns(cur)};
   const t=cur.targets.find(x=>x.id===scope);return t?{pts:pointsOf(t),ans:t.ans,t}:null;
 }
 function renderCheck(){
   const st=stats(cur);
   $('#app').innerHTML=`
    <button class="btn sec block" id="toCommon" style="margin-bottom:12px">↓ 共通（搬入・作業環境）へ</button>
-   <div class="legend"><span>確認 ${st.done}/${st.total}</span>${st.warn?`<span style="color:var(--repair);font-weight:700">注意 ${st.warn}件</span>`:''}<span style="margin-left:auto">赤枠＝注意が必要な選択肢</span></div>
+   <div class="legend"><span>確認 ${st.done}/${st.total}</span>${st.warn?`<span style="color:var(--repair);font-weight:700">注意 ${st.warn}件</span>`:''}${st.miss?`<span style="color:var(--repair)">未測 ${st.miss}件</span>`:''}<span style="margin-left:auto">赤枠＝注意が必要な選択肢</span></div>
    ${cur.targets.map(t=>{const op=openT.has(t.id);const s=tStats(t);
      return `<div class="cat"><button data-tog="${t.id}"><span>${op?'▼':'▶'}</span>${esc(t.label||TYPE[t.type].name)}<span class="cnt">${s.done}/${s.total}</span></button>
      ${op?`<div class="pt"><div class="lb">場所・呼び名</div><div class="tbar"><input class="inp" data-label="${t.id}" value="${esc(t.label)}" placeholder="例：1Fトイレ"></div></div>
@@ -642,7 +710,9 @@ function bindCheck(){
     else sc.ans[pid]=sc.ans[pid]===o?'':o;
     touch();if(CTRL.has(pid))renderCheck();else refreshPoint(scope,p)});
   a.querySelectorAll('[data-in]').forEach(el=>el.oninput=()=>{const [scope,pid]=el.dataset.in.split('|');const sc=getScope(scope);if(!sc)return;
-    sc.ans[pid]=el.value;touch();const d=el.closest('.pt').querySelector('.done');if(d)d.textContent=el.value.trim()?'✓':'';updCounts()});
+    sc.ans[pid]=el.value;touch();const p=sc.pts.find(x=>x.id===pid);const d=el.closest('.pt').querySelector('.done');if(d)d.innerHTML=el.value.trim()?'✓':(p&&isReq(p,sc.ra||sc.ans)?'<span class="miss">未測</span>':'');updCounts()});
+  a.querySelectorAll('[data-in]').forEach(el=>{const [scope,pid]=el.dataset.in.split('|');const sc=getScope(scope);const p=sc&&sc.pts.find(x=>x.id===pid);
+    if(p&&p.rerender)el.onchange=()=>{const y=scrollY;renderCheck();scrollTo(0,y)}});
   a.querySelectorAll('[data-label]').forEach(el=>el.oninput=()=>{const t=cur.targets.find(x=>x.id===el.dataset.label);t.label=el.value;touch();
     const h=document.querySelector(`[data-tog="${t.id}"]`);if(h)h.childNodes[1].textContent=el.value||TYPE[t.type].name});
   a.querySelectorAll('[data-tmemo]').forEach(el=>el.oninput=()=>{cur.targets.find(x=>x.id===el.dataset.tmemo).memo=el.value;touch()});
@@ -707,7 +777,7 @@ function bindCheckPoint(key){
 }
 function updCounts(){
   const st=stats(cur);const l=$('.legend');
-  if(l)l.innerHTML=`<span>確認 ${st.done}/${st.total}</span>${st.warn?`<span style="color:var(--repair);font-weight:700">注意 ${st.warn}件</span>`:''}<span style="margin-left:auto">赤枠＝注意が必要な選択肢</span>`;
+  if(l)l.innerHTML=`<span>確認 ${st.done}/${st.total}</span>${st.warn?`<span style="color:var(--repair);font-weight:700">注意 ${st.warn}件</span>`:''}${st.miss?`<span style="color:var(--repair)">未測 ${st.miss}件</span>`:''}<span style="margin-left:auto">赤枠＝注意が必要な選択肢</span>`;
   cur.targets.forEach(t=>{const b=document.querySelector(`[data-tog="${t.id}"] .cnt`);if(b){const s=tStats(t);b.textContent=`${s.done}/${s.total}`}});
 }
 function addPointDialog(tid){
@@ -859,7 +929,8 @@ async function sendToOffice(){
         <li>管理番号・部屋・設備が自動で入ります</li></ol>
       <p class="muted" style="margin:0 0 12px">報告書（読む用）は別です。ファイルの名前は変えずに送ってください。</p>
       <div class="row" style="justify-content:flex-end"><button class="btn" id="mo">閉じる</button></div></div>`);$('#mo').onclick=closeModal};
-  const notes=[...(c.rooms?[]:['採寸に「部屋」がないため、図面の下書きは入りません（図面アプリでは読み込めません）']),...c.warn];
+  const notes=[...(c.rooms?[]:['採寸に「部屋」がないため、図面の下書きは入りません（図面アプリでは読み込めません）']),...c.warn,
+    ...cur.targets.map(t=>{const m=missReq(pointsOf(t),t.ans);return m.length?`${t.label||TYPE[t.type].name}の未測（このまま送れます）：${m.map(p=>p.label).join('、')}`:''}).filter(Boolean)];
   if(cur.pdfRev!==cur.rev)notes.unshift(`現地調査報告書の第${cur.rev}版がまだ作られていません。報告書も作り直して一緒に送ってください`);
   if(!notes.length&&validCode(cur))return go();
   modal(`<div class="box"><h3>図面用データを作る前に</h3><p class="muted" style="margin:0 0 8px">第${cur.rev}版として保存します</p>${validCode(cur)?'':'<p style="color:var(--repair);font-weight:700;margin:0 0 8px">管理番号が未入力か、形式が違います</p>'}
@@ -947,17 +1018,22 @@ function collectWarns(s){
   const warns=[];
   s.targets.forEach(t=>{const pc=t.type==='toilet'&&pitchCheck(t.ans);if(pc&&!pc.ok)warns.push(`${t.label||TYPE[t.type].name}／排水芯の適合：${pc.msg}`)});
   s.targets.forEach(t=>pointsOf(t).forEach(p=>{const v=t.ans[p.id];const w=(Array.isArray(v)?v:[v]).filter(isWarn);if(w.length)warns.push(`${t.label||TYPE[t.type].name}／${p.label}：${w.map(optTxt).join('、')}`)}));
+  s.targets.forEach(t=>{if(t.type!=='heater')return;const k=pressChange(t.ans);const n=t.label||TYPE[t.type].name;
+    if(k==='down')warns.push(`${n}／水圧が下がります（${t.ans.ecopress||''}${t.ans.ecopcur?' '+t.ans.ecopcur+'kPa':''} → ${t.ans.econewpress||''}${t.ans.ecopnew?' '+t.ans.ecopnew+'kPa':''}）。お客様へ説明済みか確認`);
+    if(k==='up')warns.push(`${n}／水圧が上がります。配管の状態を確認`)});
+  s.targets.forEach(t=>{const m=missReq(pointsOf(t),t.ans);if(m.length)warns.push(`${t.label||TYPE[t.type].name}／未測：${m.map(p=>p.label).join('、')}`)});
+  {const m=missReq(commonPts(s),cAns(s));if(m.length)warns.push(`共通／未測：${m.map(p=>p.label).join('、')}`)}
   commonPts(s).forEach(p=>{const v=s.common[p.id];const w=(Array.isArray(v)?v:[v]).filter(isWarn);if(w.length)warns.push(`共通／${p.label}：${w.map(optTxt).join('、')}`+(p.id==='mgmt'?`（申請者：${s.common.mgmtby||'未定'}${s.common.mgmtby==='その他'&&s.common.mgmtnote?'：'+s.common.mgmtnote:''}）`:'')+(p.id==='watersrc'?`（当社保証の説明：${optTxt(s.common.warranty||'未確認')}）`:'')+(p.id==='water'&&s.common.waterdetail?`（${s.common.waterdetail}）`:'')+(p.id==='mgmt'&&s.common.mgmtdue?`（期限：${s.common.mgmtdue}）`:''))});
   return warns;
 }
 // 図面アプリ（工事発注図面）に載せる設備仕様
 function specFor(s){
-  const blocks=s.targets.map(t=>{const rows=pointsOf(t).filter(p=>p.id!=='bowl'&&answered(p,t.ans[p.id])).map(p=>{const v=t.ans[p.id];return [p.label,ansText(p,v),(Array.isArray(v)?v:[v]).some(isWarn)]});
+  const blocks=s.targets.map(t=>{const rows=pointsOf(t).filter(p=>!isHdr(p)&&p.id!=='bowl'&&(answered(p,t.ans[p.id])||isReq(p,t.ans))).map(p=>{const v=t.ans[p.id];if(!answered(p,v))return [p.label,'未測',true];return [p.label,ansText(p,v),(Array.isArray(v)?v:[v]).some(isWarn)]});
     if(t.ans.bowl)rows.unshift(['便器の品番',ansText(TYPE.toilet.points.find(p=>p.id==='bowl'),t.ans.bowl),false]);
     const pc=t.type==='toilet'&&pitchCheck(t.ans);if(pc)rows.push(['排水芯の適合',pc.msg,!pc.ok]);
     if(t.memo)rows.push(['メモ',t.memo,false]);
     return {title:t.label||TYPE[t.type].name,rows}});
-  const crow=commonPts(s).filter(p=>answered(p,s.common[p.id])).map(p=>{const v=s.common[p.id];return [p.label,ansText(p,v),(Array.isArray(v)?v:[v]).some(isWarn)]});
+  const ca=cAns(s);const crow=commonPts(s).filter(p=>answered(p,s.common[p.id])||isReq(p,ca)).map(p=>{const v=s.common[p.id];if(!answered(p,v))return [p.label,'未測',true];return [p.label,ansText(p,v),(Array.isArray(v)?v:[v]).some(isWarn)]});
   if(crow.length)blocks.push({title:'共通（搬入・作業環境）',rows:crow});
   return {blocks,warns:collectWarns(s)};
 }
@@ -981,12 +1057,12 @@ async function buildReport(s,opt){
   // 確認ポイント表
   const c1=360,c2=W-c1;
   function table(title,pts,ans){
-    const rows=pts.filter(p=>opt.unchecked||answered(p,ans[p.id]));
+    const rows=pts.filter(p=>!isHdr(p)&&(opt.unchecked||answered(p,ans[p.id])||isReq(p,ans)));
     if(!rows.length)return;
     const head=()=>{ctx.fillStyle='#2c3a4b';ctx.fillRect(MG,y,W,42);txt(title,MG+14,y+9,21,700,'#fff');y+=42};
     ensure(140);head();
     for(const p of rows){
-      const v=ans[p.id];const t=ansText(p,v);const warn=(Array.isArray(v)?v:[v]).some(isWarn);
+      const v=ans[p.id];const miss=!answered(p,v)&&isReq(p,ans);const t=miss?'未測':ansText(p,v);const warn=miss||(Array.isArray(v)?v:[v]).some(isWarn);
       ctx.font=font(20,warn?700:400);const ls=wrap(ctx,t||'未確認',c2-60);ctx.font=font(19,700);const nl=wrap(ctx,p.label,c1-28);
       const h=Math.max(50,Math.max(ls.length,nl.length)*28+22);
       if(ensure(h))head();
@@ -1033,7 +1109,7 @@ async function buildReport(s,opt){
       y+=18}
   }
   section('共通（搬入・作業環境）');
-  table('【共通】',commonPts(s),s.common);y+=10;
+  table('【共通】',commonPts(s),cAns(s));y+=10;
 
   // 採寸
   const ms=(s.measures||[]).filter(m=>m.place||m.room||m.w||m.d||m.h||m.memo);
