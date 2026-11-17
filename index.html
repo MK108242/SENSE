@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>リフォーム現地調査</title>
+<meta name="theme-color" content="#1f2a37">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="現地調査">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{
+  --navy:#1f2a37;--navy2:#2c3a4b;--accent:#e8772e;--bg:#f3f4f6;--card:#fff;--line:#e2e5ea;--text:#1d2329;--sub:#68717d;
+  --good:#2e7d4f;--watch:#c98a00;--repair:#c0392b;--na:#8a9099;
+  --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;font-size:18px;line-height:1.5}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select,textarea{font:inherit;font-size:18px;color:var(--text)}
+header{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;padding:calc(var(--safe-t) + 10px) 12px 10px;display:flex;align-items:center;gap:8px;min-height:64px}
+header h1{font-size:20px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+header .back{background:rgba(255,255,255,.14);border:0;color:#fff;font-size:18px;font-weight:700;padding:10px 14px;border-radius:10px;min-height:48px}
+header .stat{font-size:13px;opacity:.75;white-space:nowrap}
+main{padding:14px 14px calc(110px + var(--safe-b));max-width:760px;margin:0 auto}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:var(--safe-b)}
+.tabs button{flex:1;background:none;border:0;padding:10px 0 12px;font-size:15px;font-weight:600;min-height:76px;color:var(--sub);display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabs button svg{width:30px;height:30px}
+.tabs button.on{color:var(--accent);font-weight:700;background:#fff4ec;box-shadow:inset 0 3px 0 var(--accent)}
+.card{background:var(--card);border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:12px;padding:14px 20px;min-height:58px;font-size:19px;background:var(--accent);color:#fff;font-weight:700}
+.btn.sec{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.btn.ghost{background:#f1f3f6;color:var(--navy);padding:10px 18px;min-height:50px;font-size:17px}
+.btn.danger{background:var(--repair)}
+.btn.block{width:100%}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:10px;align-items:center}
+.muted{color:var(--sub);font-size:16px}
+.empty{text-align:center;color:var(--sub);padding:40px 10px}
+label.f{display:block;margin-bottom:16px}
+label.f span{display:block;font-size:16px;color:var(--sub);margin-bottom:4px;font-weight:600}
+.inp{width:100%;border:2px solid #d3d8df;border-radius:10px;padding:13px 12px;min-height:56px;background:#fff}
+textarea.inp{min-height:110px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.sec-title{font-size:17px;font-weight:700;color:var(--sub);margin:16px 4px 8px;display:flex;justify-content:space-between;align-items:center}
+/* list */
+.sv{display:block;width:100%;text-align:left;border:0}
+.sv h3{margin:0 0 6px;font-size:21px}
+.bar{height:10px;background:#eceef1;border-radius:3px;overflow:hidden;margin:10px 0 6px}
+.bar i{display:block;height:100%;background:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{border:2px solid #d3d8df;background:#fff;border-radius:26px;padding:10px 18px;min-height:50px;font-size:17px;font-weight:600}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.badge{display:inline-block;font-size:14px;font-weight:700;color:#fff;border-radius:6px;padding:2px 7px}
+/* checklist */
+.cat{background:#fff;border-radius:12px;margin-bottom:10px;overflow:hidden}
+.cat>button{width:100%;display:flex;align-items:center;gap:8px;background:var(--navy2);color:#fff;border:0;padding:18px 18px;min-height:64px;font-weight:700;font-size:21px}
+.cat>button .cnt{margin-left:auto;font-size:17px;opacity:.85;font-weight:400}
+.item{border-top:1px solid var(--line);padding:16px}
+.item:first-of-type{border-top:0}
+.item .hd{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.item .hd b{font-size:20px}
+.item .hd .ind{font-size:15px;color:var(--sub)}
+.item .hd .tg{margin-left:auto;background:#f1f3f6;border:0;color:var(--navy);font-size:16px;font-weight:700;padding:10px 16px;border-radius:10px;min-height:48px;white-space:nowrap}
+.seg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.seg button{border:2px solid #d3d8df;background:#fff;border-radius:12px;padding:12px 0;min-height:62px;font-size:19px;font-weight:700}
+.seg button.on[data-v=good]{background:var(--good);border-color:var(--good);color:#fff}
+.seg button.on[data-v=watch]{background:var(--watch);border-color:var(--watch);color:#fff}
+.seg button.on[data-v=repair]{background:var(--repair);border-color:var(--repair);color:#fff}
+.seg button.on[data-v=na]{background:var(--na);border-color:var(--na);color:#fff}
+.det{margin-top:14px}
+.det .chips{margin-bottom:14px}
+.thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.thumb{width:100px;height:100px;border-radius:10px;overflow:hidden;position:relative;background:#ddd;border:0;padding:0}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.addph{width:100px;height:100px;border-radius:10px;border:2.5px dashed var(--accent);background:#fff4ec;color:var(--accent);font-size:16px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.addph svg{width:34px;height:34px}
+/* photos */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.pcell{background:#fff;border-radius:10px;overflow:hidden}
+.pcell button.im{display:block;width:100%;aspect-ratio:4/3;border:0;padding:0;background:#ddd}
+.pcell img{width:100%;height:100%;object-fit:cover;display:block}
+.pcell .cap{padding:10px}
+.pcell .cap small{display:block;font-size:15px;color:var(--accent);font-weight:700;margin-bottom:3px}
+.pcell input{width:100%;border:2px solid #d3d8df;border-radius:8px;padding:10px;min-height:50px;font-size:17px}
+/* measures */
+.ms .dims{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ms .area{font-size:18px;color:var(--navy);font-weight:700;margin-top:4px}
+/* report */
+.rp-prev img{width:100%;display:block;border:1px solid var(--line);border-radius:4px;margin-bottom:6px;background:#fff}
+.rp-page{margin-bottom:14px}
+.sw{display:flex;align-items:center;justify-content:space-between;padding:12px 0;min-height:60px;font-size:19px}
+.sw input{width:32px;height:32px;accent-color:var(--accent)}
+/* modal & toast */
+#modal{position:fixed;inset:0;z-index:50;display:none;background:rgba(15,20,28,.55);align-items:center;justify-content:center;padding:20px}
+#modal.on{display:flex}
+#modal .box{background:#fff;border-radius:14px;padding:18px;width:100%;max-width:420px;max-height:90vh;overflow:auto}
+#modal .box h3{margin:0 0 10px;font-size:22px}
+#modal .viewer{background:#000;max-width:none;padding:0;position:relative}
+#modal .viewer img{width:100%;display:block;max-height:75vh;object-fit:contain}
+#modal .viewer .vb{background:#fff;padding:12px}
+#toast{position:fixed;left:50%;bottom:calc(120px + var(--safe-b));transform:translateX(-50%);background:rgba(20,26,34,.92);color:#fff;padding:14px 22px;border-radius:26px;font-size:18px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+#toast.on{opacity:1}
+.fab{position:fixed;right:16px;bottom:calc(20px + var(--safe-b));z-index:15;border-radius:36px;padding:18px 28px;min-height:68px;font-size:21px;box-shadow:0 4px 14px rgba(232,119,46,.4)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:16px;color:var(--sub);margin:4px 4px 10px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+</style>
+<style>
+.pt{border-top:1px solid var(--line);padding:16px}
+.pt:first-of-type{border-top:0}
+.pt .lb{font-size:19px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px}
+.pt .lb .hint{order:3;flex-basis:100%;font-size:15px;font-weight:400;color:var(--sub)}
+.pt .lb .done{margin-left:auto;color:var(--good);font-size:22px}
+.chip.on.warn{background:var(--repair);border-color:var(--repair)}
+.chip.warn{border-color:#e7b4ad}
+.numrow{display:flex;align-items:center;gap:10px}
+.numrow .inp{flex:1}
+.numrow .u{font-size:18px;font-weight:700;color:var(--sub);min-width:36px}
+.tgt-add{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tgt-add button{border:2px solid #d3d8df;background:#fff;border-radius:14px;min-height:84px;font-size:19px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.tgt-add button small{font-size:14px;color:var(--sub);font-weight:400}
+.tbar{display:flex;gap:10px;align-items:center}
+.bowlres{margin-top:12px;padding:14px;border-radius:12px;background:#f3f5f8;font-size:18px}
+.bowlres.ok{background:#eaf5ee;border:2px solid var(--good)}
+.bowlres.ok .btn{margin-top:10px;width:100%}
+.bowlres.ng{background:#fff6ec;border:2px solid #f0c9a3;font-size:17px}
+.bowlres small{font-size:14px;color:var(--sub)}
+.dimchips{margin-top:10px}
+.tbar .inp{flex:1}
+</style>
+</head>
+<body>
+<header id="hdr"></header>
+<main id="app"></main>
+<nav class="tabs" id="tabs" style="display:none"></nav>
+<div id="modal"></div>
+<div id="toast"></div>
+<input type="file" id="jsonIn" accept=".json,application/json" hidden>
+
+<script>
+/* ===== 基本 ===== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+
+/* ===== 交換対象と確認ポイント =====
+   t: sel=1つ選ぶ / multi=複数選ぶ / num=数値 / text=文字
+   選択肢の先頭に「!」= 注意（報告書の注意事項に載る） */
+const P=(id,label,t,o,extra)=>Object.assign({id,label,t,o:o||[]},extra||{});
+const isGas=v=>v==='都市ガス'||v==='LPガス';
+const GAS_H=a=>isGas(a.gas)||/ガス/.test(a.kind||'');      // 給湯器
+const GAS_K=a=>isGas(a.gas)||a.stove==='ガス';             // キッチン
+const GAS_O=a=>a.gaswork==='あり';                         // その他
+const TYPES=[
+ {k:'toilet',name:'トイレ',points:[
+  P('cur','現在の便器','sel',['組み合わせ便器','一体型','タンクレス','!和式']),
+  P('bowl','便器の品番（排水芯チェック）','bowl',[],{hint:'便座ではなく便器の品番を入力。途中まででも候補が出ます'}),
+  P('drain','排水方式','sel',['床排水','壁排水']),
+  P('pitch','排水芯（床排水：壁から）','dim',['120','200','120/200','305〜540'],{u:'mm',hint:'「120/200」「305〜540」のような入力もできます',show:a=>a.drain!=='壁排水'}),
+  P('wallh','排水高さ（壁排水：床から）','dim',['100','120','148','155'],{u:'mm',show:a=>a.drain!=='床排水'}),
+  P('pitchsrc','排水芯・排水高さの根拠','sel',['実測','!型番表のみ（未実測）'],{show:a=>!!(String(a.pitch||'').trim()||String(a.wallh||'').trim())}),
+  P('newrange','新しい便器の排水芯 対応範囲','dim',['200','305〜460','305〜540','250〜550'],{u:'mm',hint:'決まっていれば、カタログの対応範囲を入力（リモデル便器など）',show:a=>a.drain!=='壁排水'}),
+  P('water','給水位置','sel',['床給水','壁給水']),
+  P('valve','止水栓','sel',['あり・正常','!あり・固着/漏れ','!なし']),
+  P('waterpos','給水管・止水栓の位置','text',[],{hint:'例：右壁から150・床から200（mm）'}),
+  P('outlet','コンセント','sel',['あり','!なし（新設が必要）']),
+  P('outletpos','コンセントの位置','sel',['右','左'],{hint:'便器・洗面台に向かって',show:a=>a.outlet==='あり'}),
+  P('seat','現在の便座','sel',['普通便座','暖房便座','温水洗浄便座']),
+  P('hand','手洗い','sel',['タンク手洗い','別の手洗い器あり','なし']),
+  P('floor','床材','sel',['クッションフロア','フローリング','タイル','その他']),
+  P('fcond','床の状態','sel',['良好','!シミ・傷みあり','!腐食・沈みあり']),
+  P('door','入口の有効幅','num',[],{u:'mm'}),
+  P('model','現在のメーカー・型番','text')]},
+ {k:'heater',name:'給湯器',points:[
+  P('kind','種類','sel',['ガス給湯専用','ガス追い焚き付き','ガス暖房付き','石油給湯器','電気温水器','エコキュート']),
+  P('gas','ガス種','sel',['都市ガス','LPガス','該当なし']),
+  P('cap','号数・容量','sel',['16号','20号','24号','その他']),
+  P('place','設置タイプ','sel',['壁掛','据置','PS設置','PS扉内','屋内設置']),
+  P('exhaust','排気方式','sel',['屋外式','!屋内FE','!屋内FF','PS前方排気','PS上方排気']),
+  P('remote','リモコン','sel',['台所＋浴室','台所のみ','浴室のみ','なし']),
+  P('pipe','配管の状態','sel',['良好','!保温材の劣化','!サビ・漏れ']),
+  P('power','電源','sel',['コンセント','直結','!電源なし']),
+  P('adapter','循環アダプター','sel',['1つ穴','2つ穴','なし']),
+  P('space','周囲の離隔・スペース','sel',['十分','!狭い・要確認']),
+  P('gasco','ガス会社','text',[],{sug:'gascos',hint:'ガス工事がある場合',show:GAS_H}),
+  P('gasapp','ガス工事の申請者','sel',['自社','ガス会社','お客様','協力業者'],{show:GAS_H}),
+  P('gaspipe','ガス管の種類','sel',['フレキ管','鉄管'],{hint:'フレキ管＝自在に曲がる管／鉄管＝まっすぐ伸びた管',show:GAS_H}),
+  P('year','製造年','text'),
+  P('model','現在のメーカー・型番','text')]},
+ {k:'kitchen',name:'キッチン',points:[
+  P('layout','レイアウト','sel',['I型','L型','対面（ペニンシュラ）','アイランド']),
+  P('width','間口','num',[],{u:'mm',hint:'例 2550'}),
+  P('depth','奥行','num',[],{u:'mm'}),
+  P('height','天板の高さ','sel',['800','850','900','その他']),
+  P('stove','コンロ','sel',['ガス','IH','なし']),
+  P('gas','ガス種','sel',['都市ガス','LPガス','該当なし']),
+  P('ih200','IH用200V電源','sel',['あり','!なし（新設が必要）','該当なし']),
+  P('gasco','ガス会社','text',[],{sug:'gascos',hint:'ガス工事がある場合',show:GAS_K}),
+  P('gasapp','ガス工事の申請者','sel',['自社','ガス会社','お客様','協力業者'],{show:GAS_K}),
+  P('gaspipe','ガス管の種類','sel',['フレキ管','鉄管'],{hint:'フレキ管＝自在に曲がる管／鉄管＝まっすぐ伸びた管',show:GAS_K}),
+
+  P('hood','換気扇','sel',['レンジフード（シロッコ）','プロペラファン']),
+  P('wpos','給排水の位置','sel',['床から','壁から']),
+  P('upper','吊戸棚','sel',['あり','なし']),
+  P('dish','食洗機','sel',['あり','なし','新設希望']),
+  P('wall','壁・床の状態','sel',['良好','!傷み・汚れあり','!腐食あり']),
+  P('model','現在のメーカー・型番','text')]},
+ {k:'bath',name:'浴室',points:[
+  P('cur','現在の浴室','sel',['ユニットバス','!在来浴室（タイル）']),
+  P('size','サイズ','sel',['1216','1616','1618','1620','1717','1818','その他']),
+  P('iw','内寸（幅）','num',[],{u:'mm'}),
+  P('id','内寸（奥行）','num',[],{u:'mm'}),
+  P('beam','梁・柱の出っ張り','sel',['なし','!あり']),
+  P('win','窓','sel',['なし','あり']),
+  P('door','出入口','sel',['開き戸','折れ戸','引き戸']),
+  P('step','脱衣所との段差','sel',['なし','!あり']),
+  P('reheat','追い焚き','sel',['あり','なし']),
+  P('vent','換気','sel',['換気扇','浴室乾燥機','窓のみ']),
+  P('base','土台・下地','sel',['問題なし','!腐食・シロアリ跡あり','未確認']),
+  P('model','現在のメーカー・型番','text')]},
+ {k:'wash',name:'洗面化粧台',points:[
+  P('width','間口','sel',['600','750','900','1000','その他']),
+  P('wpos','給排水の位置','sel',['床から','壁から']),
+  P('faucet','水栓','sel',['シングルレバー','シャワー水栓','2ハンドル']),
+  P('valve','止水栓','sel',['あり・正常','!あり・固着/漏れ','!なし']),
+  P('outlet','コンセント','sel',['あり','!なし']),
+  P('outletpos','コンセントの位置','sel',['右','左'],{hint:'便器・洗面台に向かって',show:a=>a.outlet==='あり'}),
+  P('mirror','ミラー','sel',['一面鏡','三面鏡','なし']),
+  P('floor','床の状態','sel',['良好','!シミ・傷みあり','!腐食あり']),
+  P('model','現在のメーカー・型番','text')]},
+ {k:'aircon',name:'エアコン',points:[
+  P('room','部屋の広さ','sel',['6畳','8畳','10畳','12畳','14畳以上']),
+  P('kw','現在の能力','sel',['2.2kW','2.5kW','2.8kW','3.6kW','4.0kW以上']),
+  P('volt','電源電圧','sel',['100V','200V','!専用回路なし']),
+  P('plug','コンセント形状','sel',['100V 15A','100V 20A','200V 15A','200V 20A']),
+  P('outdoor','室外機の設置','sel',['地面置き','ベランダ置き','!屋根置き','!壁面・天吊り']),
+  P('hole','配管穴','sel',['既存利用','!新規穴あけ']),
+  P('cover','配管化粧カバー','sel',['あり','なし']),
+  P('pipe','配管の長さ（目安）','num',[],{u:'m'}),
+  P('model','現在のメーカー・型番','text')]},
+ {k:'hood',name:'レンジフード',points:[
+  P('type','現在のタイプ','sel',['ブーツ型（深型）','フラット型（薄型）','平型','!プロペラファン']),
+  P('width','間口','sel',['600','750','900','その他']),
+  P('widthmm','間口（実測）','num',[],{u:'mm',hint:'その他のとき・念のため実測',show:a=>a.width==='その他'}),
+  P('exhaust','排気の方向','sel',['横（左）','横（右）','上','後ろ']),
+  P('duct','ダクトの径','sel',['φ100','φ150','その他']),
+  P('ductcond','ダクトの状態','sel',['良好','!汚れ・劣化あり','!確認できない']),
+  P('power','電源','sel',['コンセント','直結','!電源なし']),
+  P('upper','吊戸棚との取り合い','sel',['吊戸棚あり','吊戸棚なし']),
+  P('height','天井からレンジフード下端まで','num',[],{u:'mm'}),
+  P('maku','前幕板','sel',['あり','なし']),
+  P('link','コンロとの連動','sel',['なし','あり（連動機能付き）']),
+  P('model','現在のメーカー・型番','text')]},
+ {k:'other',name:'その他の設備',points:[
+  P('what','交換するもの','text'),
+  P('gaswork','ガス工事','sel',['あり','なし']),
+  P('gasco','ガス会社','text',[],{sug:'gascos',hint:'ガス工事がある場合',show:GAS_O}),
+  P('gasapp','ガス工事の申請者','sel',['自社','ガス会社','お客様','協力業者'],{show:GAS_O}),
+  P('gaspipe','ガス管の種類','sel',['フレキ管','鉄管'],{hint:'フレキ管＝自在に曲がる管／鉄管＝まっすぐ伸びた管',show:GAS_O}),
+
+  P('model','現在のメーカー・型番','text')]}
+];
+const COMMON=[
+  P('park','駐車スペース','sel',['あり','!なし（近隣パーキング）']),
+  P('ev','エレベーター','sel',['あり','なし','該当なし（戸建）']),
+  P('route','搬入経路','sel',['問題なし','!狭い・要確認']),
+  P('narrowplace','一番狭いところ（場所）','text',[],{hint:'例：階段の曲がり、玄関ドア、廊下の角'}),
+  P('narroww','一番狭いところ（幅）','num',[],{u:'mm'}),
+  P('narrowh','一番狭いところ（高さ）','num',[],{u:'mm'}),
+  P('cure','養生の範囲','multi',['玄関','廊下','階段','共用部']),
+  P('watersrc','給水の種類','sel',['上水道','!井戸水','!上水道と井戸水の併用']),
+  P('warranty','当社保証の説明（井戸水）','sel',['説明済み','!未説明'],{hint:'井戸水の場合の保証内容をお客様に説明したか',show:a=>a.watersrc&&a.watersrc!=='上水道'}),
+  P('water','断水・作業時間の制約','sel',['なし','!あり']),
+  P('waterdetail','制約の内容','text',[],{hint:'例：平日9〜17時のみ・断水は前日までに管理会社へ連絡',show:a=>a.water==='!あり'}),
+  P('mgmt','マンション管理組合への申請','sel',['不要','!必要','該当なし']),
+  P('mgmtby','管理組合への申請者','sel',['自社','お客様','管理会社','その他'],{show:a=>a.mgmt==='!必要'}),
+  P('mgmtnote','申請者のコメント','text',[],{hint:'申請者・申請方法など',show:a=>a.mgmt==='!必要'&&a.mgmtby==='その他'}),
+  P('mgmtdue','申請の期限・必要日数','text',[],{hint:'例：工事の2週間前までに申請・理事会承認が必要',show:a=>a.mgmt==='!必要'})
+];
+/* ===== 便器品番 → 排水芯 型番表 =====
+   出典：交換できるくん「トイレ(便器)排水芯/排水高さ」解説ページの品番一覧 */
+const BOWL_SRC=[
+ ['TOTO','床排水','200',['CS20','CS30','CS50','CS110B','CS200B','CS260B','CS350','CS380B','CS680B']],
+ ['TOTO','床排水','210',['C725B']],['TOTO','床排水','230',['CZ733']],['TOTO','床排水','330',['C710R']],
+ ['TOTO','床排水','340',['C830','C850']],['TOTO','床排水','380',['C720']],['TOTO','床排水','405',['C710RS']],
+ ['TOTO','床排水','530',['C420','CZ440']],['TOTO','床排水','540',['CS430','C730B']],
+ ['TOTO','壁排水','100',['C406P','CS406BP','C720P']],
+ ['TOTO','壁排水','120',['C780P','CS220BP','CS280BP','CS320BP','CS365BP','CS380BP','CS950BP','CS978BP','CZ180BP','CZ725P']],
+ ['TOTO','壁排水','155',['C14P','C417','C418','C721P','C730BP','C730P','C770P']],
+ ['LIXIL(INAX)','床排水','120',['BC-1880S','DC-1880S','DC-3880S','DC-4880S']],
+ ['LIXIL(INAX)','床排水','200',['BC-120S','BC-130S','BC-160S','BC-170S','BC-270S']],
+ ['LIXIL(INAX)','床排水','305',['C-44SU','C-54SU','SC-20']],['LIXIL(INAX)','床排水','310',['C-20S']],
+ ['LIXIL(INAX)','床排水','325',['NC-99SU']],['LIXIL(INAX)','床排水','380',['C-44ST']],['LIXIL(INAX)','床排水','490',['C-13']],
+ ['LIXIL(INAX)','床排水','530',['C-18HC','SC-30']],['LIXIL(INAX)','床排水','530/540',['C-18S']],
+ ['LIXIL(INAX)','壁排水','100',['C-44P','DC-880P','NC-99PU']],
+ ['LIXIL(INAX)','壁排水','120',['BC-120PU','BC-220PU','BC-260P','BC-270P','BC-320PU','DC-3880P']],
+ ['LIXIL(INAX)','壁排水','155',['BC-110PU','BC-110PTU','BC-181P','BC-1880P','C-11R','C-18PU','C-180P','C-20P','C-45PU','DC-3890P','GBC-360PU']]
+];
+const normModel=v=>String(v||'').replace(/[Ａ-Ｚａ-ｚ０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).split(/[#＃]/)[0].toUpperCase().replace(/[^A-Z0-9]/g,'');
+let USER_BOWLS=[]; // 自分で登録した型番 {model,maker,drain,val}
+function bowlTable(){const out=[];BOWL_SRC.forEach(([maker,drain,val,ms])=>ms.forEach(m=>out.push({model:m,maker,drain,val,src:'型番表'})));
+  USER_BOWLS.forEach(b=>out.push({...b,src:'登録済み'}));return out}
+function bowlLookup(v){
+  const n=normModel(v);if(n.length<2)return {exact:null,cands:[]};
+  const all=bowlTable();
+  const exact=all.filter(b=>normModel(b.model)===n).sort((a,b)=>a.src==='登録済み'?-1:1)[0]||null;
+  const cands=exact?[]:all.filter(b=>normModel(b.model).startsWith(n)).slice(0,6);
+  return {exact,cands};
+}
+function bowlResultHtml(scope,v){
+  if(!String(v||'').trim())return '';
+  const {exact,cands}=bowlLookup(v);
+  const line=b=>`${esc(b.maker)}　<b>${esc(b.drain)} ${esc(b.val)}mm</b>`;
+  if(exact)return `<div class="bowlres ok"><div>✓ ${esc(exact.model)}：${line(exact)}<small>（${exact.src}）</small></div>
+    <button class="btn" data-apply="${esc(scope)}|${esc(exact.model)}">排水方式・寸法に反映</button></div>`;
+  if(cands.length)return `<div class="bowlres"><div class="muted" style="margin-bottom:8px">候補（タップで選択）</div><div class="chips">${cands.map(b=>
+    `<button class="chip" data-cand="${esc(scope)}|${esc(b.model)}">${esc(b.model)}<small style="font-weight:400">　${esc(b.drain)}${esc(b.val)}</small></button>`).join('')}</div></div>`;
+  return `<div class="bowlres ng">型番表に見つかりません。実測して入力してください。<br><small>実測後「型番表に登録」で次回から自動表示できます。</small>
+    <button class="btn sec" data-reg="${esc(scope)}" style="margin-top:10px">この品番を型番表に登録</button></div>`;
+}
+const TYPE=Object.fromEntries(TYPES.map(t=>[t.k,t]));
+const PROP_TYPES=['戸建','マンション','アパート','店舗','事務所','その他'];
+const STRUCTS=['木造','軽量鉄骨','重量鉄骨','RC造','SRC造','その他'];
+const M_KINDS=['部屋','開口部','設備','その他'];
+const isWarn=o=>String(o).startsWith('!');
+// 「120/200」「305〜540」を範囲の配列に
+function parseRanges(v){return String(v||'').replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).split(/[\/、,，]/).map(x=>x.trim()).filter(Boolean)
+  .map(x=>{const m=x.split(/[〜~～\-ー－]/).map(n=>parseFloat(n)).filter(n=>!isNaN(n));return m.length?[Math.min(...m),Math.max(...m)]:null}).filter(Boolean)}
+// 今の排水芯が、新しい便器の対応範囲に入るか
+function pitchCheck(a){
+  if(!a||a.drain==='壁排水')return null;const cur=parseRanges(a.pitch),nw=parseRanges(a.newrange)[0];
+  if(!cur.length||!nw)return null;
+  const inR=r=>r[0]>=nw[0]&&r[1]<=nw[1],n=cur.filter(inR).length,cs=String(a.pitch).trim(),ns=String(a.newrange).trim();
+  const src=a.pitchsrc==='実測'?'':'（型番表の値・要実測）';
+  if(n===cur.length)return {ok:true,msg:`今の排水芯 ${cs}mm は対応範囲 ${ns}mm に入っています${src}`};
+  if(n>0)return {ok:false,msg:`今の排水芯 ${cs}mm の一部が対応範囲 ${ns}mm から外れています。実測して確認してください`};
+  return {ok:false,msg:`今の排水芯 ${cs}mm は、新しい便器の対応範囲 ${ns}mm に入りません。取り付けできない可能性があります`};
+}
+function compatHtml(scope){const sc=getScope(scope);const r=sc&&pitchCheck(sc.ans);
+  return `<div id="compat-${esc(scope)}">${r?`<div class="bowlres ${r.ok?'ok':'ng'}" style="${r.ok?'':'border-color:var(--repair);color:var(--repair);font-weight:700'}">${r.ok?'✓ ':'⚠ '}${esc(r.msg)}</div>`:''}</div>`}
+function updateCompat(scope){const el=document.getElementById('compat-'+scope);if(el)el.outerHTML=compatHtml(scope)}
+const optTxt=o=>String(o).replace(/^!/,'');
+
+/* ===== 保存（端末内 IndexedDB） ===== */
+const Store=(()=>{
+  let dbp=null,mem=new Map(),ok=true;
+  function open(){
+    if(dbp) return dbp;
+    dbp=new Promise((res,rej)=>{
+      try{
+        const r=indexedDB.open('reform-survey',1);
+        r.onupgradeneeded=()=>r.result.createObjectStore('surveys',{keyPath:'id'});
+        r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+      }catch(e){rej(e)}
+    }).catch(e=>{ok=false;return null});
+    return dbp;
+  }
+  function tx(db,mode){return db.transaction('surveys',mode).objectStore('surveys')}
+  return {
+    get ok(){return ok},
+    async all(){const db=await open(); if(!db) return [...mem.values()];
+      return new Promise(res=>{const r=tx(db,'readonly').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>res([...mem.values()])})},
+    async put(s){mem.set(s.id,s);const db=await open(); if(!db) return;
+      return new Promise(res=>{try{const r=tx(db,'readwrite').put(s);r.onsuccess=()=>res();r.onerror=()=>{ok=false;res()}}catch(e){ok=false;res()}})},
+    async del(id){mem.delete(id);const db=await open(); if(!db) return;
+      return new Promise(res=>{try{const r=tx(db,'readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>res()}catch(e){res()}})}
+  };
+})();
+
+async function loadSurveys(){return (await Store.all()).filter(x=>!String(x.id).startsWith('__')).map(normalize)}
+/* ===== ダウンロード ===== */
+const MIME={pdf:'application/pdf',png:'image/png',jpg:'image/jpeg',json:'application/json'};
+function downloadBlob(name,blob){
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+// 共有シート（「ファイルに保存」・LINE・メールなど）→ 使えなければダウンロード
+async function shareOrDownload(name,blob){
+  const file=new File([blob],name,{type:blob.type});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:name});return 'shared'}
+    catch(e){if(e&&e.name==='AbortError')return 'cancel';if(e&&e.name==='NotAllowedError')return 'retry'}
+  }
+  downloadBlob(name,blob);return 'saved';
+}
+let CDL=null;(async()=>{try{if(window.claude&&window.claude.use)CDL=await window.claude.use('downloads')}catch(e){CDL=null}})();
+async function saveFile(name,data){
+  if(CDL){try{await CDL.save({filename:name,data});toast('保存しました');return true}catch(e){toast(e&&e.code==='declined'?'キャンセルしました':'保存できませんでした');return false}}
+  const ext=name.split('.').pop().toLowerCase();
+  const blob=data instanceof Blob?new Blob([data],{type:MIME[ext]||data.type}):new Blob([data],{type:MIME[ext]||'application/octet-stream'});
+  let r=await shareOrDownload(name,blob);
+  if(r==='retry'){ // 共有の許可が切れた場合はボタンをもう一度押してもらう
+    await new Promise(res=>{modal(`<div class="box"><h3>ファイルの準備ができました</h3><p class="muted">${esc(name)}</p>
+      <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn sec" id="mc">閉じる</button><button class="btn" id="mo">保存・共有する</button></div></div>`);
+      $('#mc').onclick=()=>{closeModal();r='cancel';res()};
+      $('#mo').onclick=async()=>{closeModal();r=await shareOrDownload(name,blob);if(r==='retry'){downloadBlob(name,blob);r='saved'}res()}});
+  }
+  if(r==='cancel')toast('キャンセルしました');else if(r==='saved')toast('ダウンロードしました');
+  return r!=='cancel';
+}
+/* ===== PDF作成（JPEG画像をA4ページに並べる・外部ライブラリなし） ===== */
+function dataUrlBytes(u){const b=atob(u.split(',')[1]);const a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+function makePdf(canvases){
+  const enc=new TextEncoder(),parts=[],offs=[];let off=0;
+  const push=x=>{const b=typeof x==='string'?enc.encode(x):x;parts.push(b);off+=b.length};
+  push('%PDF-1.4\n%\u00e2\u00e3\u00cf\u00d3\n');
+  const n=canvases.length,W=595.28,H=841.89;
+  offs[1]=off;push('1 0 obj\n<</Type/Catalog/Pages 2 0 R>>\nendobj\n');
+  offs[2]=off;push(`2 0 obj\n<</Type/Pages/Kids[${canvases.map((c,i)=>`${3+i*3} 0 R`).join(' ')}]/Count ${n}>>\nendobj\n`);
+  canvases.forEach((c,i)=>{
+    const p=3+i*3,im=p+1,ct=p+2;const jpg=dataUrlBytes(c.toDataURL('image/jpeg',0.9));
+    const cs=`q ${W} 0 0 ${H} 0 0 cm /Im0 Do Q`;
+    offs[p]=off;push(`${p} 0 obj\n<</Type/Page/Parent 2 0 R/MediaBox[0 0 ${W} ${H}]/Resources<</XObject<</Im0 ${im} 0 R>>>>/Contents ${ct} 0 R>>\nendobj\n`);
+    offs[im]=off;push(`${im} 0 obj\n<</Type/XObject/Subtype/Image/Width ${c.width}/Height ${c.height}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${jpg.length}>>\nstream\n`);push(jpg);push('\nendstream\nendobj\n');
+    offs[ct]=off;push(`${ct} 0 obj\n<</Length ${cs.length}>>\nstream\n${cs}\nendstream\nendobj\n`);
+  });
+  const size=3+n*3,xref=off;
+  let x=`xref\n0 ${size}\n0000000000 65535 f \n`;for(let i=1;i<size;i++)x+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
+  push(x+`trailer\n<</Size ${size}/Root 1 0 R>>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(parts,{type:'application/pdf'});
+}
+const safeName=s=>(s||'調査').replace(/[\\/:*?"<>|\s]+/g,'_').slice(0,40);
+const stamp=d=>{const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`};
+// 例：R-001_山田様邸トイレ交換_2026-11-16_作成1405
+function reportBase(s,at){const p=n=>String(n).padStart(2,'0');return [s.code?safeName(s.code):'管理番号なし',safeName(s.title),s.date||'','現調報告',`第${s.rev||1}版`].filter(Boolean).join('_')}
+
+/* ===== 状態 ===== */
+let surveys=[],cur=null,view='list',tab='info',openT=new Set(),report=null,saveTimer=null;
+
+function newSurvey(){
+  const d=new Date();
+  return {id:uid(),title:`現地調査 ${d.getMonth()+1}/${d.getDate()}`,code:'',date:today(),surveyor:'',propType:'戸建',structure:'木造',age:'',floors:'',purpose:'',note:'',
+    targets:[],common:{},measures:[],createdAt:Date.now(),updatedAt:Date.now()};
+}
+const toHalf=v=>String(v||'').replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0));
+const validCode=s=>/^\d{13}-\d{1,4}$/.test(String(s.code||''));
+function setCode(s){s.code=s.custNo&&s.seq?`${s.custNo}-${s.seq}`:(s.custNo||'')}
+function codeHint(){const el=$('#codeHint');if(!el)return;const c=cur.custNo||'',q=cur.seq||'';
+  el.innerHTML=validCode(cur)?`管理番号：<b style="color:var(--navy);font-size:19px">${esc(cur.code)}</b>`
+   :c.length&&c.length!==13?`<span style="color:var(--repair)">顧客番号は13桁です（いま${c.length}桁）</span>`:c&&!q?'<span style="color:var(--repair)">管理番号（枝番）を入力してください</span>':'例：2605121145566-1';}
+function normalize(s){s.targets=s.targets||[];s.common=s.common||{};s.measures=s.measures||[];
+  if(s.code&&s.custNo===undefined){const m=/^(\d{13})-(\d{1,4})$/.exec(s.code);if(m){s.custNo=m[1];s.seq=m[2]}}
+  // 部屋の紐づけを名前から番号へ（旧データの移行）
+  s.measures.forEach(m=>{if((m.kind==='開口部'||m.kind==='設備')&&m.room&&!m.roomId){const r=s.measures.find(x=>x.kind==='部屋'&&x.place===m.room);if(r)m.roomId=r.id}});
+  return s}
+const vis=(pts,ans)=>pts.filter(p=>!p.show||p.show(ans||{}));
+const WANT=P('want','希望の商品・色（決まっていれば）','text');
+function pointsOf(t){return vis([...TYPE[t.type].points,WANT,...(t.extra||[])],t.ans)}
+const commonPts=s=>vis(COMMON,s.common);
+// 表示を切り替える元になる項目
+const CTRL=new Set(['gas','kind','stove','gaswork','mgmt','drain','outlet','watersrc','mgmtby','water','width']);
+const answered=(p,v)=>p.t==='multi'?(v||[]).length>0:(v!==undefined&&v!==null&&String(v).trim()!=='');
+function tStats(t){const ps=pointsOf(t);return {total:ps.length,done:ps.filter(p=>answered(p,t.ans[p.id])).length}}
+function stats(s){let total=0,done=0,warn=0;
+  s.targets.forEach(t=>{const st=tStats(t);total+=st.total;done+=st.done;if(t.type==='toilet'){const pc=pitchCheck(t.ans);if(pc&&!pc.ok)warn++}pointsOf(t).forEach(p=>{const v=t.ans[p.id];if((Array.isArray(v)?v:[v]).some(isWarn))warn++})});
+  commonPts(s).forEach(p=>{total++;const v=s.common[p.id];if(answered(p,v))done++;if((Array.isArray(v)?v:[v]).some(isWarn))warn++});
+  return {total,done,warn}}
+function touch(){
+  if(!cur) return; cur.updatedAt=Date.now(); report=null; setStat('保存中…');
+  clearTimeout(saveTimer); saveTimer=setTimeout(async()=>{await Store.put(cur); setStat(Store.ok?'保存済み':'一時保存のみ');},400);
+}
+function setStat(t){const el=$('#hstat'); if(el) el.textContent=t}
+
+/* ===== UI 共通 ===== */
+let toastT;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2200)}
+function modal(html){const m=$('#modal');m.innerHTML=html;m.classList.add('on')}
+function closeModal(){const m=$('#modal');m.classList.remove('on');m.innerHTML=''}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+function confirmBox(title,msg,okLabel,fn){
+  modal(`<div class="box"><h3>${esc(title)}</h3><p class="muted">${esc(msg)}</p><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn sec" id="mc">キャンセル</button><button class="btn danger" id="mo">${esc(okLabel)}</button></div></div>`);
+  $('#mc').onclick=closeModal; $('#mo').onclick=()=>{closeModal();fn()};
+}
+const ICON={
+  info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 9l2 2 4-4M8 16h8"/></svg>',
+  measure:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg>',
+  report:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h6"/></svg>'
+};
+const TABS=[['info','物件'],['check','確認ポイント'],['measure','採寸'],['report','報告書']];
+
+/* ===== 描画 ===== */
+function render(){
+  const h=$('#hdr'),tb=$('#tabs');
+  if(view==='list'){h.innerHTML=`<h1>リフォーム現地調査</h1>`;tb.style.display='none';renderList();return}
+  h.innerHTML=`<button class="back" id="bk">‹ 一覧</button><h1>${esc(cur.title||'無題')}</h1><span class="stat" id="hstat">保存済み</span>`;
+  $('#bk').onclick=()=>{if(histPushed)history.back();else goList()};
+  tb.style.display='flex';
+  tb.innerHTML=TABS.map(([k,l])=>`<button data-tab="${k}" class="${tab===k?'on':''}">${ICON[k]}<span>${l}</span></button>`).join('');
+  tb.querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render();scrollTo(0,0)});
+  ({info:renderInfo,check:renderCheck,measure:renderMeasure,report:renderReport})[tab]();
+}
+
+function renderList(){
+  const a=$('#app');
+  const list=[...surveys].map(normalize).sort((x,y)=>y.updatedAt-x.updatedAt);
+  a.innerHTML=`
+   ${list.length?list.map(s=>{const st=stats(s);const p=st.total?Math.round(st.done/st.total*100):0;
+     return `<div class="card"><button class="sv" data-open="${s.id}" style="background:none;padding:0">
+       <h3>${esc(s.title||'無題')}</h3>
+       <div class="muted">${esc(s.date)}${s.code?' ・ '+esc(s.code):''}${s.surveyor?' ・ '+esc(s.surveyor):''}</div>
+       <div class="muted">${s.targets.length?esc(s.targets.map(t=>t.label||TYPE[t.type].name).join('、')):'交換対象 未選択'}</div>
+       <div class="bar"><i style="width:${p}%"></i></div>
+       <div class="row muted" style="justify-content:space-between"><span>確認 ${st.done}/${st.total}</span>
+       ${st.warn?`<span class="badge" style="background:var(--repair)">注意 ${st.warn}</span>`:''}</div>
+     </button>
+     <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn ghost" data-dup="${s.id}">複製</button><button class="btn ghost" data-del="${s.id}" style="color:var(--repair)">削除</button></div></div>`}).join('')
+   :`<div class="empty">まだ調査がありません。<br>右下の「新規調査」から始めましょう。</div>`}
+   ${isStandalone()?'':`<div class="card" style="background:#fff4ec;border:2px solid #f3c39f"><b>ホーム画面に追加するとアプリとして使えます</b>
+     <p class="muted" style="margin:6px 0 0">iPhone：Safariの共有ボタン →「ホーム画面に追加」<br>Android：Chromeのメニュー（︙）→「ホーム画面に追加」または「アプリをインストール」</p></div>`}
+   <div class="sec-title">データ管理</div>
+   <div class="card">
+     <p class="muted" style="margin-top:0">データはこの端末のブラウザ内に保存されます。機種変更や履歴削除に備えて、ときどきバックアップを保存してください。</p>
+     <div class="row"><button class="btn sec" id="bkup" style="flex:1">バックアップ保存</button><button class="btn sec" id="rstr" style="flex:1">読み込み</button></div>
+   </div>
+   <div style="height:70px"></div>
+   <button class="btn fab" id="nw">＋ 新規調査</button>`;
+  a.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openSurvey(b.dataset.open));
+  a.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const s=surveys.find(x=>x.id===b.dataset.del);
+    confirmBox('調査を削除','「'+(s.title||'無題')+'」を削除します。元に戻せません。','削除',async()=>{await Store.del(s.id);surveys=await loadSurveys();render();toast('削除しました')})});
+  a.querySelectorAll('[data-dup]').forEach(b=>b.onclick=async()=>{const s=JSON.parse(JSON.stringify(surveys.find(x=>x.id===b.dataset.dup)));
+    // 現場ごとに変わる情報は引き継がない
+    // 引き継ぐのは物件種別・構造・築年数・階数・担当者と、交換対象の種類・呼び名・追加した確認ポイントだけ
+    normalize(s);s.id=uid();s.title='';s.date=today();s.code='';s.custNo='';s.seq='';s.purpose='';s.note='';s.measures=[];s.common={};delete s.rev;delete s.repAt;
+    s.targets.forEach(t=>{t.id=uid();t.memo='';t.ans={}});
+    s.createdAt=s.updatedAt=Date.now();await Store.put(s);surveys=await loadSurveys();openSurvey(s.id,'info');
+    toast('複製しました。案件名と管理番号を入力してください');setTimeout(()=>{const el=document.querySelector('[data-f=title]');if(el)el.focus()},150)});
+  $('#nw').onclick=async()=>{const s=newSurvey();await Store.put(s);surveys.push(s);openSurvey(s.id,'info')};
+  $('#bkup').onclick=()=>{if(!surveys.length){toast('保存する調査がありません');return}
+    saveFile(`現地調査バックアップ_${today()}.json`,JSON.stringify({app:'reform-survey',v:3,surveys,bowls:USER_BOWLS}))};
+  $('#rstr').onclick=()=>$('#jsonIn').click();
+}
+$('#jsonIn').onchange=async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try{const j=JSON.parse(await f.text());const arr=Array.isArray(j)?j:j.case&&j.case.survey?[j.case.survey]:(j.surveys||[j]);let n=0;
+    for(const s of arr){if(s&&s.id&&!String(s.id).startsWith('__')){await Store.put(normalize(s));n++}}
+    if(j.bowls&&j.bowls.length){j.bowls.forEach(b=>{USER_BOWLS=USER_BOWLS.filter(x=>normModel(x.model)!==normModel(b.model));USER_BOWLS.push(b)});await Store.put({id:'__bowls',list:USER_BOWLS})}
+    surveys=await loadSurveys();render();toast(n+'件を読み込みました');
+  }catch(err){toast('読み込めませんでした')}
+};
+const useHist=!window.claude;let histPushed=false;
+async function goList(){clearTimeout(saveTimer);if(cur)await Store.put(cur);histPushed=false;surveys=await loadSurveys();view='list';cur=null;report=null;closeModal();render();scrollTo(0,0)}
+window.addEventListener('popstate',()=>{if(view==='survey')goList()});
+function openSurvey(id,t){cur=surveys.find(s=>s.id===id);if(!cur)return;normalize(cur);
+  if(useHist&&!histPushed){try{history.pushState({v:'survey'},'');histPushed=true}catch(e){}}
+  view='survey';tab=t||'check';report=null;openT=new Set(cur.targets.slice(-1).map(x=>x.id));render();scrollTo(0,0)}
+
+/* --- 物件情報 --- */
+function renderInfo(){
+  const s=cur,opt=(arr,v)=>arr.map(o=>`<option ${o===v?'selected':''}>${esc(o)}</option>`).join('');
+  $('#app').innerHTML=`
+  <div class="card">
+    <label class="f"><span>案件名</span><input class="inp" data-f="title" value="${esc(s.title)}" placeholder="例：〇〇様邸 トイレ交換"></label>
+    <div class="grid2">
+      <label class="f"><span>顧客番号（13桁）</span><input class="inp" data-c="custNo" inputmode="numeric" maxlength="13" value="${esc(s.custNo)}" placeholder="2605121145566"></label>
+      <label class="f"><span>管理番号（4桁まで）</span><input class="inp" data-c="seq" inputmode="numeric" maxlength="4" value="${esc(s.seq)}" placeholder="1"></label>
+    </div>
+    <div id="codeHint" class="muted" style="margin:-8px 0 14px"></div>
+    <label class="f"><span>調査日</span><input class="inp" type="date" data-f="date" value="${esc(s.date)}"></label>
+    <label class="f" style="margin:0"><span>調査担当者</span><input class="inp" data-f="surveyor" value="${esc(s.surveyor)}"></label>
+  </div>
+  <div class="sec-title">建物</div>
+  <div class="card">
+    <div class="grid2">
+      <label class="f"><span>物件種別</span><select class="inp" data-f="propType">${opt(PROP_TYPES,s.propType)}</select></label>
+      <label class="f"><span>構造</span><select class="inp" data-f="structure">${opt(STRUCTS,s.structure)}</select></label>
+      <label class="f" style="margin:0"><span>築年数（年）</span><input class="inp" type="number" inputmode="numeric" data-f="age" value="${esc(s.age)}"></label>
+      <label class="f" style="margin:0"><span>階数・調査階</span><input class="inp" data-f="floors" value="${esc(s.floors)}" placeholder="2階建"></label>
+    </div>
+  </div>
+  <div class="sec-title">調査内容</div>
+  <div class="card">
+    <label class="f"><span>ご要望</span><textarea class="inp" data-f="purpose" placeholder="例：節水型トイレに交換したい">${esc(s.purpose)}</textarea></label>
+    <label class="f" style="margin:0"><span>総評・特記事項（報告書に記載）</span><textarea class="inp" data-f="note">${esc(s.note)}</textarea></label>
+  </div>
+  <button class="btn block" id="go">確認ポイントへ進む ›</button>`;
+  $('#app').querySelectorAll('[data-f]').forEach(el=>el.addEventListener('input',()=>{cur[el.dataset.f]=el.value;touch();if(el.dataset.f==='title')$('#hdr h1').textContent=el.value||'無題'}));
+  $('#app').querySelectorAll('[data-c]').forEach(el=>el.addEventListener('input',()=>{let v=toHalf(el.value).replace(/\D/g,'');if(el.dataset.c==='seq')v=v.replace(/^0+(?=\d)/,'');if(v!==el.value)el.value=v;cur[el.dataset.c]=v;setCode(cur);touch();codeHint()}));
+  codeHint();
+  $('#go').onclick=()=>{tab='check';render();scrollTo(0,0)};
+}
+
+/* --- 確認ポイント --- */
+function doneMark(p,v,ok){if(!ok)return '';if(p.t==='bowl'&&!bowlLookup(v).exact)return '<span style="color:var(--watch);font-size:15px">未登録</span>';return '✓'}
+function pointHtml(scope,p,v){
+  const key=`${scope}|${p.id}`;const ok=answered(p,v);
+  let body='';
+  if(p.t==='sel'||p.t==='multi'){
+    const arr=p.t==='multi'?(v||[]):[v];
+    body=`<div class="chips">${p.o.map(o=>`<button class="chip ${isWarn(o)?'warn':''} ${arr.includes(o)?'on':''}" data-pick="${esc(key)}" data-o="${esc(o)}">${esc(optTxt(o))}</button>`).join('')}</div>`;
+  }else if(p.t==='bowl'){
+    body=`<input class="inp" data-bowl="${esc(key)}" value="${esc(v)}" placeholder="例：CS380B、BC-120S" autocapitalize="characters" autocomplete="off">
+      <div data-bowlres="${esc(key)}">${bowlResultHtml(scope,v)}</div>`;
+  }else if(p.t==='dim'){
+    body=`<div class="numrow"><input class="inp" data-in="${esc(key)}" value="${esc(v)}" inputmode="text" placeholder="例：200"><span class="u">${esc(p.u||'')}</span></div>
+      <div class="chips dimchips">${p.o.map(o=>`<button class="chip ${String(v)===o?'on':''}" data-dim="${esc(key)}" data-o="${esc(o)}">${esc(o)}</button>`).join('')}</div>${p.id==='newrange'?compatHtml(scope):''}`;
+  }else if(p.t==='num'){
+    body=`<div class="numrow"><input class="inp" type="number" inputmode="decimal" data-in="${esc(key)}" value="${esc(v)}"><span class="u">${esc(p.u||'')}</span></div>`;
+  }else{
+    body=`<input class="inp" data-in="${esc(key)}" value="${esc(v)}" placeholder="入力"${p.sug?` list="${p.sug}"`:''}>`;
+  }
+  return `<div class="pt" id="pt-${esc(key).replace(/\|/g,'_')}"><div class="lb">${esc(p.label)}${p.hint?`<span class="hint">${esc(p.hint)}</span>`:''}<span class="done">${doneMark(p,v,ok)}</span></div>${body}</div>`;
+}
+function getScope(scope){
+  if(scope==='common')return {pts:commonPts(cur),ans:cur.common};
+  const t=cur.targets.find(x=>x.id===scope);return t?{pts:pointsOf(t),ans:t.ans,t}:null;
+}
+function renderCheck(){
+  const st=stats(cur);
+  $('#app').innerHTML=`
+   <button class="btn sec block" id="toCommon" style="margin-bottom:12px">↓ 共通（搬入・作業環境）へ</button>
+   <div class="legend"><span>確認 ${st.done}/${st.total}</span>${st.warn?`<span style="color:var(--repair);font-weight:700">注意 ${st.warn}件</span>`:''}<span style="margin-left:auto">赤枠＝注意が必要な選択肢</span></div>
+   ${cur.targets.map(t=>{const op=openT.has(t.id);const s=tStats(t);
+     return `<div class="cat"><button data-tog="${t.id}"><span>${op?'▼':'▶'}</span>${esc(t.label||TYPE[t.type].name)}<span class="cnt">${s.done}/${s.total}</span></button>
+     ${op?`<div class="pt"><div class="lb">場所・呼び名</div><div class="tbar"><input class="inp" data-label="${t.id}" value="${esc(t.label)}" placeholder="例：1Fトイレ"></div></div>
+       ${pointsOf(t).map(p=>pointHtml(t.id,p,t.ans[p.id])).join('')}
+       <div class="pt"><div class="lb">メモ</div><textarea class="inp" data-tmemo="${t.id}" placeholder="気づいたこと・お客様のご要望など">${esc(t.memo)}</textarea></div>
+       <div class="pt row" style="flex-wrap:wrap"><button class="btn ghost" data-addpt="${t.id}" style="flex:1">＋ 確認ポイントを追加</button><button class="btn ghost" data-rmt="${t.id}" style="color:var(--repair)">この対象を削除</button></div>`:''}
+     </div>`}).join('')}
+   <div class="sec-title">交換する設備を追加</div>
+   <div class="tgt-add">${TYPES.map(t=>`<button data-addt="${t.k}">＋ ${esc(t.name)}<small>${t.points.length}項目</small></button>`).join('')}</div>
+   <div class="sec-title" id="commonTop">共通（搬入・作業環境）</div>
+   <div class="cat">${commonPts(cur).map(p=>pointHtml('common',p,cur.common[p.id])).join('')}</div>
+   <datalist id="gascos">${['東京ガス','大阪ガス','東邦ガス','西部ガス','北海道ガス','LPガス販売店'].map(x=>`<option value="${x}">`).join('')}</datalist>`;
+  bindCheck();
+}
+function bindCheck(){
+  const a=$('#app');
+  const tc=$('#toCommon');if(tc)tc.onclick=()=>$('#commonTop').scrollIntoView({behavior:'smooth',block:'start'});
+  a.querySelectorAll('[data-tog]').forEach(b=>b.onclick=()=>{const id=b.dataset.tog;openT.has(id)?openT.delete(id):openT.add(id);renderCheck()});
+  a.querySelectorAll('[data-addt]').forEach(b=>b.onclick=()=>{const k=b.dataset.addt;const n=cur.targets.filter(t=>t.type===k).length;
+    const t={id:uid(),type:k,label:TYPE[k].name+(n?` ${n+1}`:''),ans:{},memo:'',extra:[]};cur.targets.push(t);openT=new Set([t.id]);touch();renderCheck();
+    setTimeout(()=>{const el=document.querySelector(`[data-tog="${t.id}"]`);el&&el.scrollIntoView({behavior:'smooth',block:'start'})},50);toast(TYPE[k].name+'を追加しました')});
+  a.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const [scope,pid]=b.dataset.pick.split('|');const sc=getScope(scope);if(!sc)return;
+    const p=sc.pts.find(x=>x.id===pid);const o=b.dataset.o;
+    if(p.t==='multi'){const arr=sc.ans[pid]||[];sc.ans[pid]=arr.includes(o)?arr.filter(x=>x!==o):[...arr,o]}
+    else sc.ans[pid]=sc.ans[pid]===o?'':o;
+    touch();if(CTRL.has(pid))renderCheck();else refreshPoint(scope,p)});
+  a.querySelectorAll('[data-in]').forEach(el=>el.oninput=()=>{const [scope,pid]=el.dataset.in.split('|');const sc=getScope(scope);if(!sc)return;
+    sc.ans[pid]=el.value;touch();const d=el.closest('.pt').querySelector('.done');if(d)d.textContent=el.value.trim()?'✓':'';updCounts()});
+  a.querySelectorAll('[data-label]').forEach(el=>el.oninput=()=>{const t=cur.targets.find(x=>x.id===el.dataset.label);t.label=el.value;touch();
+    const h=document.querySelector(`[data-tog="${t.id}"]`);if(h)h.childNodes[1].textContent=el.value||TYPE[t.type].name});
+  a.querySelectorAll('[data-tmemo]').forEach(el=>el.oninput=()=>{cur.targets.find(x=>x.id===el.dataset.tmemo).memo=el.value;touch()});
+  a.querySelectorAll('[data-rmt]').forEach(b=>b.onclick=()=>{const t=cur.targets.find(x=>x.id===b.dataset.rmt);
+    confirmBox('対象を削除','「'+(t.label||TYPE[t.type].name)+'」の確認内容を削除します。','削除',()=>{cur.targets=cur.targets.filter(x=>x!==t);touch();renderCheck()})});
+  a.querySelectorAll('[data-addpt]').forEach(b=>b.onclick=()=>addPointDialog(b.dataset.addpt));
+  bindExtra(a);
+}
+const normDim=v=>String(v).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[／]/g,'/').replace(/[~～\-ー－]/g,'〜').replace(/\s+/g,'');
+function bindExtra(root){
+  root.querySelectorAll('[data-dim]').forEach(b=>b.onclick=()=>{const [scope,pid]=b.dataset.dim.split('|');const sc=getScope(scope);const p=sc.pts.find(x=>x.id===pid);
+    sc.ans[pid]=sc.ans[pid]===b.dataset.o?'':b.dataset.o;touch();if(pid==='pitch'||pid==='wallh'||pid==='newrange'){const y=scrollY;renderCheck();scrollTo(0,y)}else refreshPoint(scope,p)});
+  root.querySelectorAll('[data-in]').forEach(el=>{const [scope,pid]=el.dataset.in.split('|');const sc=getScope(scope);const p=sc&&sc.pts.find(x=>x.id===pid);
+    if(p&&p.t==='dim')el.oninput=()=>{const was=!!String(sc.ans[pid]||'').trim();sc.ans[pid]=el.value;touch();const d=el.closest('.pt').querySelector('.done');if(d)d.textContent=el.value.trim()?'✓':'';updCounts();
+      if(pid==='pitch'||pid==='newrange')updateCompat(scope);};
+    if(p&&p.t==='dim')el.onchange=()=>{const n=normDim(el.value);sc.ans[pid]=n;touch();const y=scrollY;renderCheck();scrollTo(0,y)};});
+  root.querySelectorAll('[data-bowl]').forEach(el=>el.oninput=()=>{const [scope,pid]=el.dataset.bowl.split('|');const sc=getScope(scope);
+    sc.ans[pid]=el.value;touch();const r=document.querySelector(`[data-bowlres="${CSS.escape(el.dataset.bowl)}"]`);
+    if(r){r.innerHTML=bowlResultHtml(scope,el.value);bindBowlRes(r)}
+    const d=el.closest('.pt').querySelector('.done');if(d)d.innerHTML=doneMark({t:'bowl'},el.value,!!el.value.trim());updCounts()});
+  root.querySelectorAll('[data-bowlres]').forEach(bindBowlRes);
+}
+function bindBowlRes(r){
+  r.querySelectorAll('[data-cand]').forEach(b=>b.onclick=()=>{const [scope,m]=b.dataset.cand.split('|');const sc=getScope(scope);sc.ans.bowl=m;touch();renderCheck()});
+  r.querySelectorAll('[data-apply]').forEach(b=>b.onclick=()=>{const [scope,m]=b.dataset.apply.split('|');const sc=getScope(scope);const {exact}=bowlLookup(m);if(!exact)return;
+    sc.ans.drain=exact.drain;if(exact.drain==='床排水')sc.ans.pitch=exact.val;else sc.ans.wallh=exact.val;sc.ans.pitchsrc='!型番表のみ（未実測）';
+    const t=cur.targets.find(x=>x.id===scope);
+    // 型番は、空欄か前に自動で入れたものなら差し替える（手で書いたものは残す）
+    if(t&&(!t.ans.model||t.ans.model===t.ans._modelAuto)){t.ans.model=exact.maker+' '+exact.model;t.ans._modelAuto=t.ans.model;}
+    touch();renderCheck();toast(`${exact.drain} ${exact.val}mm を反映しました`)});
+  r.querySelectorAll('[data-reg]').forEach(b=>b.onclick=()=>regBowlDialog(b.dataset.reg));
+}
+function regBowlDialog(scope){
+  const sc=getScope(scope);const a=sc.ans;
+  const dr=a.drain||'床排水';const val=dr==='床排水'?(a.pitch||''):(a.wallh||'');
+  modal(`<div class="box"><h3>型番表に登録</h3>
+   <label class="f"><span>便器の品番</span><input class="inp" id="rm" value="${esc(String(a.bowl||'').split(/[#＃]/)[0].trim())}"></label>
+   <label class="f"><span>メーカー</span><input class="inp" id="rk" list="makers" placeholder="TOTO / LIXIL(INAX) / パナソニック など"></label>
+   <datalist id="makers"><option value="TOTO"><option value="LIXIL(INAX)"><option value="パナソニック"><option value="ジャニス"><option value="アサヒ衛陶"></datalist>
+   <div class="f"><span style="display:block;font-size:16px;color:var(--sub);margin-bottom:6px;font-weight:600">排水方式</span>
+     <div class="chips" id="rd">${['床排水','壁排水'].map(x=>`<button class="chip ${x===dr?'on':''}" data-x="${x}">${x}</button>`).join('')}</div></div>
+   <label class="f"><span>排水芯／排水高さ（mm）</span><input class="inp" id="rv" value="${esc(val)}" placeholder="例：200、120/200、305〜540"></label>
+   <div class="row" style="justify-content:flex-end"><button class="btn sec" id="mc">キャンセル</button><button class="btn" id="mo">登録</button></div></div>`);
+  let d=dr;$('#rd').querySelectorAll('button').forEach(b=>b.onclick=()=>{d=b.dataset.x;$('#rd').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});
+  $('#mc').onclick=closeModal;
+  $('#mo').onclick=async()=>{const model=$('#rm').value.trim(),v=normDim($('#rv').value);
+    if(!normModel(model)||!v){toast('品番と寸法を入力してください');return}
+    USER_BOWLS=USER_BOWLS.filter(b=>normModel(b.model)!==normModel(model));
+    USER_BOWLS.push({model,maker:$('#rk').value.trim()||'—',drain:d,val:v});
+    await Store.put({id:'__bowls',list:USER_BOWLS});closeModal();renderCheck();toast('型番表に登録しました')};
+}
+function refreshPoint(scope,p){
+  const sc=getScope(scope);const key=`${scope}|${p.id}`;const el=document.getElementById('pt-'+key.replace(/\|/g,'_'));
+  if(el){el.outerHTML=pointHtml(scope,p,sc.ans[p.id]);bindCheckPoint(key);const ne=document.getElementById('pt-'+key.replace(/\|/g,'_'));if(ne)bindExtra(ne)}updCounts();
+}
+function bindCheckPoint(key){
+  // 置き換えた要素だけ再バインド
+  document.querySelectorAll(`#pt-${CSS.escape(key.replace(/\|/g,'_'))} [data-pick]`).forEach(b=>b.onclick=()=>{const [scope,pid]=b.dataset.pick.split('|');const sc=getScope(scope);
+    const p=sc.pts.find(x=>x.id===pid);const o=b.dataset.o;
+    if(p.t==='multi'){const arr=sc.ans[pid]||[];sc.ans[pid]=arr.includes(o)?arr.filter(x=>x!==o):[...arr,o]}else sc.ans[pid]=sc.ans[pid]===o?'':o;
+    touch();if(CTRL.has(pid))renderCheck();else refreshPoint(scope,p)});
+}
+function updCounts(){
+  const st=stats(cur);const l=$('.legend');
+  if(l)l.innerHTML=`<span>確認 ${st.done}/${st.total}</span>${st.warn?`<span style="color:var(--repair);font-weight:700">注意 ${st.warn}件</span>`:''}<span style="margin-left:auto">赤枠＝注意が必要な選択肢</span>`;
+  cur.targets.forEach(t=>{const b=document.querySelector(`[data-tog="${t.id}"] .cnt`);if(b){const s=tStats(t);b.textContent=`${s.done}/${s.total}`}});
+}
+function addPointDialog(tid){
+  modal(`<div class="box"><h3>確認ポイントを追加</h3>
+   <label class="f"><span>ポイント名</span><input class="inp" id="ni" placeholder="例：ドアの開き方向"></label>
+   <label class="f"><span>選択肢（読点区切り・空欄なら自由入力）</span><input class="inp" id="nt" placeholder="例：右開き、左開き"></label>
+   <div class="row" style="justify-content:flex-end"><button class="btn sec" id="mc">キャンセル</button><button class="btn" id="mo">追加</button></div></div>`);
+  setTimeout(()=>$('#ni').focus(),50);
+  $('#mc').onclick=closeModal;
+  $('#mo').onclick=()=>{const n=$('#ni').value.trim();if(!n){toast('ポイント名を入力してください');return}
+    const o=$('#nt').value.split(/[、,，]+/).map(x=>x.trim()).filter(Boolean);
+    const t=cur.targets.find(x=>x.id===tid);(t.extra=t.extra||[]).push(P('x_'+uid(),n,o.length?'sel':'text',o));touch();closeModal();renderCheck()};
+}
+
+/* --- 採寸 --- */
+const TSUBO=3.30579;
+function areaTxt(m){const w=+m.w,d=+m.d;if(!(w>0&&d>0)||(m.kind!=='部屋'&&m.kind))return '';const sq=w*d/1e6;return `面積 ${(sq/TSUBO).toFixed(2)}坪（${sq.toFixed(2)}㎡）`}
+/* 採寸：部屋・開口部・設備は「どの部屋の・どの壁の・端から何mm」まで残し、図面の下書きに使う */
+const WALLS_J=[['n','奥（入口の正面）'],['w','左'],['e','右'],['s','手前（入口側）']];
+const WALL_TXT=Object.fromEntries(WALLS_J);
+const OP_TYPES=['ドア','引戸','窓'];
+const EQ_TYPES=['トイレ','洗面化粧台','キッチン','浴槽','その他'];
+const FLS=['B1F','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F'];
+function roomOf(s,m){return s.measures.find(x=>x.kind==='部屋'&&x.id===m.roomId)}
+function roomName(r){return r?`${r.fl||'1F'} ${r.place||'名前なし'}`:''}
+function roomOpts(){return cur.measures.filter(m=>m.kind==='部屋').map(r=>[r.id,roomName(r)])}
+function roomNames(){return roomOpts()}
+function mDesc(m){ // 報告書・一覧用の位置の説明
+  const a=[];
+  if(m.kind==='開口部')a.push((m.otype||'開口')+(m.otype==='ドア'&&m.swing?'・'+m.swing:'')+(m.otype==='窓'&&m.sill?'・腰高'+m.sill:''));
+  if(m.kind==='設備'&&m.etype)a.push(m.etype);
+  if(m.wall)a.push(WALL_TXT[m.wall]+'の壁'+(m.pos!==undefined&&String(m.pos).trim()!==''?'・壁に向かって左端から'+Number(m.pos).toLocaleString():''));
+  return a.join('／');
+}
+function mLabel(m){if(m.kind==='部屋')return roomName(m);if(m.kind==='その他'||!m.kind)return m.place||'';const r=cur?roomOf(cur,m):null;return r?roomName(r):(m.room||'部屋未指定')}
+function renderMeasure(){
+  const ms=cur.measures,rooms=roomNames();
+  const sel=(f,arr,v,ph)=>`<select class="inp" data-mf="${f}"><option value="">${ph||'選択'}</option>${arr.map(o=>{const [val,lab]=Array.isArray(o)?o:[o,o];return `<option value="${esc(val)}" ${val===v?'selected':''}>${esc(lab)}</option>`}).join('')}</select>`;
+  const num=(f,lab,v)=>`<label class="f"><span>${lab}</span><input class="inp" type="number" inputmode="numeric" data-mf="${f}" value="${esc(v)}"></label>`;
+  const card=(m,i)=>{
+    const k=m.kind||'部屋',placed=k==='開口部'||k==='設備';
+    return `<div class="card ms" data-mi="${i}">
+     <div class="grid2">
+       <label class="f"><span>種別</span>${sel('kind',M_KINDS,k,'種別')}</label>
+       ${k==='部屋'?`<label class="f"><span>階</span>${sel('fl',FLS,m.fl||'1F','階')}</label>`
+        :placed?`<label class="f"><span>どの部屋</span>${sel('roomId',rooms,m.roomId||'',rooms.length?'部屋を選択':'先に部屋を追加')}</label>`
+        :`<label class="f"><span>場所</span><input class="inp" data-mf="place" value="${esc(m.place)}" placeholder="例：搬入経路の階段"></label>`}
+     </div>
+     ${k==='部屋'?`<label class="f"><span>部屋の名前</span><input class="inp" data-mf="place" value="${esc(m.place)}" placeholder="例：トイレ"></label>`:''}
+     ${k==='開口部'?`<div class="grid2"><label class="f"><span>開口の種類</span>${sel('otype',OP_TYPES,m.otype||'')}</label>
+        ${m.otype==='ドア'?`<label class="f"><span>開き</span>${sel('swing',['内開き','外開き'],m.swing||'')}</label>`:m.otype==='窓'?num('sill','腰高 mm',m.sill):'<span></span>'}</div>`:''}
+     ${k==='設備'?`<label class="f"><span>設備の種類</span>${sel('etype',EQ_TYPES,m.etype||'')}</label>`:''}
+     <div class="dims">
+       ${num('w',k==='開口部'?'幅 W mm':'W mm',m.w)}
+       ${k==='開口部'?'<span></span>':num('d',k==='部屋'?'奥行 D mm':'D mm',m.d)}
+       ${num('h',k==='開口部'?'高さ H mm':k==='部屋'?'天井高 mm（実測）':'H mm',m.h)}
+     </div>
+     ${placed?`<div class="grid2"><label class="f"><span>どの壁</span>${sel('wall',WALLS_J,m.wall||'','壁を選択')}</label>${num('pos','左端から mm',m.pos)}</div>
+       <p class="muted" style="margin:-6px 0 8px">壁は入口に立って部屋の奥を見たときの向き。位置は、その壁に向かって左端から${k==='開口部'?'開口の端':'設備の端'}まで。</p>`:''}
+     <div class="area" data-area>${areaTxt(m)}</div>
+     <label class="f" style="margin:8px 0 0"><span>メモ</span><input class="inp" data-mf="memo" value="${esc(m.memo)}"></label>
+     <div style="text-align:right;margin-top:10px"><button class="btn ghost" data-mdel="${i}" style="color:var(--repair)">削除</button></div>
+   </div>`};
+  $('#app').innerHTML=`
+   <p class="muted" style="margin:0 4px 12px"><b>寸法は内寸（壁・枠の内側どうし）</b>で入力してください。<br>部屋を先に追加し、ドア・窓・設備は「どの部屋・どの壁・左端から何mm」まで入れると、事務所で図面の下書きとして使えます。</p>
+   ${ms.length?ms.map(card).join(''):`<div class="empty">採寸記録はまだありません</div>`}
+   <div class="row" style="flex-wrap:wrap">
+     <button class="btn" data-madd="部屋" style="flex:1">＋ 部屋</button>
+     <button class="btn" data-madd="開口部" style="flex:1">＋ ドア・窓</button>
+     <button class="btn" data-madd="設備" style="flex:1">＋ 設備</button>
+     <button class="btn sec" data-madd="その他" style="flex:1">＋ その他</button>
+   </div>`;
+  $('#app').querySelectorAll('[data-madd]').forEach(b=>b.onclick=()=>{const k=b.dataset.madd;const rs=roomNames();
+    const m={id:uid(),kind:k,place:'',w:'',d:'',h:'',memo:''};
+    if(k==='部屋'){const lr=[...ms].reverse().find(x=>x.kind==='部屋');m.fl=lr&&lr.fl?lr.fl:'1F'}
+    if(k==='開口部'||k==='設備'){const last=[...ms].reverse().find(x=>x.roomId&&ms.some(r=>r.id===x.roomId));const lr=[...ms].reverse().find(x=>x.kind==='部屋');m.roomId=last?last.roomId:(lr?lr.id:'')}
+    if(k==='開口部')m.otype='ドア';
+    ms.push(m);touch();renderMeasure();
+    const cards=document.querySelectorAll('.ms');cards[cards.length-1].scrollIntoView({behavior:'smooth',block:'center'})});
+  $('#app').querySelectorAll('.ms').forEach(card=>{const m=ms[+card.dataset.mi];
+    card.querySelectorAll('[data-mf]').forEach(el=>{
+      el.addEventListener('input',()=>{m[el.dataset.mf]=el.value;card.querySelector('[data-area]').textContent=areaTxt(m);touch()});
+      if(['kind','otype'].includes(el.dataset.mf))el.addEventListener('change',()=>{const y=scrollY;renderMeasure();scrollTo(0,y)});
+      // 部屋の名前・階を変えたら、他の行の「どの部屋」の表示だけ更新（入力中の欄を消さない）
+      if((el.dataset.mf==='place'||el.dataset.mf==='fl')&&m.kind==='部屋')el.addEventListener('input',()=>{
+        document.querySelectorAll(`select[data-mf=roomId] option[value="${CSS.escape(m.id)}"]`).forEach(o=>o.textContent=roomName(m))});
+    })});
+  $('#app').querySelectorAll('[data-mdel]').forEach(b=>b.onclick=()=>{const m=ms[+b.dataset.mdel];
+    confirmBox('採寸を削除','「'+(mLabel(m)||'場所未入力')+'」の採寸を削除します。','削除',()=>{ms.splice(ms.indexOf(m),1);touch();renderMeasure()})});
+}
+
+/* ===== かんたん図面との受け渡し =====
+   1つのファイルで両方のアプリが読める形にする：
+   ・かんたん図面は floors / meta を読む（部屋・ドア・窓・設備の下書き）
+   ・現地調査アプリは case.survey を読む
+   お客様名は入れない（図面アプリ側で入力） */
+const ZB={door:46,slide:46,win:62,toilet:28,vanity:62,kitchen:92,bath:82},ZS=50;
+const OP_T={'ドア':'door','引戸':'slide','窓':'win'},EQ_T={'トイレ':'toilet','洗面化粧台':'vanity','キッチン':'kitchen','浴槽':'bath'};
+const IBZ={n:180,s:0,w:90,e:270},EQR={n:0,e:90,s:180,w:270};
+function toZumen(s){
+  let uidz=1;const rooms=[],warn=[],floors=[],byId={},ox={};
+  for(const m of s.measures.filter(x=>x.kind==='部屋')){
+    const w=+m.w,d=+m.d,fl=m.fl||'1F';if(!(w>0&&d>0)){warn.push(`部屋「${roomName(m)}」はW・Dが未入力のため図面に入れていません`);continue}
+    if(!(+m.h>0))warn.push(`部屋「${roomName(m)}」の天井高が未入力です（図面では2400で仮置き）`);
+    let f=floors.find(x=>x.n===fl);if(!f){f={n:fl,rooms:[]};floors.push(f)}ox[fl]=ox[fl]||1;
+    const zr={id:uidz++,name:m.place||'部屋',x:ox[fl],y:1,w:w/1000,h:d/1000,ht:+m.h||2400,wt:0,items:[]};ox[fl]+=w/1000+1;
+    f.rooms.push(zr);rooms.push(zr);byId[m.id]=zr;
+  }
+  const along=(r,wall,pos,len)=>{const a=pos/1000+len/2; // 壁に向かって左端から → 部屋の座標
+    return wall==='n'?{x:a}:wall==='s'?{x:r.w-a}:wall==='w'?{y:r.h-a}:{y:a}};
+  for(const m of s.measures.filter(x=>x.kind==='開口部'||x.kind==='設備')){
+    const r=byId[m.roomId];const nm=mLabel(m)+(m.kind==='開口部'?`（${m.otype||'開口'}）`:`（${m.etype||'設備'}）`);
+    if(!r){warn.push(`${nm}：部屋が未指定のため入れていません`);continue}
+    if(!m.wall||String(m.pos).trim()===''||m.pos===undefined){warn.push(`${nm}：壁または位置が未入力のため入れていません`);continue}
+    const t=m.kind==='開口部'?OP_T[m.otype]:EQ_T[m.etype];if(!t){warn.push(`${nm}：図面の記号がない種類のため入れていません`);continue}
+    const W=(+m.w||(m.kind==='開口部'?(t==='win'?1690:780):ZB[t]/ZS*1000))/1000;
+    const it={id:uidz++,t,r:0,sc:+(W*ZS/ZB[t]).toFixed(3)};
+    if(m.kind==='開口部'){
+      const p=along(r,m.wall,+m.pos,W);it.x=p.x!==undefined?p.x:(m.wall==='w'?0:r.w);it.y=p.y!==undefined?p.y:(m.wall==='n'?0:r.h);
+      it.r=IBZ[m.wall]+(m.swing==='外開き'?180:0);if(t==='door')it.sw=m.swing==='外開き'?'out':'in';
+      if(+m.h>0)it.dh=+m.h;if(t==='win'&&String(m.sill||'').trim()!=='')it.sill=+m.sill;
+    }else{
+      const D=(+m.d||0)/1000||W*0.6,p=along(r,m.wall,+m.pos,W);
+      it.x=p.x!==undefined?p.x:(m.wall==='w'?D/2:r.w-D/2);it.y=p.y!==undefined?p.y:(m.wall==='n'?D/2:r.h-D/2);it.r=EQR[m.wall];
+    }
+    it.x=+it.x.toFixed(3);it.y=+it.y.toFixed(3);r.items.push(it);
+  }
+  floors.sort((a,b)=>FLS.indexOf(a.n)-FLS.indexOf(b.n));
+  return {rooms,floors,warn,uid:uidz};
+}
+function caseFile(s){
+  const z=toZumen(s);
+  return {data:{v:4,floors:z.floors.length?z.floors:[{n:'1F',rooms:[]}],fi:0,uid:z.uid+10,north:0,
+    meta:{shop:'',staff:s.surveyor||'',cust:''},
+    case:{app:'genchi-chousa',v:1,spec:specFor(s),code:s.code||'',custNo:s.custNo||'',seq:s.seq||'',title:s.title||'',date:s.date||'',exportedAt:stamp(new Date()),rev:s.rev||0,survey:s}},warn:z.warn,rooms:z.rooms.length};
+}
+async function bumpRev(){clearTimeout(saveTimer);if(!cur.rev||(cur.repAt&&cur.updatedAt>cur.repAt))cur.rev=(cur.rev||0)+1;cur.repAt=Date.now()+1;await Store.put(cur);setStat('保存済み')}
+async function sendToOffice(){
+  await bumpRev();
+  const c=caseFile(cur);
+  const name=[cur.code?safeName(cur.code):'管理番号なし',safeName(cur.title),cur.date||'','現調データ',`第${cur.rev}版`].filter(Boolean).join('_')+'.json';
+  const go=()=>saveFile(name,JSON.stringify(c.data));
+  const notes=[...(c.rooms?[]:['採寸に「部屋」がないため、図面の下書きは入りません（図面アプリでは読み込めません）']),...c.warn];
+  if(cur.pdfRev!==cur.rev)notes.unshift(`現地調査報告書の第${cur.rev}版がまだ作られていません。報告書も作り直して一緒に送ってください`);
+  if(!notes.length&&validCode(cur))return go();
+  modal(`<div class="box"><h3>事務所へ送る前に</h3><p class="muted" style="margin:0 0 8px">第${cur.rev}版として送ります</p>${validCode(cur)?'':'<p style="color:var(--repair);font-weight:700;margin:0 0 8px">管理番号が未入力か、形式が違います</p>'}
+    ${notes.length?`<p class="muted" style="margin:0 0 6px">確認してください：</p><ul style="margin:0 0 10px;padding-left:20px;font-size:16px">${notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}
+    <div class="row" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="mc">戻って直す</button><button class="btn" id="mo">このまま送る</button></div></div>`);
+  $('#mc').onclick=closeModal;$('#mo').onclick=()=>{closeModal();go()};
+}
+
+/* --- 報告書 --- */
+let rOpt={unchecked:true};
+function renderReport(){
+  const st=stats(cur);
+  $('#app').innerHTML=`
+   <div class="card">
+     <div class="sw"><span>未確認のポイントも載せる</span><input type="checkbox" id="o1" ${rOpt.unchecked?'checked':''}></div>
+     <button class="btn block" id="gen" style="margin-top:8px">現地調査報告書を作成</button>
+     <button class="btn sec block" id="send" style="margin-top:10px">事務所へ送る（図面用データ）</button>
+     <p class="muted" style="margin:6px 0 0">送ったファイルは、かんたん図面の「読込」で部屋・ドア・窓・設備の下書きとして開けます。</p>
+     <p class="muted" style="margin-bottom:0">交換対象 ${cur.targets.length}件 ・ 確認 ${st.done}/${st.total} ・ 注意 ${st.warn}件</p>
+   </div>
+   <div id="rp"></div>`;
+  $('#send').onclick=sendToOffice;
+  $('#o1').onchange=e=>{rOpt.unchecked=e.target.checked;report=null;$('#rp').innerHTML=''};
+  const gen=async()=>{const b=$('#gen');b.disabled=true;b.textContent='作成中…';
+    await bumpRev();cur.pdfRev=cur.rev;await Store.put(cur);
+    try{report=await buildReport(cur,rOpt)}catch(e){toast('作成に失敗しました');console.error(e)}
+    b.disabled=false;b.textContent='報告書を作り直す';showReport()};
+  $('#gen').onclick=()=>{
+    if(validCode(cur))return gen();
+    modal(`<div class="box"><h3>管理番号が未入力か、形式が違います</h3><p class="muted">「顧客番号13桁-管理番号」（例：2605121145566-1）で入力してください。事務所で案件を見分ける目印になります。</p>
+      <div class="row" style="justify-content:flex-end;margin-top:14px;flex-wrap:wrap"><button class="btn sec" id="mc">このまま作成</button><button class="btn" id="mo">入力する</button></div></div>`);
+    $('#mc').onclick=()=>{closeModal();gen()};
+    $('#mo').onclick=()=>{closeModal();tab='info';render();scrollTo(0,0);setTimeout(()=>{const el=document.querySelector('[data-c=custNo]');if(el)el.focus()},100)};
+  };
+  if(report)showReport();
+}
+// 全ページを縦に1枚へつなげる（LINEなどで1枚の画像として送れるように）
+function stitchPages(pages){
+  const gap=24,w0=pages[0].width,h0=pages.reduce((q,c)=>q+c.height,0)+gap*(pages.length-1);
+  // スマホの画像の大きさの上限（縦16000px・約1600万画素）を超えないよう、ページが多いときは縮める
+  const k=Math.min(1,16000/h0,Math.sqrt(16e6/(w0*h0))),w=Math.round(w0*k),h=Math.round(h0*k);
+  const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
+  g.fillStyle='#d9dde3';g.fillRect(0,0,w,h);let y=0;pages.forEach(p=>{const ph=Math.round(p.height*k);g.drawImage(p,0,y,w,ph);y+=ph+Math.round(gap*k);});return c;
+}
+function showReport(){
+  if(!report)return;const el=$('#rp');if(!el)return;
+  const base=reportBase(cur,report.at||new Date());
+  el.innerHTML=`
+   <div class="card">
+     <button class="btn block" id="pdf">PDFで保存・共有</button>
+     <button class="btn sec block" id="img" style="margin-top:10px">画像で保存・共有（全ページ）</button>
+     <p class="muted" style="margin-bottom:0">共有画面から「ファイルに保存」やLINE・メールに送れます。画像は全ページを1枚につなげて保存します（ページごとの画像は下の各ページから）。</p>
+     <p class="muted" style="margin-bottom:0">全${report.length}ページ（A4縦）・作成 ${stamp(report.at||new Date())}<br>ファイル名：${esc(base)}.pdf</p>
+   </div>
+   <div class="rp-prev">${report.map((c,i)=>`<div class="rp-page"><img src="${c.toDataURL('image/jpeg',0.85)}" alt="ページ${i+1}">
+     <div class="row" style="justify-content:space-between"><span class="muted">${i+1} / ${report.length}</span><button class="btn sec" data-png="${i}">画像で保存</button></div></div>`).join('')}</div>`;
+  const pb=$('#pdf');if(pb)pb.onclick=async()=>{
+    pb.disabled=true;pb.textContent='PDF作成中…';
+    try{await saveFile(base+'.pdf',makePdf(report))}catch(e){toast('PDFを作成できませんでした')}
+    pb.disabled=false;pb.textContent='PDFで保存・共有'};
+  const ib=$('#img');if(ib)ib.onclick=async()=>{
+    ib.disabled=true;ib.textContent='画像を作成中…';
+    try{const c=stitchPages(report);const blob=new Blob([dataUrlBytes(c.toDataURL('image/jpeg',0.9))],{type:'image/jpeg'});await saveFile(base+'.jpg',blob)}catch(e){toast('画像を作成できませんでした')}
+    ib.disabled=false;ib.textContent='画像で保存・共有（全ページ）'};
+  el.querySelectorAll('[data-png]').forEach(b=>b.onclick=()=>{const i=+b.dataset.png;saveFile(`${base}_${i+1}.png`,new Blob([dataUrlBytes(report[i].toDataURL('image/png'))],{type:'image/png'}))});
+}
+
+/* ===== 報告書レンダラー（A4 150dpi） ===== */
+const PW=1240,PH=1754,MG=80,FONT='"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif';
+function wrap(ctx,text,maxW){
+  const lines=[];String(text||'').split('\n').forEach(par=>{let line='';
+    for(const ch of par){if(ctx.measureText(line+ch).width>maxW&&line){lines.push(line);line=ch}else line+=ch}
+    lines.push(line)});return lines;
+}
+function ansText(p,v){
+  if(p.t==='multi')return (v||[]).map(optTxt).join('、');
+  if(p.t==='bowl'&&String(v||'').trim()){const e=bowlLookup(v).exact;return String(v).trim()+(e?`（${e.maker} ${e.drain} ${e.val}mm）`:'（型番表に未登録・要実測）')}
+  if(p.t==='dim')return String(v||'').trim()?String(v).trim()+' '+(p.u||''):'';
+  if(p.t==='num')return v!==undefined&&String(v).trim()!==''?Number(v).toLocaleString()+' '+(p.u||''):'';
+  return optTxt(v||'');
+}
+function collectWarns(s){
+  const warns=[];
+  s.targets.forEach(t=>{const pc=t.type==='toilet'&&pitchCheck(t.ans);if(pc&&!pc.ok)warns.push(`${t.label||TYPE[t.type].name}／排水芯の適合：${pc.msg}`)});
+  s.targets.forEach(t=>pointsOf(t).forEach(p=>{const v=t.ans[p.id];const w=(Array.isArray(v)?v:[v]).filter(isWarn);if(w.length)warns.push(`${t.label||TYPE[t.type].name}／${p.label}：${w.map(optTxt).join('、')}`)}));
+  commonPts(s).forEach(p=>{const v=s.common[p.id];const w=(Array.isArray(v)?v:[v]).filter(isWarn);if(w.length)warns.push(`共通／${p.label}：${w.map(optTxt).join('、')}`+(p.id==='mgmt'?`（申請者：${s.common.mgmtby||'未定'}${s.common.mgmtby==='その他'&&s.common.mgmtnote?'：'+s.common.mgmtnote:''}）`:'')+(p.id==='watersrc'?`（当社保証の説明：${optTxt(s.common.warranty||'未確認')}）`:'')+(p.id==='water'&&s.common.waterdetail?`（${s.common.waterdetail}）`:'')+(p.id==='mgmt'&&s.common.mgmtdue?`（期限：${s.common.mgmtdue}）`:''))});
+  return warns;
+}
+// 図面アプリ（工事発注図面）に載せる設備仕様
+function specFor(s){
+  const blocks=s.targets.map(t=>{const rows=pointsOf(t).filter(p=>p.id!=='bowl'&&answered(p,t.ans[p.id])).map(p=>{const v=t.ans[p.id];return [p.label,ansText(p,v),(Array.isArray(v)?v:[v]).some(isWarn)]});
+    if(t.ans.bowl)rows.unshift(['便器の品番',ansText(TYPE.toilet.points.find(p=>p.id==='bowl'),t.ans.bowl),false]);
+    const pc=t.type==='toilet'&&pitchCheck(t.ans);if(pc)rows.push(['排水芯の適合',pc.msg,!pc.ok]);
+    if(t.memo)rows.push(['メモ',t.memo,false]);
+    return {title:t.label||TYPE[t.type].name,rows}});
+  const crow=commonPts(s).filter(p=>answered(p,s.common[p.id])).map(p=>{const v=s.common[p.id];return [p.label,ansText(p,v),(Array.isArray(v)?v:[v]).some(isWarn)]});
+  if(crow.length)blocks.push({title:'共通（搬入・作業環境）',rows:crow});
+  return {blocks,warns:collectWarns(s)};
+}
+async function buildReport(s,opt){
+  const pages=[];let ctx,y;const at=new Date();
+  const font=(sz,w)=>`${w||400} ${sz}px ${FONT}`;
+  const W=PW-MG*2,BOTTOM=PH-MG-30;
+  function newPage(){
+    const c=document.createElement('canvas');c.width=PW;c.height=PH;ctx=c.getContext('2d');pages.push(c);
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,PW,PH);ctx.textBaseline='top';
+    ctx.fillStyle='#68717d';ctx.font=font(18);ctx.fillText('現地調査報告書　第'+(s.rev||1)+'版　作成 '+stamp(at),MG,MG-40);
+    ctx.textAlign='right';ctx.fillText((s.title||'')+(s.code?'　'+s.code:''),PW-MG,MG-40);ctx.textAlign='left';
+    ctx.strokeStyle='#1f2a37';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(MG,MG-12);ctx.lineTo(PW-MG,MG-12);ctx.stroke();
+    y=MG+10;
+  }
+  function ensure(h){if(y+h>BOTTOM){newPage();return true}return false}
+  function section(t){ensure(110);y+=14;ctx.fillStyle='#1f2a37';ctx.fillRect(MG,y,8,34);ctx.font=font(26,700);ctx.fillText(t,MG+20,y+3);y+=52}
+  function txt(t,x,yy,sz,w,col){ctx.font=font(sz,w);ctx.fillStyle=col||'#1d2329';ctx.fillText(t,x,yy)}
+  function para(label,text){if(!text)return;ctx.font=font(21);const ls=wrap(ctx,text,W-28);ensure(40+Math.min(ls.length,3)*32);
+    txt(label,MG,y+6,19,700,'#4a525c');y+=36;ls.forEach(l=>{ensure(32);txt(l,MG+14,y,21);y+=32});y+=8}
+  // 確認ポイント表
+  const c1=360,c2=W-c1;
+  function table(title,pts,ans){
+    const rows=pts.filter(p=>opt.unchecked||answered(p,ans[p.id]));
+    if(!rows.length)return;
+    const head=()=>{ctx.fillStyle='#2c3a4b';ctx.fillRect(MG,y,W,42);txt(title,MG+14,y+9,21,700,'#fff');y+=42};
+    ensure(140);head();
+    for(const p of rows){
+      const v=ans[p.id];const t=ansText(p,v);const warn=(Array.isArray(v)?v:[v]).some(isWarn);
+      ctx.font=font(20,warn?700:400);const ls=wrap(ctx,t||'未確認',c2-60);ctx.font=font(19,700);const nl=wrap(ctx,p.label,c1-28);
+      const h=Math.max(50,Math.max(ls.length,nl.length)*28+22);
+      if(ensure(h))head();
+      if(warn){ctx.fillStyle='#fdf0ee';ctx.fillRect(MG+c1,y,c2,h)}
+      ctx.strokeStyle='#d5dae0';ctx.lineWidth=1.2;ctx.strokeRect(MG,y,W,h);
+      ctx.fillStyle='#f4f5f7';ctx.fillRect(MG+1,y+1,c1-1,h-2);
+      ctx.beginPath();ctx.moveTo(MG+c1,y);ctx.lineTo(MG+c1,y+h);ctx.stroke();
+      nl.forEach((l,k)=>txt(l,MG+14,y+13+k*28,19,700,'#3a424c'));
+      ls.forEach((l,k)=>txt(l,MG+c1+16,y+12+k*28,20,warn?700:400,t?(warn?'#c0392b':'#1d2329'):'#6b7280'));
+      if(warn){ctx.font=font(16,700);ctx.fillStyle='#c0392b';ctx.textAlign='right';ctx.fillText('注意',PW-MG-14,y+14);ctx.textAlign='left'}
+      y+=h}
+  }
+
+  newPage();
+  ctx.font=font(46,700);ctx.fillStyle='#1d2329';ctx.fillText('現地調査報告書',MG,y+10);ctx.font=font(24,700);ctx.fillStyle='#68717d';ctx.textAlign='right';ctx.fillText('第'+(s.rev||1)+'版',PW-MG,y+28);ctx.textAlign='left';y+=84;
+  const info=[['案件名',s.title],['管理番号',s.code],['調査日',s.date],['調査担当者',s.surveyor],['物件種別',s.propType],['構造',s.structure],['築年数',s.age?s.age+'年':''],['階数・調査階',s.floors]];
+  const colW=W/2,rowH=50;ctx.strokeStyle='#cfd4db';ctx.lineWidth=1.5;
+  for(let i=0;i<info.length;i+=2){
+    for(let j=0;j<2;j++){const [k,v]=info[i+j];const x=MG+j*colW;
+      ctx.fillStyle='#f1f3f6';ctx.fillRect(x,y,170,rowH);ctx.strokeRect(x,y,colW,rowH);ctx.beginPath();ctx.moveTo(x+170,y);ctx.lineTo(x+170,y+rowH);ctx.stroke();
+      txt(k,x+14,y+14,19,700,'#4a525c');ctx.font=font(21);let vv=String(v||'—');while(ctx.measureText(vv).width>colW-200&&vv.length>1)vv=vv.slice(0,-1);txt(vv,x+186,y+13,21)}
+    y+=rowH}
+  y+=12;
+  para('ご要望',s.purpose);
+
+  // サマリー
+  section('調査結果サマリー');
+  const st=stats(s);
+  txt(`交換対象：${s.targets.length?s.targets.map(t=>t.label||TYPE[t.type].name).join('、'):'なし'}`,MG,y,21,700);y+=36;
+  txt(`確認済み ${st.done} / ${st.total} ポイント　・　注意事項 ${st.warn}件`,MG,y,19,400,'#68717d');y+=40;
+  const warns=collectWarns(s);
+  if(warns.length){ensure(60);ctx.fillStyle='#c0392b';ctx.fillRect(MG,y,W,40);txt('■ 注意事項（工事前に要確認）',MG+14,y+8,20,700,'#fff');y+=40;
+    y+=10;
+    warns.forEach(w=>{ctx.font=font(20);wrap(ctx,'・'+w,W-30).forEach(l=>{ensure(30);txt(l,MG+14,y,20,400,'#1d2329');y+=30})});
+    y+=20}
+  para('総評・特記事項',s.note);
+
+  // 対象ごと
+  if(s.targets.length){
+    section('交換対象ごとの確認結果');
+    for(const t of s.targets){
+      table('【'+(t.label||TYPE[t.type].name)+'】',pointsOf(t),t.ans);
+      if(t.memo){y+=6;para('メモ',t.memo)}
+      y+=18}
+  }
+  section('共通（搬入・作業環境）');
+  table('【共通】',commonPts(s),s.common);y+=10;
+
+  // 採寸
+  const ms=(s.measures||[]).filter(m=>m.place||m.room||m.w||m.d||m.h||m.memo);
+  if(ms.length){
+    section('採寸記録（単位：mm・内寸）');
+    const cols=[['部屋・場所',200],['種別',130],['W',105],['D',105],['H',105],['面積（坪）',130],['位置・メモ',W-775]];
+    const mh=()=>{ctx.fillStyle='#2c3a4b';ctx.fillRect(MG,y,W,40);let x=MG;cols.forEach(([n,w])=>{txt(n,x+10,y+9,19,700,'#fff');x+=w});y+=40};
+    ensure(100);mh();
+    for(const m of ms){
+      ctx.font=font(18);const memoL=wrap(ctx,[mDesc(m),m.memo].filter(Boolean).join('\n'),cols[6][1]-20);const placeL=wrap(ctx,mLabel(m),cols[0][1]-20);
+      const w=+m.w,d=+m.d;const ar=(w>0&&d>0&&(m.kind==='部屋'||!m.kind))?(w*d/1e6/TSUBO).toFixed(2)+'坪':'';
+      const h=Math.max(48,Math.max(memoL.length,placeL.length)*26+20);
+      if(ensure(h))mh();
+      ctx.strokeStyle='#d5dae0';ctx.lineWidth=1.2;ctx.strokeRect(MG,y,W,h);
+      let x=MG;const vals=[null,m.kind==='開口部'?(m.otype||'開口部'):m.kind==='設備'?(m.etype||'設備'):m.kind,m.w,m.d,m.h,ar,null];
+      cols.forEach(([n,cw],k)=>{if(k){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+h);ctx.stroke()}
+        if(k===0)placeL.forEach((l,j)=>txt(l,x+10,y+12+j*26,18,700));
+        else if(k===6)memoL.forEach((l,j)=>txt(l,x+10,y+12+j*26,18));
+        else{ctx.font=font(18);ctx.fillStyle='#1d2329';if(k>=2&&k<=4){ctx.textAlign='right';ctx.fillText(vals[k]?Number(vals[k]).toLocaleString():'',x+cw-10,y+12);ctx.textAlign='left'}else ctx.fillText(vals[k]||'',x+10,y+12)}
+        x+=cw});
+      y+=h}
+  }
+  pages.forEach((c,i)=>{const g=c.getContext('2d');g.font=font(18);g.fillStyle='#68717d';g.textAlign='center';g.textBaseline='top';g.fillText(`${i+1} / ${pages.length}`,PW/2,PH-MG+20)});
+  pages.at=at;
+  return pages;
+}
+
+/* ===== 起動 ===== */
+// オフライン対応・データ保護
+if(!window.claude&&'serviceWorker' in navigator&&location.protocol.startsWith('http')){
+  // 新しい版が入ったら、画面の上に知らせる（押すと読み込み直し）
+  let had=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!had){had=true;return;}if(document.getElementById('updBar'))return;
+    document.body.insertAdjacentHTML('afterbegin','<div id="updBar" style="position:fixed;top:0;left:0;right:0;z-index:99;background:#c0392b;color:#fff;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 14px;font-weight:700;font-size:18px;text-align:center">アプリの新しい版があります。ここを押して更新</div>');
+    document.getElementById('updBar').onclick=async()=>{clearTimeout(saveTimer);if(cur)await Store.put(cur);location.reload()};});window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+const isStandalone=()=>!!window.claude||window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+(async()=>{const all=await Store.all();const ub=all.find(x=>x.id==='__bowls');USER_BOWLS=(ub&&ub.list)||[];surveys=all.filter(x=>!String(x.id).startsWith('__')).map(normalize);render()})();
+</script>
+</body>
+</html>
