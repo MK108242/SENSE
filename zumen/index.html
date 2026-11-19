@@ -432,6 +432,7 @@ const sheetEl=$('sheet'),sheetBody=$('sheetBody'),sm=$('smsg');
 let sheetSvg='',sheetPf=1,sheetSize=[0,0],sheetDw=1,sheetOri='land',sheetPaper='A4',sheetScale=0,sheetFi=0,sheetLay={plan:true,front:true,fin:true},sheetRid=null,sv={z:1,x:0,y:0};
 function sayS(t){sm.textContent=t;setTimeout(()=>{sm.textContent=''},3000);}
 let lay='plan',lsl=0,lst=0;
+let dimAlt=0;
 function dimSVG(x1,y1,x2,y2,nx,ny,off,txt,fs=9){
   const ax=x1+nx*off,ay=y1+ny*off,bx=x2+nx*off,by=y2+ny*off,dx=bx-ax,dy=by-ay,len=Math.hypot(dx,dy)||1,tx=dx/len,ty=dy/len;
   const ln=(a,b,c,d,w=.6)=>`<line x1="${a.toFixed(1)}" y1="${b.toFixed(1)}" x2="${c.toFixed(1)}" y2="${d.toFixed(1)}" stroke="var(--fg)" stroke-width="${w}"/>`;
@@ -439,7 +440,7 @@ function dimSVG(x1,y1,x2,y2,nx,ny,off,txt,fs=9){
   const vx=(tx-ty)*.7071*3.5,vy=(tx+ty)*.7071*3.5;
   o+=ln(ax-vx,ay-vy,ax+vx,ay+vy,1.2)+ln(bx-vx,by-vy,bx+vx,by+vy,1.2);
   let ang=Math.atan2(dy,dx)*180/Math.PI;if(ang>=90)ang-=180;if(ang<-90)ang+=180;
-  return o+`<text transform="translate(${((ax+bx)/2).toFixed(1)} ${((ay+by)/2).toFixed(1)}) rotate(${ang.toFixed(1)})" y="-2.5" font-size="${fs}" text-anchor="middle" fill="var(--fg)">${txt}</text>`;
+  return o+`<text transform="translate(${((ax+bx)/2).toFixed(1)} ${((ay+by)/2).toFixed(1)}) rotate(${ang.toFixed(1)})" y="${len<String(txt).length*fs*.62+4&&(dimAlt=1-dimAlt)?(-3.5-fs).toFixed(1):-2.5}" font-size="${fs}" text-anchor="middle" fill="var(--fg)">${txt}</text>`;
 }
 function planDims(r){
   const W=r.w*S,H=r.h*S,iv={n:[],s:[],w:[],e:[]},e=(r.wt||0)/1000*S;
@@ -619,7 +620,7 @@ function finView(r,opt={}){
       const a=A[it.k],y=opt.edit?b[3]-LH-6:Math.max(a[1]-LH/2,last+LH+4),x=opt.edit?(left?b[0]+4:b[2]-LW-4):(left?b[0]-LW-10:b[2]+10);last=y;y1=Math.max(y1,y+LH);
       g+=`<line x1="${left?x+LW:x}" y1="${y+LH/2}" x2="${a[0]}" y2="${a[1]}" stroke="var(--acc)" stroke-width="1.2" marker-end="url(#ah)"/><rect x="${x}" y="${y}" width="${LW}" height="${LH}" rx="3" fill="var(--card)" stroke="var(--acc)"/>`;
       if(it.c)g+=`<rect x="${x+4}" y="${y+5}" width="10" height="10" fill="${it.c}" stroke="var(--wall)" stroke-width=".6"/>`;
-      g+=`<text x="${x+(it.c?18:6)}" y="${y+14}" font-size="10">${esc(cut(it.t,it.c?12:13))}</text>`;
+      g+=`<text x="${x+(it.c?18:6)}" y="${y+14}" font-size="10"${it.t.length>(it.c?12:13)?` textLength="${LW-(it.c?22:10)}" lengthAdjust="spacingAndGlyphs"`:''}>${esc(cut(it.t,30))}</text>`;
     }
   };
   place(Ls,true);place(Rs,false);
@@ -807,7 +808,7 @@ function specSVG(L,x0,y0){
     o+=`<rect x="${x0}" y="${y}" width="${aw}" height="${L.rh}" fill="#2c3a4b"/><text x="${x0+8}" y="${y+17}" font-size="${L.fs}" font-weight="700" fill="#fff">【${esc(b.title)}】</text>`;y+=L.rh+4;
     b.pairs.forEach(pr=>{
       pr.p.forEach(({r,ls},j)=>{const x=x0+j*L.cw;
-        o+=`<rect x="${x}" y="${y}" width="${L.cw}" height="${pr.h}" fill="${r[2]?'#fdf0ee':'none'}" stroke="#bbb" stroke-width=".8"/><text x="${x+6}" y="${y+17}" font-size="${L.fs-1}" font-weight="700" fill="#4a525c">${esc(cutc(r[0],Math.floor(L.lab/(L.fs*.95))))}</text>`;
+        o+=`<rect x="${x}" y="${y}" width="${L.cw}" height="${pr.h}" fill="${r[2]?'#fdf0ee':'none'}" stroke="#bbb" stroke-width=".8"/><text x="${x+6}" y="${y+17}" font-size="${L.fs-1}" font-weight="700" fill="#4a525c"${String(r[0]).length>Math.floor(L.lab/(L.fs*.95))?` textLength="${L.lab-12}" lengthAdjust="spacingAndGlyphs"`:''}>${esc(cutc(r[0],Math.floor(L.lab/(L.fs*.95))*2))}</text>`;
         ls.forEach((l,k)=>{o+=`<text x="${x+L.lab}" y="${y+17+k*L.lh}" font-size="${L.fs}"${r[2]?' fill="#c0392b" font-weight="700"':''}>${esc(l)}</text>`;});});
       y+=pr.h;
     });
@@ -828,7 +829,7 @@ function sheetBuild(){
   else if(n===2){const wt={plan:1,fin:1.5,front:.8},a=wt[L[0]],b=wt[L[1]];if(land){const w=(aw-gap)*a/(a+b);fr=[[L[0],X,Y,w,ph],[L[1],X+w+gap,Y,aw-gap-w,ph]];}else{const h=(ph-gap)*a/(a+b);fr=[[L[0],X,Y,aw,h],[L[1],X,Y+h+gap,aw,ph-gap-h]];}}
   else if(land){const w1=(aw-gap)*.6,h1=ph*.5;fr=[['plan',X,Y,w1,h1],['front',X,Y+h1+gap,w1,ph-h1-gap],['fin',X+w1+gap,Y,aw-gap-w1,ph]];}
   else{const h1=ph*.26,h2=ph*.44;fr=[['plan',X,Y,aw,h1],['fin',X,Y+h1+gap,aw,h2],['front',X,Y+h1+h2+2*gap,aw,ph-h1-h2-2*gap]];}
-  let t=`<svg xmlns="http://www.w3.org/2000/svg" width="${W*1.5}" height="${H*1.5}" viewBox="0 0 ${W} ${H}"><style>.f{fill:#fffdf7}.s{stroke:#222;stroke-width:1.5}text{fill:#222;font-family:'Hiragino Sans','Noto Sans JP',sans-serif}</style><rect width="${W}" height="${H}" fill="#fff"/><rect x="12" y="12" width="${W-24}" height="${H-24}" fill="none" stroke="#222" stroke-width="2"/>`;
+  let t=`<svg xmlns="http://www.w3.org/2000/svg" width="${W*1.5}" height="${H*1.5}" viewBox="0 0 ${W} ${H}"><style>.f{fill:#fffdf7}.s{stroke:#222;stroke-width:1.5}text{font-family:'Hiragino Sans','Noto Sans JP',sans-serif}</style><rect width="${W}" height="${H}" fill="#fff"/><rect x="12" y="12" width="${W-24}" height="${H-24}" fill="none" stroke="#222" stroke-width="2"/>`;
   t+=`<text x="${pad}" y="70" font-size="34" font-weight="700">${sheetTitle()}${floors.length>1?'　'+esc(floors[sheetFi].n):''}</text><text x="${W-pad}" y="42" font-size="16" text-anchor="end">管理番号 ${esc(META.code||'—')}　${ZREV.rev?'第'+ZREV.rev+'版':''}</text><text x="${W-pad}" y="70" font-size="18" text-anchor="end">${new Date().toLocaleDateString('ja-JP')}　単位:mm（内寸）</text><path d="M${pad} 86H${W-pad}" stroke="#222" stroke-width="2"/><text x="${pad}" y="111" font-size="19" font-weight="700">店舗：${esc(META.shop)}　　担当者：${esc(META.staff)}　　お客様名：${esc(META.cust)} 様</text>${CASE&&CASE.spec?`<text x="${W-pad}" y="${H-20}" font-size="13" text-anchor="end">元データ：現地調査報告 第${CASE.rev||1}版（${esc(CASE.exportedAt||'')}）　管理番号 ${esc(META.code||'')}</text>`:''}`;
   for(const [k,x,y,w,h] of fr){
     let vb,body;
@@ -846,11 +847,11 @@ function sheetBuild(){
   t+=`<text x="${pad+sheetTitle().length*35+(floors.length>1?80:0)+16}" y="70" font-size="17">${sheetPaper}${land?'横':'縦'}　縮尺 ${sheetScale?'1:'+sheetScale:(nTxt?'約1:'+nTxt:'-')}</text>`;
   const cols1=land?[pad+12,420,540,660,770,880,980,1080]:[pad+8,230,330,420,505,595,680,765],fs1=land?18:15,cn=land?16:10;
   t+=hdr(ty,['部屋名','内寸W','内寸D','H','壁厚','㎡','畳','坪'],cols1,fs1);
-  const rowT=(y,vals,bold)=>{t+=`<rect x="${pad}" y="${y}" width="${aw}" height="${rh}" fill="${bold?'#f6f6f6':'none'}" stroke="#222"/>`;vals.forEach((v,i)=>{t+=`<text x="${cols1[i]}" y="${y+23}" font-size="${fs1}"${bold?' font-weight="700"':''}>${v}</text>`;});};
+  const rowT=(y,vals,bold)=>{t+=`<rect x="${pad}" y="${y}" width="${aw}" height="${rh}" fill="${bold?'#f6f6f6':'none'}" stroke="#222"/>`;vals.forEach((v,i)=>{t+=`<text x="${cols1[i]}" y="${y+23}" font-size="${fs1}"${bold?' font-weight="700"':''}${i===0&&String(v).length>cn?` textLength="${cols1[1]-cols1[0]-12}" lengthAdjust="spacingAndGlyphs"`:''}>${v}</text>`;});};
   {
     let ri=1,gt=0;const f2=(m)=>[m.toFixed(2),(m/1.62).toFixed(1),(m/3.305785).toFixed(2)];
     for(const f of grp0){
-      f.rooms.forEach(r=>{const a=area(r);gt+=a.m;rowT(ty+rh*ri++,[esc(cut((multi?f.n+' ':'')+r.name,cn)),Math.round(r.w*1000),Math.round(r.h*1000),r.ht,r.wt||0,...f2(a.m)]);});
+      f.rooms.forEach(r=>{const a=area(r);gt+=a.m;rowT(ty+rh*ri++,[esc(cut((multi?f.n+' ':'')+r.name,cn*2)),Math.round(r.w*1000),Math.round(r.h*1000),r.ht,r.wt||0,...f2(a.m)]);});
     }
     rowT(ty+rh*ri,[multi?'全階合計':'合計','','','','',...f2(gt)],true);
   }
@@ -858,7 +859,7 @@ function sheetBuild(){
     const y2=ty+th+40,nw=land?120:92,cw=land?112:78,fs=land?12:10,cols=[pad+12,...FACES.map((_,i)=>pad+12+nw+i*cw)],rhs=land?46:54,mxl=3,lh=fs+2;
     t+=`<text x="${pad}" y="${y2-10}" font-size="18" font-weight="700">内装仕様（色・型番）</text>`+hdr(y2,['部屋名','天井',...WALLS.map(w=>w[1]),'ドア上','巾木','床'],cols,fs+1);
     rooms.forEach((r,j)=>{
-      const y=y2+rh+rhs*j;t+=`<rect x="${pad}" y="${y}" width="${aw}" height="${rhs}" fill="none" stroke="#222"/><text x="${cols[0]}" y="${y+22}" font-size="${fs+1}">${esc(cut(r.name,land?9:6))}</text>`;
+      const y=y2+rh+rhs*j;t+=`<rect x="${pad}" y="${y}" width="${aw}" height="${rhs}" fill="none" stroke="#222"/><text x="${cols[0]}" y="${y+22}" font-size="${fs+1}"${r.name.length>(land?9:6)?` textLength="${nw-14}" lengthAdjust="spacingAndGlyphs"`:''}>${esc(cut(r.name,land?18:12))}</text>`;
       FACES.forEach(([k],i)=>{
         const f=finGet(r,k),cx=cols[i+1],ind=f.c?17:0,n=Math.max(4,Math.floor((cw-ind-4)/(fs*.62)));
         if(f.c)t+=`<rect x="${cx}" y="${y+8}" width="13" height="13" fill="${f.c}" stroke="#222" stroke-width=".8"/>`;
@@ -878,7 +879,7 @@ function metaErr(){metaBad=true;metaSync();document.getElementById('errMsg').inn
 function metaCheck(){META.code=normCode(META.code);if(metaMissing().length){metaErr();return false;}metaBad=false;metaSync();return true;}
 // 管理番号の確定：別の既存案件を上書きしない
 async function commitCode(){
-  const nc=normCode(META.code);if(!codeOK(nc))return false;META.code=nc;metaSync();
+  const nc=normCode(META.code);if(!nc){META.code='';metaSync();rememberMeta();return true;}if(!codeOK(nc))return false;META.code=nc;metaSync();
   if(nc===caseKey){rememberMeta();return true;}
   const ex=await CDB.get(nc);
   if(ex){document.getElementById('errMsg').innerHTML=`管理番号 <b>${esc(nc)}</b> は案件一覧に既にあります。<br>上書きを防ぐため、この番号には変更できません。<br>その案件を開くときは「案件一覧」から開いてください。`;document.getElementById('errDlg').classList.add('on');
