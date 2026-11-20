@@ -173,12 +173,14 @@ const PLAN_GROUPS=[['今のプラン',['スマートライフS','スマートラ
 const OLD_PLANS=PLAN_GROUPS[1][1];
 const TYPES=[
  {k:'toilet',name:'トイレ',points:[
-  P('cur','現在の便器','sel',['組み合わせ便器','隅付けタンク','一体型','タンクレス','!和式']),
+  P('cur','現在の便器','sel',['組み合わせ便器','隅付けタンク','一体型','タンクレス','簡易水洗','!汲み取り式便所','!和式']),
   P('cornerto','隅付けタンクからの交換先','sel',['通常の組み合わせ便器（密結）にする','同じ隅付けタンクにする','未定'],{req:1,show:a=>a.cur==='隅付けタンク'}),
   P('cornerside','タンクのある隅','sel',['左奥','右奥'],{hint:'便器に向かって',show:a=>a.cur==='隅付けタンク'}),
   P('cornerdepth','後ろの壁から入口（ドア）までの奥行','num',[],{u:'mm',req:1,hint:'密結タンクは隅付けより奥行をとるため、入るか確認',show:a=>a.cur==='隅付けタンク'&&a.cornerto!=='同じ隅付けタンクにする'}),
   P('cornerpipe','給水管の移設','sel',['不要（届く）','!必要'],{hint:'タンクの給水口の位置が変わるため',show:a=>a.cur==='隅付けタンク'&&a.cornerto==='通常の組み合わせ便器（密結）にする'}),
   P('cornerwall','タンク跡の壁の補修','sel',['不要','!必要（クロス・タイル）'],{show:a=>a.cur==='隅付けタンク'&&a.cornerto==='通常の組み合わせ便器（密結）にする'}),
+  P('cornerwalltype','隅付けタンクの壁の種類','sel',['砂壁','タイル','クロス','合板・ベニヤ','コンクリート・モルタル','その他'],{hint:'タンクの後ろの壁',show:a=>a.cur==='隅付けタンク'}),
+  P('cornerwallx','壁の種類（その他）','text',[],{show:a=>a.cur==='隅付けタンク'&&a.cornerwalltype==='その他'}),
   P('cornermodel','隅付けタンクの商品','sel',['同じメーカーの後継品がある','!後継品が見つからない（要確認）'],{hint:'隅付けタンクは商品が少ないため、早めに確認',show:a=>a.cur==='隅付けタンク'&&a.cornerto==='同じ隅付けタンクにする'}),
   P('bowl','便器の品番（排水芯チェック）','bowl',[],{hint:'便座ではなく便器の品番を入力。途中まででも候補が出ます'}),
   P('drain','排水方式','sel',['床排水','壁排水']),
@@ -275,9 +277,12 @@ const TYPES=[
   P('beam','梁・柱の出っ張り','sel',['なし','!あり']),
   P('win','窓','sel',['なし','あり']),
   P('door','出入口','sel',['開き戸','折れ戸','引き戸']),
+  P('ext','他の出入口（勝手口など）の有無','sel',['なし','!あり'],{hint:'在来浴室は出入口が2か所になることがあります',show:a=>a.cur==='!在来浴室（タイル）'}),
+  P('ext2','他の出入口の開き方','sel',['開き戸','折れ戸','引き戸'],{show:a=>a.cur==='!在来浴室（タイル）'&&a.ext==='!あり'}),
   P('step','脱衣所との段差','sel',['なし','!あり']),
   P('reheat','追い焚き','sel',['あり','なし']),
   P('vent','換気','sel',['換気扇','浴室乾燥機','窓のみ']),
+  P('ventpos','換気扇・乾燥機の設置位置','sel',['壁設置','天井設置'],{show:a=>a.vent==='換気扇'||a.vent==='浴室乾燥機'}),
   P('base','土台・下地','sel',['問題なし','!腐食・シロアリ跡あり','未確認']),
   P('model','現在のメーカー・型番','text')]},
  {k:'wash',name:'洗面化粧台',points:[
@@ -340,7 +345,12 @@ const TYPES=[
   P('want','希望','sel',['同じタイプ','浄水器一体型','タッチレス','食洗機の分岐付き','その他']),
   P('model','現在のメーカー・型番','text')]},
  {k:'bathdryer',name:'浴室暖房乾燥機',points:[
-  P('work','工事の内容','sel',['交換','新設（換気扇から）'],{req:1}),
+  P('work','工事の内容','sel',['交換','新設（換気扇から）','新規（天井に穴なし）'],{req:1}),
+  P('newroute','ダクトの通し方（天井裏の経路）','sel',['天井裏で通せる','!通せない（要相談）','未確認'],{req:1,show:a=>a.work==='新規（天井に穴なし）'}),
+  P('newwire','電源の取り方','sel',['近くに配線あり','!新たに配線が必要','未確認'],{req:1,show:a=>a.work==='新規（天井に穴なし）'}),
+  P('oldfan','既存の換気扇の穴','sel',['そのまま使える','開け直しが必要','不明'],{show:a=>a.work==='新設（換気扇から）'}),
+  P('oldduct','既存の換気扇のダクト','sel',['再利用できる','新設が必要','不明'],{show:a=>a.work==='新設（換気扇から）'}),
+  P('oldwire','既存の換気扇のスイッチ線','sel',['あり（流用できるか確認）','なし','不明'],{show:a=>a.work==='新設（換気扇から）'}),
   P('heat','暖房の方式','sel',['電気（100V）','電気（200V）','ガス温水式'],{req:1,hint:'ガス温水式は暖房付きのガス給湯器が必要'}),
   P('mount','取り付け','sel',['天井埋め込み','壁付け']),
   P('rooms','換気する部屋','sel',['浴室のみ（1室）','浴室＋脱衣所など（2室）','3室']),
@@ -490,21 +500,36 @@ async function shareOrDownload(name,blob){
     try{await navigator.share({files:[file],title:name});return 'shared'}
     catch(e){if(e&&e.name==='AbortError')return 'cancel';if(e&&e.name==='NotAllowedError')return 'retry'}
   }
-  downloadBlob(name,blob);return 'saved';
+  return 'link';
+}
+// 共有が使えない端末（ホーム画面のアプリなど）でも確実に保存できるよう、開くリンクを出す
+function linkModal(name,blob){
+  const url=URL.createObjectURL(blob);
+  return new Promise(res=>{
+    modal(`<div class="box"><h3>ファイルを開いて保存してください</h3><p class="muted">${esc(name)}</p>
+      <p class="muted">「開く」を押すと、ファイルが別の画面で開きます。開いた画面の共有ボタン（□↑）から「画像を保存」（写真アプリ）や「ファイルに保存」を選んでください。</p>
+      <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn sec" id="mc">閉じる</button><a class="btn" id="ml" href="${url}" target="_blank" rel="noopener" download="${esc(name)}">開く</a></div></div>`);
+    $('#mc').onclick=()=>{closeModal();setTimeout(()=>URL.revokeObjectURL(url),60000);res()};
+    $('#ml').onclick=()=>{setTimeout(()=>{closeModal();setTimeout(()=>URL.revokeObjectURL(url),60000);res()},400)};
+  });
 }
 let CDL=null;(async()=>{try{if(window.claude&&window.claude.use)CDL=await window.claude.use('downloads')}catch(e){CDL=null}})();
 async function saveFile(name,data){
   if(CDL){try{await CDL.save({filename:name,data});toast('保存しました');return true}catch(e){toast(e&&e.code==='declined'?'キャンセルしました':'保存できませんでした');return false}}
   const ext=name.split('.').pop().toLowerCase();
   const blob=data instanceof Blob?new Blob([data],{type:MIME[ext]||data.type}):new Blob([data],{type:MIME[ext]||'application/octet-stream'});
+  // Android（Samsung含む）は保存先を選ばせず、そのままダウンロードフォルダへ保存する
+  if(!/iPhone|iPad|iPod/.test(navigator.userAgent)){
+    downloadBlob(name,blob);toast('ダウンロードに保存しました（マイファイル＞ダウンロード）');return true}
   let r=await shareOrDownload(name,blob);
   if(r==='retry'){ // 共有の許可が切れた場合はボタンをもう一度押してもらう
     await new Promise(res=>{modal(`<div class="box"><h3>ファイルの準備ができました</h3><p class="muted">${esc(name)}</p>
       <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn sec" id="mc">閉じる</button><button class="btn" id="mo">保存・共有する</button></div></div>`);
       $('#mc').onclick=()=>{closeModal();r='cancel';res()};
-      $('#mo').onclick=async()=>{closeModal();r=await shareOrDownload(name,blob);if(r==='retry'){downloadBlob(name,blob);r='saved'}res()}});
+      $('#mo').onclick=async()=>{closeModal();r=await shareOrDownload(name,blob);if(r==='retry')r='link';res()}});
   }
-  if(r==='cancel')toast('キャンセルしました');else if(r==='saved')toast('ダウンロードしました');
+  if(r==='link'){await linkModal(name,blob);r='saved'}
+  if(r==='cancel')toast('キャンセルしました');else if(r==='saved')toast('ファイルを開きました');
   return r!=='cancel';
 }
 /* ===== PDF作成（JPEG画像をA4ページに並べる・外部ライブラリなし） ===== */
@@ -557,7 +582,7 @@ const WANT=P('want','希望の商品・色（決まっていれば）','text');
 function pointsOf(t){const all=[...TYPE[t.type].points,WANT,...(t.extra||[])];all.forEach(p=>{if(p.calc){const c=p.calc(t.ans);if(c)t.ans[p.id]=c;else delete t.ans[p.id]}});return vis(all,t.ans)}
 const commonPts=s=>vis(COMMON,s.common,s);
 // 表示を切り替える元になる項目
-const CTRL=new Set(['cur','newkind','space','oldplace','overhead','elec','fence','gas','kind','stove','gaswork','mgmt','drain','outlet','watersrc','mgmtby','water','width','cornerto','mount','tall','work','heat','interior']);
+const CTRL=new Set(['cur','newkind','space','oldplace','overhead','elec','fence','gas','kind','stove','gaswork','mgmt','drain','outlet','watersrc','mgmtby','water','width','cornerto','mount','tall','work','heat','interior','cornerwalltype','ext','vent']);
 const answered=(p,v)=>p.t==='multi'?(v||[]).length>0:(v!==undefined&&v!==null&&String(v).trim()!=='');
 // 型番の「読めない」も入力済みとして扱う
 const isDone=(p,ans)=>answered(p,ans[p.id])||(!!p.ng&&!!ans[p.id+'_ng']);
@@ -1037,7 +1062,7 @@ function showReport(){
 }
 
 /* ===== 報告書レンダラー（A4 150dpi） ===== */
-const PW=1240,PH=1754,MG=80,FONT='"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif';
+const PW=1240,PH=1754,RS=1.6,MG=80,FONT='"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif';
 function wrap(ctx,text,maxW){
   const lines=[];String(text||'').split('\n').forEach(par=>{let line='';
     for(const ch of par){if(ctx.measureText(line+ch).width>maxW&&line){lines.push(line);line=ch}else line+=ch}
@@ -1075,7 +1100,7 @@ async function buildReport(s,opt){
   const font=(sz,w)=>`${w||400} ${sz}px ${FONT}`;
   const W=PW-MG*2,BOTTOM=PH-MG-30;
   function newPage(){
-    const c=document.createElement('canvas');c.width=PW;c.height=PH;ctx=c.getContext('2d');pages.push(c);
+    const c=document.createElement('canvas');c.width=Math.round(PW*RS);c.height=Math.round(PH*RS);ctx=c.getContext('2d');ctx.setTransform(RS,0,0,RS,0,0);pages.push(c);
     ctx.fillStyle='#fff';ctx.fillRect(0,0,PW,PH);ctx.textBaseline='top';
     ctx.fillStyle='#68717d';ctx.font=font(18);ctx.fillText('現地調査報告書　第'+(s.rev||1)+'版　作成 '+stamp(at),MG,MG-40);
     ctx.textAlign='right';ctx.fillText((s.title||'')+(s.code?'　'+s.code:''),PW-MG,MG-40);ctx.textAlign='left';
@@ -1165,7 +1190,7 @@ async function buildReport(s,opt){
         x+=cw});
       y+=h}
   }
-  pages.forEach((c,i)=>{const g=c.getContext('2d');g.font=font(18);g.fillStyle='#68717d';g.textAlign='center';g.textBaseline='top';g.fillText(`${i+1} / ${pages.length}`,PW/2,PH-MG+20)});
+  pages.forEach((c,i)=>{const g=c.getContext('2d');g.setTransform(RS,0,0,RS,0,0);g.font=font(18);g.fillStyle='#68717d';g.textAlign='center';g.textBaseline='top';g.fillText(`${i+1} / ${pages.length}`,PW/2,PH-MG+20)});
   pages.at=at;
   return pages;
 }
