@@ -53,7 +53,7 @@ textarea.inp{min-height:110px;resize:vertical}
 .bar{height:10px;background:#eceef1;border-radius:3px;overflow:hidden;margin:10px 0 6px}
 .bar i{display:block;height:100%;background:var(--accent)}
 .chips{display:flex;flex-wrap:wrap;gap:10px}
-.chip{border:2px solid #d3d8df;background:#fff;border-radius:26px;padding:10px 18px;min-height:50px;font-size:17px;font-weight:600}
+.chip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;border:2px solid #d3d8df;background:#fff;border-radius:26px;padding:10px 18px;min-height:50px;font-size:17px;font-weight:600}
 .chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
 .badge{display:inline-block;font-size:14px;font-weight:700;color:#fff;border-radius:6px;padding:2px 7px}
 /* checklist */
@@ -748,11 +748,28 @@ function getScope(scope){
   if(scope==='common')return {pts:commonPts(cur),ans:cur.common};
   const t=cur.targets.find(x=>x.id===scope);return t?{pts:pointsOf(t),ans:t.ans,t}:null;
 }
+// 選択肢のタッチ：タッチで選ぶ（複数選択は押すたびに入れ替わる）／選んだ項目の長押しで未選択に戻す
+function bindPick(b){
+  const run=unset=>{const [scope,pid]=b.dataset.pick.split('|');const sc=getScope(scope);if(!sc)return;
+    const p=sc.pts.find(x=>x.id===pid);if(!p)return;const o=b.dataset.o;
+    if(unset){if(p.t==='multi'||sc.ans[pid]!==o)return;delete sc.ans[pid]}
+    else if(p.t==='multi'){const arr=sc.ans[pid]||[];sc.ans[pid]=arr.includes(o)?arr.filter(x=>x!==o):[...arr,o]}
+    else sc.ans[pid]=o;
+    touch();if(CTRL.has(pid))renderCheck();else refreshPoint(scope,p)};
+  let tm=null,fired=false;
+  const stop=()=>{clearTimeout(tm);tm=null};
+  b.onpointerdown=()=>{fired=false;stop();if(!b.classList.contains('on')||b.dataset.pick.split('|')[1]===undefined)return;
+    tm=setTimeout(()=>{tm=null;fired=true;try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}run(true)},550)};
+  b.onpointerup=b.onpointerleave=b.onpointercancel=stop;
+  b.oncontextmenu=e=>e.preventDefault();
+  b.onclick=()=>{if(fired){fired=false;return}run(false)};
+}
 function renderCheck(){
   const st=stats(cur);
   $('#app').innerHTML=`
    <button class="btn sec block" id="toCommon" style="margin-bottom:12px">↓ 共通（搬入・作業環境）へ</button>
    <div class="legend"><span>確認 ${st.done}/${st.total}</span>${st.warn?`<span style="color:var(--repair);font-weight:700">注意 ${st.warn}件</span>`:''}<span style="margin-left:auto">赤枠＝注意が必要な選択肢</span></div>
+   <p class="muted" style="margin:-4px 0 10px;font-size:15px">選んだ項目を長押しすると、未選択に戻せます</p>
    ${cur.targets.map(t=>{const op=openT.has(t.id);const s=tStats(t);
      return `<div class="cat"><button data-tog="${t.id}"><span>${op?'▼':'▶'}</span>${esc(t.label||TYPE[t.type].name)}<span class="cnt">${s.done}/${s.total}</span></button>
      ${op?`<div class="pt"><div class="lb">場所・呼び名</div><div class="tbar"><input class="inp" data-label="${t.id}" value="${esc(t.label)}" placeholder="例：1Fトイレ"></div></div>
@@ -774,11 +791,7 @@ function bindCheck(){
   a.querySelectorAll('[data-addt]').forEach(b=>b.onclick=()=>{const k=b.dataset.addt;const n=cur.targets.filter(t=>t.type===k).length;
     const t={id:uid(),type:k,label:TYPE[k].name+(n?` ${n+1}`:''),ans:{},memo:'',extra:[]};cur.targets.push(t);openT=new Set([t.id]);touch();renderCheck();
     setTimeout(()=>{const el=document.querySelector(`[data-tog="${t.id}"]`);el&&el.scrollIntoView({behavior:'smooth',block:'start'})},50);toast(TYPE[k].name+'を追加しました')});
-  a.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const [scope,pid]=b.dataset.pick.split('|');const sc=getScope(scope);if(!sc)return;
-    const p=sc.pts.find(x=>x.id===pid);const o=b.dataset.o;
-    if(p.t==='multi'){const arr=sc.ans[pid]||[];sc.ans[pid]=arr.includes(o)?arr.filter(x=>x!==o):[...arr,o]}
-    else sc.ans[pid]=o;
-    touch();if(CTRL.has(pid))renderCheck();else refreshPoint(scope,p)});
+  a.querySelectorAll('[data-pick]').forEach(bindPick);
   a.querySelectorAll('[data-in]').forEach(el=>el.oninput=()=>{const [scope,pid]=el.dataset.in.split('|');const sc=getScope(scope);if(!sc)return;
     sc.ans[pid]=el.value;touch();const d=el.closest('.pt').querySelector('.done');if(d){const p=sc.pts.find(x=>x.id===pid);d.innerHTML=p?doneMark(p,el.value,!!el.value.trim(),sc.ans):(el.value.trim()?'✓':'')}if(pid==='nowkpa'||pid==='newkpa')updateKpa(scope);updCounts()});
   a.querySelectorAll('[data-label]').forEach(el=>el.oninput=()=>{const t=cur.targets.find(x=>x.id===el.dataset.label);t.label=el.value;touch();
@@ -841,10 +854,7 @@ function refreshPoint(scope,p){if(!p)return;
 }
 function bindCheckPoint(key){
   // 置き換えた要素だけ再バインド
-  document.querySelectorAll(`#pt-${CSS.escape(key.replace(/\|/g,'_'))} [data-pick]`).forEach(b=>b.onclick=()=>{const [scope,pid]=b.dataset.pick.split('|');const sc=getScope(scope);
-    const p=sc.pts.find(x=>x.id===pid);const o=b.dataset.o;
-    if(p.t==='multi'){const arr=sc.ans[pid]||[];sc.ans[pid]=arr.includes(o)?arr.filter(x=>x!==o):[...arr,o]}else sc.ans[pid]=o;
-    touch();if(CTRL.has(pid))renderCheck();else refreshPoint(scope,p)});
+  document.querySelectorAll(`#pt-${CSS.escape(key.replace(/\|/g,'_'))} [data-pick]`).forEach(bindPick);
 }
 function updCounts(){
   const st=stats(cur);const l=$('.legend');
