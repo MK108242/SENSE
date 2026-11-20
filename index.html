@@ -345,16 +345,15 @@ const TYPES=[
   P('want','希望','sel',['同じタイプ','浄水器一体型','タッチレス','食洗機の分岐付き','その他']),
   P('model','現在のメーカー・型番','text')]},
  {k:'bathdryer',name:'浴室暖房乾燥機',points:[
-  P('work','工事の内容','sel',['交換','新設（換気扇から）','新規（天井に穴なし）'],{req:1}),
-  P('newroute','ダクトの通し方（天井裏の経路）','sel',['天井裏で通せる','!通せない（要相談）','未確認'],{req:1,show:a=>a.work==='新規（天井に穴なし）'}),
-  P('newwire','電源の取り方','sel',['近くに配線あり','!新たに配線が必要','未確認'],{req:1,show:a=>a.work==='新規（天井に穴なし）'}),
+  P('work','工事の内容','sel',['交換','新設（換気扇から）','新規（穴なし）'],{req:1}),
+  P('newopen','開口（穴あけ）の工事','sel',['必要','不要'],{req:1,show:a=>a.work==='新規（穴なし）'}),
   P('oldfan','既存の換気扇の穴','sel',['そのまま使える','開け直しが必要','不明'],{show:a=>a.work==='新設（換気扇から）'}),
   P('oldduct','既存の換気扇のダクト','sel',['再利用できる','新設が必要','不明'],{show:a=>a.work==='新設（換気扇から）'}),
   P('oldwire','既存の換気扇のスイッチ線','sel',['あり（流用できるか確認）','なし','不明'],{show:a=>a.work==='新設（換気扇から）'}),
   P('heat','暖房の方式','sel',['電気（100V）','電気（200V）','ガス温水式'],{req:1,hint:'ガス温水式は暖房付きのガス給湯器が必要'}),
   P('mount','取り付け','sel',['天井埋め込み','壁付け']),
   P('rooms','換気する部屋','sel',['浴室のみ（1室）','浴室＋脱衣所など（2室）','3室']),
-  P('opening','天井の開口の大きさ','text',[],{hint:'例：410×260。型番で分かれば不要'}),
+  P('opening','開口の大きさ','text',[],{hint:'例：410×260。型番で分かれば不要'}),
   P('circuit','電源','sel',['専用回路あり','!専用回路なし（新設が必要）'],{show:a=>a.heat!=='ガス温水式'}),
   P('duct','ダクトの径','sel',['φ100','φ150','その他']),
   P('inspect','天井の点検口','sel',['あり','!なし']),
@@ -994,11 +993,11 @@ async function sendToOffice(){
   const go=()=>saveFile(name,JSON.stringify(c.data));
   const notes=[...(c.rooms?[]:['採寸に「部屋」がないため、図面の下書きは入りません（図面アプリでは読み込めません）']),...c.warn];
   {const rm=reqMiss(cur);if(rm)notes.unshift(`必須の確認ポイントが ${rm}件 未入力です（確認ポイントの「必須」を見てください）`);}
-  if(cur.pdfRev!==cur.rev)notes.unshift(`現地調査報告書の第${cur.rev}版がまだ作られていません。報告書も作り直して一緒に送ってください`);
+  if(cur.pdfRev!==cur.rev)notes.unshift(`現地調査報告書の第${cur.rev}版がまだ作られていません。報告書も作り直してください`);
   if(!notes.length&&validCode(cur))return go();
-  modal(`<div class="box"><h3>事務所へ送る前に</h3><p class="muted" style="margin:0 0 8px">第${cur.rev}版として送ります</p>${validCode(cur)?'':'<p style="color:var(--repair);font-weight:700;margin:0 0 8px">管理番号が未入力か、形式が違います</p>'}
+  modal(`<div class="box"><h3>図面アプリ用データを出力する前に</h3><p class="muted" style="margin:0 0 8px">第${cur.rev}版として出力します</p>${validCode(cur)?'':'<p style="color:var(--repair);font-weight:700;margin:0 0 8px">管理番号が未入力か、形式が違います</p>'}
     ${notes.length?`<p class="muted" style="margin:0 0 6px">確認してください：</p><ul style="margin:0 0 10px;padding-left:20px;font-size:16px">${notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}
-    <div class="row" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="mc">戻って直す</button><button class="btn" id="mo">このまま送る</button></div></div>`);
+    <div class="row" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="mc">戻って直す</button><button class="btn" id="mo">このまま出力する</button></div></div>`);
   $('#mc').onclick=closeModal;$('#mo').onclick=()=>{closeModal();go()};
 }
 
@@ -1010,8 +1009,8 @@ function renderReport(){
    <div class="card">
      <div class="sw"><span>未確認のポイントも載せる</span><input type="checkbox" id="o1" ${rOpt.unchecked?'checked':''}></div>
      <button class="btn block" id="gen" style="margin-top:8px">現地調査報告書を作成</button>
-     <button class="btn sec block" id="send" style="margin-top:10px">事務所へ送る（図面用データ）</button>
-     <p class="muted" style="margin:6px 0 0">送ったファイルは、かんたん図面の「読込」で部屋・ドア・窓・設備の下書きとして開けます。</p>
+     <button class="btn sec block" id="send" style="margin-top:10px">図面アプリ用データを出力</button>
+     <p class="muted" style="margin:6px 0 0">出力したファイルは、かんたん図面の「読込」で部屋・ドア・窓・設備の下書きとして開けます。</p>
      <p class="muted" style="margin-bottom:0">交換対象 ${cur.targets.length}件 ・ 確認 ${st.done}/${st.total} ・ 注意 ${st.warn}件</p>
    </div>
    <div id="rp"></div>`;
@@ -1046,6 +1045,7 @@ function showReport(){
      <button class="btn block" id="pdf">PDFで保存・共有</button>
      <button class="btn sec block" id="img" style="margin-top:10px">画像で保存・共有（全ページ）</button>
      <p class="muted" style="margin-bottom:0">共有画面から「ファイルに保存」やLINE・メールに送れます。画像は全ページを1枚につなげて保存します（ページごとの画像は下の各ページから）。</p>
+     <p class="muted" style="margin-bottom:0">LINEで送るときは、PDFを「ファイル」として送ると画質が落ちません。画像で送ると、LINEが縮小して荒くなります。</p>
      <p class="muted" style="margin-bottom:0">全${report.length}ページ（A4縦）・作成 ${stamp(report.at||new Date())}<br>ファイル名：${esc(base)}.pdf</p>
    </div>
    <div class="rp-prev">${report.map((c,i)=>`<div class="rp-page"><img src="${c.toDataURL('image/jpeg',0.85)}" alt="ページ${i+1}">
@@ -1062,7 +1062,7 @@ function showReport(){
 }
 
 /* ===== 報告書レンダラー（A4 150dpi） ===== */
-const PW=1240,PH=1754,RS=1.6,MG=80,FONT='"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif';
+const PW0=1240,PH0=1754,RS=1.6,MG=80,FONT='"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif';
 function wrap(ctx,text,maxW){
   const lines=[];String(text||'').split('\n').forEach(par=>{let line='';
     for(const ch of par){if(ctx.measureText(line+ch).width>maxW&&line){lines.push(line);line=ch}else line+=ch}
@@ -1095,53 +1095,69 @@ function specFor(s){
   if(crow.length)blocks.push({title:'共通（搬入・作業環境）',rows:crow});
   return {blocks,warns:collectWarns(s)};
 }
+// 最後のページに少しだけはみ出すと1枚もったいないので、全体を少し縮めて1枚減らせるか試す
 async function buildReport(s,opt){
+  const first=await buildReportK(s,opt,1);
+  if(first.length>1&&first.fill<0.5){for(const k of [0.97,0.94,0.91,0.88,0.85]){const r=await buildReportK(s,opt,k);if(r.length<first.length)return r}}
+  return first;
+}
+async function buildReportK(s,opt,K){
+  const PW=PW0/K,PH=PH0/K;
   const pages=[];let ctx,y;const at=new Date();
   const font=(sz,w)=>`${w||400} ${sz}px ${FONT}`;
   const W=PW-MG*2,BOTTOM=PH-MG-30;
   function newPage(){
-    const c=document.createElement('canvas');c.width=Math.round(PW*RS);c.height=Math.round(PH*RS);ctx=c.getContext('2d');ctx.setTransform(RS,0,0,RS,0,0);pages.push(c);
+    const c=document.createElement('canvas');c.width=Math.round(PW0*RS);c.height=Math.round(PH0*RS);ctx=c.getContext('2d');ctx.setTransform(RS*K,0,0,RS*K,0,0);pages.push(c);
     ctx.fillStyle='#fff';ctx.fillRect(0,0,PW,PH);ctx.textBaseline='top';
-    ctx.fillStyle='#68717d';ctx.font=font(18);ctx.fillText('現地調査報告書　第'+(s.rev||1)+'版　作成 '+stamp(at),MG,MG-40);
+    ctx.fillStyle='#68717d';ctx.font=font(22);ctx.fillText('現地調査報告書　第'+(s.rev||1)+'版　作成 '+stamp(at),MG,MG-40);
     ctx.textAlign='right';ctx.fillText((s.title||'')+(s.code?'　'+s.code:''),PW-MG,MG-40);ctx.textAlign='left';
     ctx.strokeStyle='#1f2a37';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(MG,MG-12);ctx.lineTo(PW-MG,MG-12);ctx.stroke();
     y=MG+10;
   }
   function ensure(h){if(y+h>BOTTOM){newPage();return true}return false}
-  function section(t){ensure(110);y+=14;ctx.fillStyle='#1f2a37';ctx.fillRect(MG,y,8,34);ctx.font=font(26,700);ctx.fillText(t,MG+20,y+3);y+=52}
+  function section(t){ensure(130);y+=18;ctx.fillStyle='#b85c14';ctx.fillRect(MG,y,10,46);ctx.font=font(36,700);ctx.fillStyle='#1d2329';ctx.fillText(t,MG+26,y+3);y+=68}
   function txt(t,x,yy,sz,w,col){ctx.font=font(sz,w);ctx.fillStyle=col||'#1d2329';ctx.fillText(t,x,yy)}
-  function para(label,text){if(!text)return;ctx.font=font(21);const ls=wrap(ctx,text,W-28);ensure(40+Math.min(ls.length,3)*32);
-    txt(label,MG,y+6,19,700,'#4a525c');y+=36;ls.forEach(l=>{ensure(32);txt(l,MG+14,y,21);y+=32});y+=8}
-  // 確認ポイント表
-  const c1=360,c2=W-c1;
+  function para(label,text){if(!text)return;ctx.font=font(26);const ls=wrap(ctx,text,W-28);ensure(50+Math.min(ls.length,3)*40);
+    txt(label,MG,y+4,22,700,'#68717d');y+=38;ls.forEach(l=>{ensure(40);txt(l,MG+14,y,26);y+=40});y+=10}
+  // 確認ポイント：2列のカード（確認できた項目を大きく、未確認は1行にまとめる）
   function table(title,pts,ans){
-    const rows=pts.filter(p=>opt.unchecked||rq(p,ans)||isDone(p,ans));
-    if(!rows.length)return;
-    const head=()=>{ctx.fillStyle='#2c3a4b';ctx.fillRect(MG,y,W,42);txt(title,MG+14,y+9,21,700,'#fff');y+=42};
-    ensure(140);head();
-    for(const p of rows){
-      const v=ans[p.id];const t=valText(p,ans);const warn=(Array.isArray(v)?v:[v]).some(isWarn);
-      ctx.font=font(20,warn?700:400);const ls=wrap(ctx,t||(rq(p,ans)?'未測':'未確認'),c2-60);ctx.font=font(19,700);const nl=wrap(ctx,p.label,c1-28);
-      const h=Math.max(50,Math.max(ls.length,nl.length)*28+22);
-      if(ensure(h))head();
-      if(warn){ctx.fillStyle='#fdf0ee';ctx.fillRect(MG+c1,y,c2,h)}
-      ctx.strokeStyle='#d5dae0';ctx.lineWidth=1.2;ctx.strokeRect(MG,y,W,h);
-      ctx.fillStyle='#f4f5f7';ctx.fillRect(MG+1,y+1,c1-1,h-2);
-      ctx.beginPath();ctx.moveTo(MG+c1,y);ctx.lineTo(MG+c1,y+h);ctx.stroke();
-      nl.forEach((l,k)=>txt(l,MG+14,y+13+k*28,19,700,'#3a424c'));
-      ls.forEach((l,k)=>txt(l,MG+c1+16,y+12+k*28,20,warn?700:400,t?(warn?'#c0392b':'#1d2329'):'#6b7280'));
-      if(warn){ctx.font=font(16,700);ctx.fillStyle='#c0392b';ctx.textAlign='right';ctx.fillText('注意',PW-MG-14,y+14);ctx.textAlign='left'}
-      y+=h}
+    const gap=14,cw=(W-gap)/2;const cells=[],unk=[];
+    for(const p of pts){const v=ans[p.id];const done=isDone(p,ans),req=rq(p,ans);
+      if(!done&&!req){unk.push(p.label);continue}
+      const t=valText(p,ans);cells.push({l:p.label,t:t||'未測',warn:(Array.isArray(v)?v:[v]).some(isWarn),miss:!t})}
+    if(!cells.length&&!(opt.unchecked&&unk.length))return;
+    const head=()=>{ctx.fillStyle='#2c3a4b';ctx.fillRect(MG,y,W,56);txt(title,MG+18,y+10,30,700,'#fff');y+=56+12};
+    const prep=(c,w)=>{ctx.font=font(28,600);const ls=wrap(ctx,c.t,w-40);ctx.font=font(20,700);const nl=wrap(ctx,c.l,w-(c.warn?100:40));return {c,w,ls,nl}};
+    const draw=(o,x,h)=>{const c=o.c;
+      ctx.fillStyle=c.warn?'#fdf0ee':c.miss?'#fff7e6':'#fff';ctx.fillRect(x,y,o.w,h);
+      ctx.strokeStyle='#d5dae0';ctx.lineWidth=1.5;ctx.strokeRect(x,y,o.w,h);
+      ctx.fillStyle=c.warn?'#c0392b':c.miss?'#d98e04':'#2c3a4b';ctx.fillRect(x,y,8,h);
+      o.nl.forEach((l,k)=>txt(l,x+24,y+12+k*26,20,700,'#68717d'));
+      const vy=y+12+o.nl.length*26+6;
+      o.ls.forEach((l,k)=>txt(l,x+24,vy+k*36,28,600,c.warn?'#c0392b':c.miss?'#a86500':'#1d2329'));
+      if(c.warn){ctx.font=font(20,700);ctx.fillStyle='#c0392b';ctx.textAlign='right';ctx.fillText('注意',x+o.w-16,y+12);ctx.textAlign='left'}};
+    const hOf=o=>12+o.nl.length*26+6+o.ls.length*36+16;
+    const place=os=>{const h=Math.max(...os.map(hOf));if(ensure(h+12))head();let x=MG;os.forEach(o=>{draw(o,x,h);x+=o.w+gap});y+=h+12};
+    ensure(220);head();
+    let pend=null;
+    for(const c of cells){
+      const half=prep(c,cw);const wide=c.warn||half.ls.length>1||half.nl.length>2;
+      if(wide){const full=prep(c,W);if(pend){place([pend]);pend=null}place([full])}
+      else if(pend){place([pend,half]);pend=null}
+      else pend=half}
+    if(pend)place([pend]);
+    if(opt.unchecked&&unk.length){ctx.font=font(22);const ls=wrap(ctx,'未確認：'+unk.join('、'),W-28);ensure(ls.length*32+16);
+      ls.forEach(l=>{txt(l,MG+6,y,22,400,'#7a828c');y+=32});y+=10}
   }
 
   newPage();
-  ctx.font=font(46,700);ctx.fillStyle='#1d2329';ctx.fillText('現地調査報告書',MG,y+10);ctx.font=font(24,700);ctx.fillStyle='#68717d';ctx.textAlign='right';ctx.fillText('第'+(s.rev||1)+'版',PW-MG,y+28);ctx.textAlign='left';y+=84;
+  ctx.font=font(54,700);ctx.fillStyle='#1d2329';ctx.fillText('現地調査報告書',MG,y+6);ctx.font=font(28,700);ctx.fillStyle='#68717d';ctx.textAlign='right';ctx.fillText('第'+(s.rev||1)+'版',PW-MG,y+28);ctx.textAlign='left';y+=96;
   const info=[['案件名',s.title],['管理番号',s.code],['調査日',s.date],['調査担当者',s.surveyor],['物件種別',s.propType],['構造',s.structure],['築年数',s.age?s.age+'年':''],['階数・調査階',s.floors]];
-  const colW=W/2,rowH=50;ctx.strokeStyle='#cfd4db';ctx.lineWidth=1.5;
+  const colW=W/2,rowH=64;ctx.strokeStyle='#cfd4db';ctx.lineWidth=1.5;
   for(let i=0;i<info.length;i+=2){
     for(let j=0;j<2;j++){const [k,v]=info[i+j];const x=MG+j*colW;
-      ctx.fillStyle='#f1f3f6';ctx.fillRect(x,y,170,rowH);ctx.strokeRect(x,y,colW,rowH);ctx.beginPath();ctx.moveTo(x+170,y);ctx.lineTo(x+170,y+rowH);ctx.stroke();
-      txt(k,x+14,y+14,19,700,'#4a525c');ctx.font=font(21);let vv=String(v||'—');while(ctx.measureText(vv).width>colW-200&&vv.length>1)vv=vv.slice(0,-1);txt(vv,x+186,y+13,21)}
+      ctx.fillStyle='#f1f3f6';ctx.fillRect(x,y,200,rowH);ctx.strokeRect(x,y,colW,rowH);ctx.beginPath();ctx.moveTo(x+200,y);ctx.lineTo(x+200,y+rowH);ctx.stroke();
+      txt(k,x+14,y+19,22,700,'#4a525c');ctx.font=font(26,600);let vv=String(v||'—');while(ctx.measureText(vv).width>colW-230&&vv.length>1)vv=vv.slice(0,-1);txt(vv,x+216,y+16,26,600)}
     y+=rowH}
   y+=12;
   para('ご要望',s.purpose);
@@ -1149,12 +1165,12 @@ async function buildReport(s,opt){
   // サマリー
   section('調査結果サマリー');
   const st=stats(s);
-  txt(`交換対象：${s.targets.length?s.targets.map(t=>t.label||TYPE[t.type].name).join('、'):'なし'}`,MG,y,21,700);y+=36;
-  {const rm=reqMiss(s);txt(`確認済み ${st.done} / ${st.total} ポイント　・　注意事項 ${collectWarns(s).length}件`+(rm?`　・　必須の未測 ${rm}件`:''),MG,y,19,400,'#68717d');}y+=40;
+  {ctx.font=font(28,700);const ls=wrap(ctx,`交換対象：${s.targets.length?s.targets.map(t=>t.label||TYPE[t.type].name).join('、'):'なし'}`,W);ls.forEach(l=>{txt(l,MG,y,28,700);y+=40})}y+=4;
+  {const rm=reqMiss(s);txt(`確認済み ${st.done} / ${st.total} ポイント　・　注意事項 ${collectWarns(s).length}件`+(rm?`　・　必須の未測 ${rm}件`:''),MG,y,22,400,'#68717d');}y+=44;
   const warns=collectWarns(s);
-  if(warns.length){ensure(60);ctx.fillStyle='#c0392b';ctx.fillRect(MG,y,W,40);txt('■ 注意事項（工事前に要確認）',MG+14,y+8,20,700,'#fff');y+=40;
-    y+=10;
-    warns.forEach(w=>{ctx.font=font(20);wrap(ctx,'・'+w,W-30).forEach(l=>{ensure(30);txt(l,MG+14,y,20,400,'#1d2329');y+=30})});
+  if(warns.length){ensure(70);ctx.fillStyle='#c0392b';ctx.fillRect(MG,y,W,54);txt('注意事項（工事前に要確認）',MG+18,y+10,28,700,'#fff');y+=54;
+    y+=12;
+    warns.forEach(w=>{ctx.font=font(26);wrap(ctx,'・'+w,W-30).forEach(l=>{ensure(40);txt(l,MG+14,y,26,400,'#1d2329');y+=40})});
     y+=20}
   para('総評・特記事項',s.note);
 
@@ -1174,24 +1190,24 @@ async function buildReport(s,opt){
   if(ms.length){
     section('採寸記録（単位：mm・内寸）');
     const cols=[['部屋・場所',200],['種別',130],['W',105],['D',105],['H',105],['面積（坪）',130],['位置・メモ',W-775]];
-    const mh=()=>{ctx.fillStyle='#2c3a4b';ctx.fillRect(MG,y,W,40);let x=MG;cols.forEach(([n,w])=>{txt(n,x+10,y+9,19,700,'#fff');x+=w});y+=40};
+    const mh=()=>{ctx.fillStyle='#2c3a4b';ctx.fillRect(MG,y,W,48);let x=MG;cols.forEach(([n,w])=>{txt(n,x+10,y+11,22,700,'#fff');x+=w});y+=48};
     ensure(100);mh();
     for(const m of ms){
-      ctx.font=font(18);const memoL=wrap(ctx,[mDesc(m),m.memo].filter(Boolean).join('\n'),cols[6][1]-20);const placeL=wrap(ctx,mLabel(m),cols[0][1]-20);
+      ctx.font=font(22);const memoL=wrap(ctx,[mDesc(m),m.memo].filter(Boolean).join('\n'),cols[6][1]-20);const placeL=wrap(ctx,mLabel(m),cols[0][1]-20);
       const w=+m.w,d=+m.d;const ar=(w>0&&d>0&&(m.kind==='部屋'||!m.kind))?(w*d/1e6/TSUBO).toFixed(2)+'坪':'';
-      const h=Math.max(48,Math.max(memoL.length,placeL.length)*26+20);
+      const h=Math.max(58,Math.max(memoL.length,placeL.length)*32+22);
       if(ensure(h))mh();
       ctx.strokeStyle='#d5dae0';ctx.lineWidth=1.2;ctx.strokeRect(MG,y,W,h);
       let x=MG;const vals=[null,m.kind==='開口部'?(m.otype||'開口部'):m.kind==='設備'?(m.etype||'設備'):m.kind,m.w,m.d,m.h,ar,null];
       cols.forEach(([n,cw],k)=>{if(k){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+h);ctx.stroke()}
-        if(k===0)placeL.forEach((l,j)=>txt(l,x+10,y+12+j*26,18,700));
-        else if(k===6)memoL.forEach((l,j)=>txt(l,x+10,y+12+j*26,18));
-        else{ctx.font=font(18);ctx.fillStyle='#1d2329';if(k>=2&&k<=4){ctx.textAlign='right';ctx.fillText(vals[k]?Number(vals[k]).toLocaleString():'',x+cw-10,y+12);ctx.textAlign='left'}else ctx.fillText(vals[k]||'',x+10,y+12)}
+        if(k===0)placeL.forEach((l,j)=>txt(l,x+10,y+13+j*32,22,700));
+        else if(k===6)memoL.forEach((l,j)=>txt(l,x+10,y+13+j*32,22));
+        else{ctx.font=font(22);ctx.fillStyle='#1d2329';if(k>=2&&k<=4){ctx.textAlign='right';ctx.fillText(vals[k]?Number(vals[k]).toLocaleString():'',x+cw-10,y+13);ctx.textAlign='left'}else ctx.fillText(vals[k]||'',x+10,y+13)}
         x+=cw});
       y+=h}
   }
-  pages.forEach((c,i)=>{const g=c.getContext('2d');g.setTransform(RS,0,0,RS,0,0);g.font=font(18);g.fillStyle='#68717d';g.textAlign='center';g.textBaseline='top';g.fillText(`${i+1} / ${pages.length}`,PW/2,PH-MG+20)});
-  pages.at=at;
+  pages.forEach((c,i)=>{const g=c.getContext('2d');g.setTransform(RS*K,0,0,RS*K,0,0);g.font=font(18);g.fillStyle='#68717d';g.textAlign='center';g.textBaseline='top';g.fillText(`${i+1} / ${pages.length}`,PW/2,PH-MG+20)});
+  pages.at=at;pages.fill=(y-MG)/(PH-MG*2);
   return pages;
 }
 
