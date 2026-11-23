@@ -899,7 +899,7 @@ function bowlResultHtml(scope,v){
     `<button class="chip" data-maker="${esc(scope)}|${esc(b.model)}|${esc(b.maker)}">${esc(b.maker)}<small style="font-weight:400">　${esc(b.drain)}${esc(b.val)}</small></button>`).join('')}</div></div>`;
   const line=b=>`${esc(b.maker)}　<b>${esc(b.drain)} ${esc(b.val)}mm</b>`;
   if(exact){const os=exact.opts&&exact.opts.length?exact.opts:null;
-    const off=o=>o[2]?`（${exact.drain==='壁排水'?'左右抜きから ':'差 '}${o[2]>0?'+':'−'}${Math.abs(o[2])}）`:'';
+    const off=o=>'';
     const a0=sc0&&sc0.ans||{},curv=exact.drain==='床排水'?a0.pitch:a0.wallh,picked=a0.drain===exact.drain&&String(a0.pitchsrc||'').indexOf('型番表')>=0;
     const btns=os?os.map((o,i)=>{const sel=picked&&String(curv)===String(o[1]);return `<button class="btn${sel?'':' sec'}" style="margin-top:6px;justify-content:flex-start;text-align:left;${sel?'':'border:2px solid var(--line)'}" data-apply="${esc(scope)}|${esc(exact.model)}|${i}|${esc(exact.maker)}"><span style="white-space:normal">${sel?'✓ 選択中　':''}${esc(o[0])}：<b>${esc(o[1])}mm</b>${off(o)}${sel?'':'　<small style="font-weight:400">タップで反映</small>'}</span></button>`}).join(''):
       `<button class="btn" data-apply="${esc(scope)}|${esc(exact.model)}||${esc(exact.maker)}">排水方式・寸法に反映</button>`;
@@ -928,8 +928,17 @@ function pitchCheck(a){
   if(n>0)return {ok:false,msg:`今の排水芯 ${cs}mm の一部が対応範囲 ${ns}mm から外れています。実測して確認してください`};
   return {ok:false,msg:`今の排水芯 ${cs}mm は、新しい便器の対応範囲 ${ns}mm に入りません。取り付けできない可能性があります`};
 }
-function compatHtml(scope){const sc=getScope(scope);const r=sc&&pitchCheck(sc.ans);
-  return `<div id="compat-${esc(scope)}">${r?`<div class="bowlres ${r.ok?'ok':'ng'}" style="${r.ok?'':'border-color:var(--repair);color:var(--repair);font-weight:700'}">${r.ok?'✓ ':'⚠ '}${esc(r.msg)}</div>`:''}</div>`}
+// 壁排水：実測が型番表（カタログ値）と違うとき（配管が傾いて取り付けられている現場など）。実測を優先して説明を出す
+function wallNote(a){
+  if(!a||a.drain!=='壁排水'||a.pitchsrc!=='実測')return null;
+  const w=parseFloat(String(a.wallh||'').replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)));if(!(w>0))return null;
+  const {exact}=bowlLookup(a.bowl,a.bowlMaker);if(!exact||exact.drain!=='壁排水')return null;
+  const tv=new Set();String(exact.val).split(/[\/、,，]/).forEach(x=>{const n=parseFloat(x);if(n>0)tv.add(n)});(exact.opts||[]).forEach(o=>{const n=parseFloat(o[1]);if(n>0)tv.add(n)});
+  if(!tv.size||tv.has(w))return null;
+  return {msg:`型番表は${[...tv].sort((x,y)=>x-y).join('／')}mmですが、実測は${w}mmです。配管が傾いて取り付けられている現場では、実際の排水高さが型番表より大きくなることがあります。実測の値を優先してください`};
+}
+function compatHtml(scope){const sc=getScope(scope);const r=sc&&pitchCheck(sc.ans),wn=sc&&wallNote(sc.ans);
+  return `<div id="compat-${esc(scope)}">${wn?`<div class="bowlres" style="margin-top:8px"><b>ⓘ 実測を優先</b><div class="muted" style="margin-top:4px">${esc(wn.msg)}</div></div>`:''}${r?`<div class="bowlres ${r.ok?'ok':'ng'}" style="${r.ok?'':'border-color:var(--repair);color:var(--repair);font-weight:700'}">${r.ok?'✓ ':'⚠ '}${esc(r.msg)}</div>`:''}</div>`}
 function updateCompat(scope){const el=document.getElementById('compat-'+scope);if(el)el.outerHTML=compatHtml(scope)}
 const optTxt=o=>String(o).replace(/^!/,'');
 // 水圧の変化（今の水圧と新しい機器の水圧を比べる）
@@ -1215,7 +1224,7 @@ function pointHtml(scope,p,v){
       <div data-bowlres="${esc(key)}">${bowlResultHtml(scope,v)}</div>`;
   }else if(p.t==='dim'){
     body=`<div class="numrow"><input class="inp" data-in="${esc(key)}" value="${esc(v)}" inputmode="text" placeholder="例：200"><span class="u">${esc(p.u||'')}</span></div>
-      <div class="chips dimchips">${p.o.map(o=>`<button class="chip ${String(v)===o?'on':''}" data-dim="${esc(key)}" data-o="${esc(o)}">${esc(o)}</button>`).join('')}</div>${p.id==='newrange'?compatHtml(scope):''}`;
+      <div class="chips dimchips">${p.o.map(o=>`<button class="chip ${String(v)===o?'on':''}" data-dim="${esc(key)}" data-o="${esc(o)}">${esc(o)}</button>`).join('')}</div>${p.id==='newrange'||p.id==='wallh'?compatHtml(scope):''}`;
   }else if(p.t==='num'){
     body=`<div class="numrow"><input class="inp" type="number" inputmode="decimal" data-in="${esc(key)}" value="${esc(v)}"><span class="u">${esc(p.u||'')}</span></div>${p.id==='newkpa'?kpaHtml(scope):''}`;
   }else{
@@ -1235,7 +1244,7 @@ function bindPick(b){
     if(unset){if(p.t==='multi'||sc.ans[pid]!==o)return;delete sc.ans[pid]}
     else if(p.t==='multi'){const arr=sc.ans[pid]||[];sc.ans[pid]=arr.includes(o)?arr.filter(x=>x!==o):[...arr,o]}
     else sc.ans[pid]=o;
-    touch();if(CTRL.has(pid))renderCheck();else refreshPoint(scope,p)};
+    touch();if(CTRL.has(pid))renderCheck();else{refreshPoint(scope,p);if(pid==='pitchsrc')updateCompat(scope)}};
   let tm=null,fired=false;
   const stop=()=>{clearTimeout(tm);tm=null};
   b.onpointerdown=()=>{fired=false;stop();if(!b.classList.contains('on')||b.dataset.pick.split('|')[1]===undefined)return;
@@ -1285,11 +1294,11 @@ function bindCheck(){
 const normDim=v=>String(v).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[／]/g,'/').replace(/[~～\-ー－]/g,'〜').replace(/\s+/g,'');
 function bindExtra(root){
   root.querySelectorAll('[data-dim]').forEach(b=>b.onclick=()=>{const [scope,pid]=b.dataset.dim.split('|');const sc=getScope(scope);const p=sc.pts.find(x=>x.id===pid);
-    sc.ans[pid]=b.dataset.o;touch();if(pid==='pitch'||pid==='wallh'||pid==='newrange'){const y=scrollY;renderCheck();scrollTo(0,y)}else refreshPoint(scope,p)});
+    sc.ans[pid]=b.dataset.o;touch();if(pid==='pitch'||pid==='wallh'||pid==='newrange'||pid==='pitchsrc'){const y=scrollY;renderCheck();scrollTo(0,y)}else refreshPoint(scope,p)});
   root.querySelectorAll('[data-in]').forEach(el=>{const [scope,pid]=el.dataset.in.split('|');const sc=getScope(scope);const p=sc&&sc.pts.find(x=>x.id===pid);
     if(p&&p.t==='dim')el.oninput=()=>{const was=!!String(sc.ans[pid]||'').trim();sc.ans[pid]=el.value;touch();const d=el.closest('.pt').querySelector('.done');if(d)d.textContent=el.value.trim()?'✓':'';updCounts();
-      if(pid==='pitch'||pid==='newrange')updateCompat(scope);};
-    if(p&&p.t==='dim')el.onchange=()=>{const n=normDim(el.value);sc.ans[pid]=n;touch();if(el.value!==n)el.value=n;if(pid==='pitch'||pid==='newrange')updateCompat(scope);updCounts()};});
+      if(pid==='pitch'||pid==='newrange'||pid==='wallh')updateCompat(scope);};
+    if(p&&p.t==='dim')el.onchange=()=>{const n=normDim(el.value);sc.ans[pid]=n;touch();if(el.value!==n)el.value=n;el.closest('.pt').querySelectorAll('[data-dim]').forEach(c=>c.classList.toggle('on',c.dataset.o===n));if(pid==='pitch'||pid==='newrange'||pid==='wallh')updateCompat(scope);updCounts()};});
   root.querySelectorAll('[data-bowl]').forEach(el=>el.oninput=()=>{const [scope,pid]=el.dataset.bowl.split('|');const sc=getScope(scope);
     sc.ans[pid]=el.value;delete sc.ans.bowlMaker;touch();const r=document.querySelector(`[data-bowlres="${CSS.escape(el.dataset.bowl)}"]`);
     if(r){r.innerHTML=bowlResultHtml(scope,el.value);bindBowlRes(r)}
@@ -1580,7 +1589,7 @@ function collectWarns(s){
 function specFor(s){
   const blocks=s.targets.map(t=>{const rows=pointsOf(t).filter(p=>p.id!=='bowl'&&(isDone(p,t.ans)||rq(p,t.ans))).map(p=>{const v=t.ans[p.id];return [p.label,valText(p,t.ans)||'未測',(Array.isArray(v)?v:[v]).some(isWarn)]});
     if(t.ans.bowl)rows.unshift(['便器の品番',ansText(TYPE.toilet.points.find(p=>p.id==='bowl'),t.ans.bowl,t.ans),false]);
-    const pc=t.type==='toilet'&&pitchCheck(t.ans);if(pc)rows.push(['排水芯の適合',pc.msg,!pc.ok]);
+    const pc=t.type==='toilet'&&pitchCheck(t.ans);if(pc)rows.push(['排水芯の適合',pc.msg,!pc.ok]);const wn=t.type==='toilet'&&wallNote(t.ans);if(wn)rows.push(['排水高さ（実測と型番表の差）',wn.msg,false]);
     if(t.memo)rows.push(['メモ',t.memo,false]);
     return {title:t.label||TYPE[t.type].name,rows}});
   const crow=commonPts(s).filter(p=>answered(p,s.common[p.id])||rq(p,s.common,s)).map(p=>{const v=s.common[p.id];return [p.label,ansText(p,v)||'未測',(Array.isArray(v)?v:[v]).some(isWarn)]});
