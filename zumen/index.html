@@ -124,7 +124,8 @@ const CAT={door:'建具',slide:'建具',win:'建具',toilet:['トイレ','水回
 const DSC={hood:1,slide:.9,tpholder:1.5,alc:1.5,rail:1.2};
 let cat='建具',newArm=false,detail=false,dupMode=null,dupFl=0;
 const OPT=['tpholder','alc','rail'];
-const BX=t=>t==='ps'||t==='wall',wallZ=(it,H)=>Math.max(.1,Math.min(H-.02,it.zh?it.zh/1000:H-.02));
+const BX=t=>t==='ps'||t==='wall'||t==='beam',beamD=(it,H)=>Math.max(.05,Math.min(H-.1,it.zh?it.zh/1000:.3)),wallZ=(it,H)=>Math.max(.1,Math.min(H-.02,it.zh?it.zh/1000:H-.02));
+const beamG=(hw,hh,it)=>`<rect x="${-hw}" y="${-hh}" width="${hw*2}" height="${hh*2}" fill="var(--wall)" fill-opacity=".12" stroke="var(--fg)" stroke-width="1.3" stroke-dasharray="7 4"/><text y="3.5" font-size="9" text-anchor="middle" style="paint-order:stroke;stroke:var(--room);stroke-width:3px">梁 ↓${Math.round((it.zh||300))}</text>`;
 const wallG=(hw,hh)=>`<rect x="${-hw}" y="${-hh}" width="${hw*2}" height="${hh*2}" fill="var(--wall)" fill-opacity=".6" stroke="var(--wall)" stroke-width="1.5"/>`;
 let rooms=[],floors=[{n:'1F',rooms:[]}],fi=0,selR=null,selI=null,uid=1,drag=null,holdT=null;
 const cv=document.getElementById('cv'),panel=document.getElementById('panel');
@@ -157,10 +158,10 @@ function draw(ex){
     if(r.wt>0){const wq=r.wt/1000*S;s+=`<path class="room" data-room="${r.id}" fill-rule="evenodd" fill="var(--wall)" fill-opacity=".22" stroke="var(--wall)" stroke-width="1" d="M${-wq} ${-wq}H${W+wq}V${H+wq}H${-wq}Z M0 0V${H}H${W}V0Z"/>`;}
     s+=planDims(r);
     for(const it of r.items){
-      const ps=BX(it.t),hw=it.w*S/2,hh=it.h*S/2,oh=it.t==='wall'?Math.max(hh,8):hh,t=ps?{g:it.t==='wall'?wallG(hw,hh):psG(hw,hh),b:[-hw,-oh,hw*2,oh*2]}:T[it.t],b=t.b,isel=!ex&&it.id===selI;
+      const ps=BX(it.t),hw=it.w*S/2,hh=it.h*S/2,oh=it.t==='wall'||it.t==='beam'?Math.max(hh,8):hh,t=ps?{g:it.t==='wall'?wallG(hw,hh):it.t==='beam'?beamG(hw,hh,it):psG(hw,hh),b:[-hw,-oh,hw*2,oh*2]}:T[it.t],b=t.b,isel=!ex&&it.id===selI;
       s+=`<g class="item" data-room="${r.id}" data-item="${it.id}" transform="${itf(it)}">${t.g}${it.t==='stairs'&&it.under&&it.under!=='solid'?`<text y="4" font-size="9" text-anchor="middle">${it.under==='open'?'階段下OP':'階段下収納'}</text>`:''}<rect class="ol" x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}" fill="transparent" ${isel?'stroke="var(--acc)" stroke-dasharray="4 3" stroke-width="${drag&&drag.o===it&&!drag.hold?4:2}"':''}/></g>`;
     }
-    for(const it of r.items){if(isOp(it.t)&&!it.wm)s+=`<text x="${it.x*S}" y="${it.y*S-12}" font-size="9" font-weight="700" fill="${RED}" text-anchor="middle" pointer-events="none" style="paint-order:stroke;stroke:var(--room);stroke-width:3px">W未測</text>`;}
+    for(const it of r.items){if((detail||ex)&&isOp(it.t)&&!it.wm)s+=`<text x="${it.x*S}" y="${it.y*S-12}" font-size="9" font-weight="700" fill="${RED}" text-anchor="middle" pointer-events="none" style="paint-order:stroke;stroke:var(--room);stroke-width:3px">W未測</text>`;}
     s+='</g>';
   }
   if(ex)return s;
@@ -170,7 +171,7 @@ function esc(t){return t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;
 function catBtns(){
   const ks=Object.keys(T).filter(k=>[].concat(CAT[k]).includes(cat)),mk=k=>`<button${OPT.includes(k)?' class="opt"':''} data-sym="${k}">${T[k].n}</button>`;
   const main=ks.filter(k=>!OPT.includes(k)).map(mk),opt=ks.filter(k=>OPT.includes(k)).map(mk);
-  if(cat==='部屋の構造物')main.push('<button data-sym="ps">パイプスペース</button>','<button data-sym="wall">壁（サイズ調整可）</button>');
+  if(cat==='部屋の構造物')main.push('<button data-sym="ps">パイプスペース</button>','<button data-sym="wall">壁（サイズ調整可）</button>','<button data-sym="beam">天井の梁（サイズ調整可）</button>');
   if(!opt.length)return main.join('');
   return `<span class="grp">本体</span>${main.join('')}<span class="grp">オプション品（本体に付ける備品）</span>${opt.join('')}`;
 }
@@ -178,6 +179,10 @@ function itemRow(r){
   const it=selI&&r.items.find(i=>i.id===selI);if(!it)return '';
   if(it.t==='wall'){const rv=(Math.round(it.r)%360+360)%360,zh=Math.round(wallZ(it,r.ht/1000)*1000);return `<div class="row"><span class="tag">壁</span><label>長さ<input type="number" id="iw" step="50" min="100" max="5000" value="${Math.round(it.w*1000)}">mm</label><label>厚み<input type="number" id="ih" step="10" min="100" max="5000" value="${Math.round(it.h*1000)}">mm</label><label>高さ<input type="number" id="iz" step="50" min="100" max="${r.ht}" value="${zh}">mm</label></div>
   <div class="row"><label>長さ</label><input type="range" id="iwr" min="100" max="5000" step="50" value="${Math.round(it.w*1000)}"><label>厚み</label><input type="range" id="ihr" min="100" max="1000" step="10" value="${Math.min(1000,Math.round(it.h*1000))}"></div>
+  <div class="row"><label>回転</label><input type="range" id="rtr" min="0" max="355" step="5" value="${rv}"><label><input type="number" id="rtn" step="5" min="0" max="359" value="${rv}">°</label></div>
+  <div class="row"><button data-act="rotm">↺ 90°</button><button data-act="rot">↻ 90°</button><button data-act="dupitem">複製</button><button class="danger" data-act="delitem">削除</button></div>${detail?posRow(it):''}`;}
+  if(it.t==='beam'){const rv=(Math.round(it.r)%360+360)%360,zh=Math.round(beamD(it,r.ht/1000)*1000);return `<div class="row"><span class="tag">天井の梁</span><label>長さ<input type="number" id="iw" step="50" min="100" max="5000" value="${Math.round(it.w*1000)}">mm</label><label>幅<input type="number" id="ih" step="10" min="100" max="5000" value="${Math.round(it.h*1000)}">mm</label><label>下がり<input type="number" id="iz" step="10" min="50" max="${r.ht-100}" value="${zh}">mm</label></div>
+  <div class="row"><label>長さ</label><input type="range" id="iwr" min="100" max="5000" step="50" value="${Math.round(it.w*1000)}"><label>幅</label><input type="range" id="ihr" min="100" max="1000" step="10" value="${Math.min(1000,Math.round(it.h*1000))}"></div>
   <div class="row"><label>回転</label><input type="range" id="rtr" min="0" max="355" step="5" value="${rv}"><label><input type="number" id="rtn" step="5" min="0" max="359" value="${rv}">°</label></div>
   <div class="row"><button data-act="rotm">↺ 90°</button><button data-act="rot">↻ 90°</button><button data-act="dupitem">複製</button><button class="danger" data-act="delitem">削除</button></div>${detail?posRow(it):''}`;}
   if(it.t==='ps')return `<div class="row"><label>パイプスペース</label><label>W<input type="number" id="iw" step="50" min="100" max="5000" value="${Math.round(it.w*1000)}">mm</label><label>D<input type="number" id="ih" step="50" min="100" max="5000" value="${Math.round(it.h*1000)}">mm</label><button data-act="dupitem">複製</button><button class="danger" data-act="delitem">削除</button></div>
@@ -246,7 +251,7 @@ function drawPanel(){
   autoScroll();
 }
 panel.addEventListener('input',e=>{
-  if(e.target.id==='detail'){detail=e.target.checked;persist();drawPanel();return;}
+  if(e.target.id==='detail'){detail=e.target.checked;persist();draw();drawPanel();return;}
   const r=room(selR);if(!r)return;
   if(e.target.id==='nm')r.name=e.target.value;
   else if(e.target.id==='w'&&+e.target.value>=500)r.w=Math.min(20,+e.target.value/1000);
@@ -274,7 +279,7 @@ panel.addEventListener('input',e=>{
   else if(['sc','scr','iw','ih','iwr','ihr','iz'].includes(e.target.id)){
     const it=r.items.find(i=>i.id===selI),id=e.target.id,v=+e.target.value,gi=x=>document.getElementById(x);
     if(it&&v>0){
-      if(id==='iz'){if(v>=100)it.zh=Math.min(v,r.ht);}
+      if(id==='iz'){if(it.t==='beam'){if(v>=50)it.zh=Math.min(v,r.ht-100);}else if(v>=100)it.zh=Math.min(v,r.ht);}
       else if(id==='sc'||id==='scr'){if(v>=20){it.sc=Math.min(5,v/100);const pct=Math.round(it.sc*100);gi(id==='scr'?'sc':'scr').value=pct;if(isOp(it.t)&&it.wm){it.wm=false;const dw=gi('dW');if(dw)dw.value='';say('大きさを変えたので、幅は未測に戻りました');}}}
       else if(v>=100){const m=Math.min(5,v/1000),isW=id==='iw'||id==='iwr';if(isW)it.w=m;else it.h=m;gi(isW?(id==='iw'?'iwr':'iw'):(id==='ih'?'ihr':'ih')).value=Math.round(m*1000);}
     }
@@ -286,7 +291,7 @@ panel.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
   if(b.dataset.cat){cat=b.dataset.cat;drawPanel();return;}
   const r=room(selR);if(!r)return;
-  if(b.dataset.sym){const it={id:uid++,t:b.dataset.sym,x:snap(r.w/2),y:snap(r.h/2),r:0,sc:BX(b.dataset.sym)?1:(DSC[b.dataset.sym]||.7),w:b.dataset.sym==='wall'?1.8:.6,h:b.dataset.sym==='wall'?.1:.6};r.items.push(it);selI=it.id;}
+  if(b.dataset.sym){const it={id:uid++,t:b.dataset.sym,x:snap(r.w/2),y:snap(r.h/2),r:0,sc:BX(b.dataset.sym)?1:(DSC[b.dataset.sym]||.7),w:b.dataset.sym==='wall'||b.dataset.sym==='beam'?1.8:.6,h:b.dataset.sym==='wall'?.1:b.dataset.sym==='beam'?.15:.6};if(it.t==='beam')it.zh=300;r.items.push(it);selI=it.id;}
   else if(b.dataset.act==='delroom'){setRooms(rooms.filter(x=>x!==r));selR=selI=null;}
   else if(b.dataset.act==='rot'){const it=r.items.find(i=>i.id===selI);if(it){it.r=(it.r+90)%360;delete it.sw;}}
   else if(b.dataset.act==='rotm'){const it=r.items.find(i=>i.id===selI);if(it){it.r=(it.r+270)%360;delete it.sw;}}
@@ -513,7 +518,7 @@ function itemPrims(r,H){
   for(const it of r.items){
     const ax=r.x+it.x,ay=r.y+it.y;
     if(isOp(it.t))continue;
-    if(BX(it.t)){out.push({pts:rect(ax,ay,-it.w/2,-it.h/2,it.w/2,it.h/2,it.t==='wall'?it.r:0),z0:0,z1:it.t==='wall'?wallZ(it,H):Math.max(.1,H-.02),ft:FT});continue;}
+    if(BX(it.t)){out.push({pts:rect(ax,ay,-it.w/2,-it.h/2,it.w/2,it.h/2,it.t==='wall'||it.t==='beam'?it.r:0),z0:it.t==='beam'?H-beamD(it,H):0,z1:it.t==='wall'?wallZ(it,H):it.t==='beam'?H:Math.max(.1,H-.02),ft:FT});continue;}
     const b=T[it.t].b,k=(it.sc||1)/S;
     if(it.t==='stairs'){
       const n=10,y0=b[1]*k,dy=b[3]*k/n,rise=Math.min(.2,Math.max(.05,(H-.2)/n)),open=it.under==='open';
@@ -681,7 +686,7 @@ function wallElev(r,k,nm,wl){
       ops.push({it,a:Math.max(0,pos-w/2),b:Math.min(len,pos+w/2),z0:od.z0,z1:od.z1});continue;
     }
     let ext,z0=0,z1=.5,nmI;
-    if(it.t==='wall'){const c0=Math.abs(Math.cos(it.r*Math.PI/180)),s0=Math.abs(Math.sin(it.r*Math.PI/180)),pd=hz?it.w*s0+it.h*c0:it.w*c0+it.h*s0;if(d-pd/2>.3)continue;ext=hz?it.w*c0+it.h*s0:it.w*s0+it.h*c0;z1=wallZ(it,H);nmI='壁';}
+    if(it.t==='wall'||it.t==='beam'){const c0=Math.abs(Math.cos(it.r*Math.PI/180)),s0=Math.abs(Math.sin(it.r*Math.PI/180)),pd=hz?it.w*s0+it.h*c0:it.w*c0+it.h*s0;if(d-pd/2>.3)continue;ext=hz?it.w*c0+it.h*s0:it.w*s0+it.h*c0;if(it.t==='beam'){z0=H-beamD(it,H);z1=H;nmI='梁';}else{z1=wallZ(it,H);nmI='壁';}}
     else if(it.t==='ps'){if(d>.5)continue;ext=hz?it.w:it.h;z1=Math.max(.1,H-.02);nmI='PS';}
     else{
       if(d>.75)continue;
@@ -695,6 +700,8 @@ function wallElev(r,k,nm,wl){
       g+=`<path d="M${cxp-bw*.3} 0H${cxp+bw*.3}L${cxp+bw*.42} ${-h4+5}H${cxp-bw*.42}Z" ${sf}/><rect x="${cxp-bw/2}" y="${-h4-3}" width="${bw}" height="8" rx="4" ${sf}/><rect x="${cxp-tw/2}" y="${-h8}" width="${tw}" height="${h8-h4-3}" rx="3" ${sf}/><path d="M${cxp-tw/2} ${-h8+4}H${cxp+tw/2}" ${sf2}/><circle cx="${cxp}" cy="${-h8+2}" r="1.6" fill="var(--fg)"/>`;
     }else if(it.t==='wall'){
       g+=`<rect x="${x0}" y="${-z1*S}" width="${wpx}" height="${hpx}" fill="var(--wall)" fill-opacity=".45" stroke="var(--fg)" stroke-width="1.5"/>`;
+    }else if(it.t==='beam'){
+      g+=`<rect x="${x0}" y="${-z1*S}" width="${wpx}" height="${hpx}" fill="var(--wall)" fill-opacity=".3" stroke="var(--fg)" stroke-width="1.3" stroke-dasharray="6 3"/><text x="${cxp}" y="${-z1*S+Math.min(hpx,12)-3}" font-size="9" text-anchor="middle" style="paint-order:stroke;stroke:var(--room);stroke-width:3px">梁 ↓${mm(z1-z0)}</text>`;
     }else if(it.t==='ps'){
       g+=`<rect x="${x0}" y="${-z1*S}" width="${wpx}" height="${hpx}" ${sf}/><path d="M${x0} ${-z1*S}L${x0+wpx} ${-z0*S}M${x0+wpx} ${-z1*S}L${x0} ${-z0*S}" ${sf2}/>`;
     }else{
