@@ -1,6 +1,6 @@
 // リフォーム現地調査 オフライン用サービスワーカー
 // アプリを更新したら VERSION を変えてください
-const VERSION = 'v19';
+const VERSION = 'v20';
 const CACHE = 'genchi-' + VERSION;
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 
