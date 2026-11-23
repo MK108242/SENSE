@@ -161,7 +161,7 @@ function draw(ex){
       const ps=BX(it.t),hw=it.w*S/2,hh=it.h*S/2,oh=it.t==='wall'||it.t==='beam'?Math.max(hh,8):hh,t=ps?{g:it.t==='wall'?wallG(hw,hh):it.t==='beam'?beamG(hw,hh,it):psG(hw,hh),b:[-hw,-oh,hw*2,oh*2]}:T[it.t],b=t.b,isel=!ex&&it.id===selI;
       s+=`<g class="item" data-room="${r.id}" data-item="${it.id}" transform="${itf(it)}">${t.g}${it.t==='stairs'&&it.under&&it.under!=='solid'?`<text y="4" font-size="9" text-anchor="middle">${it.under==='open'?'階段下OP':'階段下収納'}</text>`:''}<rect class="ol" x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}" fill="transparent" ${isel?'stroke="var(--acc)" stroke-dasharray="4 3" stroke-width="${drag&&drag.o===it&&!drag.hold?4:2}"':''}/></g>`;
     }
-    for(const it of r.items){if((detail||ex)&&isOp(it.t)&&!it.wm)s+=`<text x="${it.x*S}" y="${it.y*S-12}" font-size="9" font-weight="700" fill="${RED}" text-anchor="middle" pointer-events="none" style="paint-order:stroke;stroke:var(--room);stroke-width:3px">W未測</text>`;}
+    for(const it of r.items){if(detail&&!ex&&isOp(it.t)&&!it.wm)s+=`<text x="${it.x*S}" y="${it.y*S-12}" font-size="9" font-weight="700" fill="${RED}" text-anchor="middle" pointer-events="none" style="paint-order:stroke;stroke:var(--room);stroke-width:3px">W未測</text>`;}
     s+='</g>';
   }
   if(ex)return s;
@@ -670,7 +670,7 @@ function compassPlan(a,R){
 }
 function applyNorth(){for(const f of FACES)if(/^w[NESW]$/.test(f[0]))f[1]=wallCard(f[0])+'壁';for(const w of WALLS)w[1]=wallCard(w[0])+'壁';}
 let frontWall='wN';
-function wallElev(r,k,nm,wl){
+function wallElev(r,k,nm,wl,ex){
   const H=r.ht/1000,HH=H*S,hz=wl==='n'||wl==='s',len=hz?r.w:r.h,L=len*S,f=finGet(r,k),bs=finGet(r,'base'),dc=finGet(r,'door').c,fs=9,mm=v=>Math.round(v*1000);
   let g=`<rect x="0" y="${-HH}" width="${L}" height="${HH}" fill="${f.c||'var(--room)'}" stroke="var(--wall)" stroke-width="1.2"/><rect x="0" y="${-.09*S}" width="${L}" height="${.09*S}" fill="${bs.c||'var(--card)'}" stroke="var(--wall)" stroke-width=".6"/>`;
   g+=`<path d="M-10 0H${L+10}M0 ${-HH}H${L}" stroke="var(--fg)" stroke-width="2"/><text x="${L+4}" y="${-HH+3}" font-size="7">CH</text><text x="${L+4}" y="-2" font-size="7">FL</text>`;
@@ -734,7 +734,7 @@ function wallElev(r,k,nm,wl){
       if(r.dshow!==false&&H>o.z1+.02)g+=`<rect x="${ox}" y="${-HH}" width="${ow}" height="${(H-o.z1)*S}" fill="${dc||'none'}" ${dc?'':'stroke-dasharray="3 2"'} stroke="var(--wall)" stroke-width=".6"/>`;
     }else g+=`<rect x="${ox}" y="${top}" width="${ow}" height="${hh}" fill="var(--acc)" fill-opacity=".3" stroke="var(--wall)" stroke-width="1.2"/><path d="M${ox+ow/2} ${top}V${top+hh}M${ox} ${top+hh/2}H${ox+ow}" stroke="var(--wall)" stroke-width=".5"/>`;
     {const mw=o.it.wm,mh=o.it.hm,ms=o.it.t!=='win'||o.it.sm,u=[!mw&&'W未測',!mh&&'H未測',!ms&&'腰高未測'].filter(Boolean);
-      if(u.length)g+=`<text x="${ox+ow/2}" y="${top+hh/2-(u.length-1)*5}" font-size="9.5" font-weight="700" fill="${RED}" text-anchor="middle" style="paint-order:stroke;stroke:var(--card);stroke-width:3px">${u.map((t,i)=>`<tspan x="${ox+ow/2}" dy="${i?10:0}">${t}</tspan>`).join('')}</text>`;
+      if(u.length&&detail&&!ex)g+=`<text x="${ox+ow/2}" y="${top+hh/2-(u.length-1)*5}" font-size="9.5" font-weight="700" fill="${RED}" text-anchor="middle" style="paint-order:stroke;stroke:var(--card);stroke-width:3px">${u.map((t,i)=>`<tspan x="${ox+ow/2}" dy="${i?10:0}">${t}</tspan>`).join('')}</text>`;
       if(detail&&mh)g+=dimSVG(o.b*S,-o.z0*S,o.b*S,top,1,0,8,mm(o.z1-o.z0),fs);
       if(detail&&ms&&o.z0>.01)g+=dimSVG(o.a*S,0,o.a*S,-o.z0*S,-1,0,8,mm(o.z0),fs);}
   }
@@ -745,13 +745,13 @@ function wallElev(r,k,nm,wl){
   g+=r.hm?dimSVG(0,0,0,-HH,-1,0,22,r.ht,fs):`<text transform="translate(-26 ${-HH/2}) rotate(-90)" font-size="9" font-weight="700" fill="${RED}" text-anchor="middle">天井高未測</text>`;
   return g;
 }
-function frontGen(r,mode){
+function frontGen(r,mode,ex){
   const HH=r.ht/1000*S,row=mode==='row',grid=mode==='grid'||mode==='all'||row,sel=WALLS.filter(w=>grid||w[0]===mode),cell=Math.max(r.w,r.h)*S+92,rowH=HH+104;
   let g='',xs=[0],ys=[-HH-56,56];
   let cx=0;
   sel.forEach((w,i)=>{
     const L=((w[2]==='n'||w[2]==='s')?r.w:r.h)*S,X=row?cx:grid?(i%2)*cell:0,Y=row?0:grid?Math.floor(i/2)*rowH:0;cx+=L+(row?78:0);
-    g+=`<g transform="translate(${X} ${Y})">${wallElev(r,w[0],w[1],w[2])}</g>`;
+    g+=`<g transform="translate(${X} ${Y})">${wallElev(r,w[0],w[1],w[2],ex)}</g>`;
     xs.push(X+L+26,X-48);ys.push(Y+56,Y-HH-56);
   });
   if(row||mode==='grid')g=g.replace(/font-size="(7|9|11)"/g,(m,n)=>`font-size="${{7:11,9:13,11:15}[n]}"`);
@@ -863,7 +863,7 @@ function sheetBuild(){
       nTxt=String(Math.round((1000*1200/297)/(pf*S*sc*zz)));
       const vw=w/(sc*zz),vh=h/(sc*zz),cx=(x0+x1)/2+sv.x,cy=(y0+y1)/2+sv.y;
       vb=`${cx-vw/2} ${cy-vh/2} ${vw} ${vh}`;body=draw(true);
-    }else{const o=k==='front'?frontGen(sr,land&&(n===1||n===3)?'row':'grid'):finView(sr,{}),b=o.bb;vb=`${b[0]} ${b[1]} ${b[2]-b[0]} ${b[3]-b[1]}`;body=o.g;}
+    }else{const o=k==='front'?frontGen(sr,land&&(n===1||n===3)?'row':'grid',true):finView(sr,{}),b=o.bb;vb=`${b[0]} ${b[1]} ${b[2]-b[0]} ${b[3]-b[1]}`;body=o.g;}
     t+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="#999"/><svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="${vb}">${body}</svg>${k==='plan'?`<g transform="translate(${x+w-38} ${y+40}) scale(.9)">${compassPlan(north,19)}</g>`:''}<text x="${x+8}" y="${y+20}" font-size="15" font-weight="700">${names[k]}${k==='plan'?'':'　'+esc(sr.name)}</text>`;
   }
   const hdr=(y0,heads,cols,fs)=>{let o=`<rect x="${pad}" y="${y0}" width="${aw}" height="${rh}" fill="#eee" stroke="#222"/>`;heads.forEach((h,i)=>{o+=`<text x="${cols[i]}" y="${y0+23}" font-size="${fs}" font-weight="700">${h}</text>`;});return o;};
