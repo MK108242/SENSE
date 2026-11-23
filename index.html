@@ -900,7 +900,8 @@ function bowlResultHtml(scope,v){
   const line=b=>`${esc(b.maker)}　<b>${esc(b.drain)} ${esc(b.val)}mm</b>`;
   if(exact){const os=exact.opts&&exact.opts.length?exact.opts:null;
     const off=o=>o[2]?`（${exact.drain==='壁排水'?'左右抜きから ':'差 '}${o[2]>0?'+':'−'}${Math.abs(o[2])}）`:'';
-    const btns=os?os.map((o,i)=>`<button class="btn${i?' sec':''}" style="margin-top:6px;white-space:normal;text-align:left" data-apply="${esc(scope)}|${esc(exact.model)}|${i}|${esc(exact.maker)}">${esc(o[0])}：<b>${esc(o[1])}mm</b>${off(o)} を反映</button>`).join(''):
+    const a0=sc0&&sc0.ans||{},curv=exact.drain==='床排水'?a0.pitch:a0.wallh,picked=a0.drain===exact.drain&&String(a0.pitchsrc||'').indexOf('型番表')>=0;
+    const btns=os?os.map((o,i)=>{const sel=picked&&String(curv)===String(o[1]);return `<button class="btn${sel?'':' sec'}" style="margin-top:6px;justify-content:flex-start;text-align:left;${sel?'':'border:2px solid var(--line)'}" data-apply="${esc(scope)}|${esc(exact.model)}|${i}|${esc(exact.maker)}"><span style="white-space:normal">${sel?'✓ 選択中　':''}${esc(o[0])}：<b>${esc(o[1])}mm</b>${off(o)}${sel?'':'　<small style="font-weight:400">タップで反映</small>'}</span></button>`}).join(''):
       `<button class="btn" data-apply="${esc(scope)}|${esc(exact.model)}||${esc(exact.maker)}">排水方式・寸法に反映</button>`;
     return `<div class="bowlres ok"><div>✓ ${esc(exact.model)}：${os?`${esc(exact.maker)}　<b>${esc(exact.drain)}</b>`:line(exact)}<small>（${exact.src}）</small></div>
     ${os?'<div class="muted" style="margin:6px 0 2px">条件によって値が変わります。当てはまるものを選んでください</div>':''}${exact.note?`<div class="muted" style="margin-top:6px">${esc(exact.note)}</div>`:''}${btns}</div>`;}
