@@ -92,14 +92,1210 @@ input[type=range]{flex:1;min-width:110px;padding:0}
 </style>
 </head>
 <body>
-<header><button class="primary" id="add">＋ 部屋を追加</button><button id="dl">画像を保存</button><button id="un" title="元に戻す">↶</button><button id="re" title="やり直し">↷</button><button id="fsv">ファイル保存</button><button id="fld">読込</button><button id="clist">案件一覧</button><input type="file" id="fin" accept=".json,application/json" hidden><label class="zl">倍率<input type="range" id="zs" min="40" max="600" step="5" value="200"></label><span id="msg">寸法はmm・細線100/太線1000</span><a id="toSurvey" href="../" style="display:none;font-size:13px;color:var(--acc);margin-left:auto">現地調査へ ›</a></header>
+<header><button class="primary" id="add">＋ 部屋を追加</button><button id="dl">画像を保存</button><button id="un" title="元に戻す">↶</button><button id="re" title="やり直し">↷</button><button id="fsv">ファイル保存</button><button id="fld">読込</button><button id="qld" title="現地調査アプリのQR画像から読み込み">QR読込</button><button id="clist">案件一覧</button><input type="file" id="fin" multiple hidden><input type="file" id="qin" multiple hidden><label class="zl">倍率<input type="range" id="zs" min="40" max="600" step="5" value="200"></label><span id="msg">寸法はmm・細線100/太線1000</span><a id="toSurvey" href="../" style="display:none;font-size:13px;color:var(--acc);margin-left:auto">現地調査へ ›</a></header>
 <div id="fl"></div>
 <div id="info"></div>
 <div id="tabs"><button class="chip on" data-lay="plan">平面図</button><button class="chip" data-lay="front">正面図</button><button class="chip" data-lay="fin">内装指定</button></div>
 <div id="wbox"><div id="wrap"><svg id="cv" viewBox="0 0 1000 800"></svg></div><div id="cmp"><button id="cmpB" aria-label="方位"></button><div id="cmpBox" hidden></div></div><div class="pan" title="選択中の部屋を動かす"><span></span><button data-pan="u">↑</button><span></span><button data-pan="l">←</button><button data-pan="c">●</button><button data-pan="r">→</button><span></span><button data-pan="d">↓</button><span></span></div></div>
 <div id="prev"></div>
 <div id="panel"></div>
-<div id="sheet"><div class="bar"><button id="sback">← 戻る</button><b>簡易図面</b><span id="smsg" class="hint"></span><button id="spdf">PDF保存</button><button class="primary" id="ssave">画像を保存</button></div><div id="unmBand" style="display:none;background:#c0392b;color:#fff;padding:6px 12px;font-size:13px;font-weight:700"></div><div class="tools"><div class="tl"><div class="mrow"><b style="font-size:12px">必須</b><span class="hint">管理番号(任意)</span><input type="text" class="mi" data-m="code" inputmode="numeric" placeholder="26051211455-1" style="width:150px"><span class="hint">店舗</span><input type="text" class="mi" data-m="shop"><span class="hint">担当者</span><input type="text" class="mi" data-m="staff"><span class="hint">お客様名</span><input type="text" class="mi" data-m="cust"></div><div class="tr"><span class="hint">用紙</span><button class="chip" data-so="land">横</button><button class="chip" data-so="port">縦</button><button class="chip" data-sp="A4">A4</button><button class="chip" data-sp="A3">A3</button></div><div class="tr"><span class="hint">縮尺</span><button class="chip" data-ss="0">自動</button><button class="chip" data-ss="30">1/30</button><button class="chip" data-ss="50">1/50</button><button class="chip" data-ss="100">1/100</button><button class="chip" data-ss="200">1/200</button></div><div class="tr"><span class="hint">レイヤー</span><button class="chip" data-sl="plan">平面図</button><button class="chip" data-sl="front">正面図</button><button class="chip" data-sl="fin">内装指定</button></div><div class="tr"><span class="hint">階</span><span id="sFl" class="tr"></span></div><div class="tr"><span class="hint">対象の部屋</span><span id="sRooms" class="tr"></span></div><div class="tr"><span class="hint">平面図の拡大</span><button data-sv="zo">－</button><button data-sv="zi">＋</button></div></div><div class="dpad"><span></span><button data-sv="u">↑</button><span></span><button data-sv="l">←</button><button data-sv="reset">●</button><button data-sv="r">→</button><span></span><button data-sv="d">↓</button><span></span></div></div><div id="sheetBody"></div></div><div class="mdlg" id="metaDlg"><div class="box"><h3>図面情報の入力</h3><div class="hint">店舗・担当者・お客様名を入力してください（必須）。管理番号は任意です</div><label>管理番号（任意：顧客番号11桁-管理番号）<input type="text" class="mi" data-m="code" inputmode="numeric" autocomplete="off" placeholder="26051211455-1"></label><label>店舗<input type="text" class="mi" data-m="shop" autocomplete="off"></label><label>担当者<input type="text" class="mi" data-m="staff" autocomplete="off"></label><label>お客様名<input type="text" class="mi" data-m="cust" autocomplete="off"></label><div class="bt"><button id="metaCancel">キャンセル</button><button class="primary" id="metaOk">次へ</button></div></div></div><div class="mdlg" id="clrDlg"><div class="box"><h3 class="err">内装情報の一括削除</h3><div>色・型番・ドア上壁紙の設定を削除します。（↶で元に戻せます）</div><div class="bt" style="flex-wrap:wrap"><button id="clrCancel">キャンセル</button><button class="danger" id="clrOne">この部屋だけ削除</button><button class="danger" id="clrAll">全部屋を削除</button></div></div></div><div class="mdlg" id="ldDlg"><div class="box"><h3>今の図面を上書きします</h3><div>別の案件を読み込むと、いま開いている図面<b id="ldCode"></b>は置き換わります。<br>同じ管理番号の調査データなら、図面はそのままで設備仕様だけ更新できます（次の画面で選べます）。</div><div id="ldKeep" style="color:var(--acc)">いまの図面は「案件一覧」に自動で残っています。</div><div id="ldWarn" style="color:#c0392b;font-weight:700">⚠ 管理番号がないため、この図面は案件一覧に残りません。先にファイル保存してください。</div><div class="bt" style="flex-wrap:wrap"><button id="ldCancel">キャンセル</button><button id="ldSave">保存してから読込</button><button class="primary" id="ldGo">上書きして読込</button></div></div></div><div class="mdlg" id="caseDlg"><div class="box" style="max-width:620px;max-height:88vh"><h3>案件一覧<span class="hint" style="font-size:12px;font-weight:400">　管理番号ごとに自動で保存（最後に開いてから90日）</span></h3><input type="text" id="cq" placeholder="管理番号の一部（例：1455）・案件名・お客様名・店舗で検索" autocomplete="off" style="font-size:16px;padding:8px;width:100%"><div id="cnote" class="hint" style="font-size:12px"></div><div id="clistBody" style="overflow:auto;max-height:58vh;display:flex;flex-direction:column;gap:6px"></div><div class="bt" style="flex-wrap:wrap;justify-content:space-between"><span><button id="cexp">すべて書き出す（控え）</button> <button id="cimp">控えを読み込む</button><input type="file" id="cimpf" accept=".json,application/json" hidden></span><button id="cclose">閉じる</button></div></div></div><div class="mdlg" id="upDlg"><div class="box"><h3>同じ案件の新しい調査データです</h3><div id="upMsg"></div><div class="bt" style="flex-wrap:wrap"><button id="upCancel">キャンセル</button><button id="upAll">図面も作り直す</button><button id="upDim">設備仕様と部屋の寸法を更新（記号はそのまま）</button><button class="primary" id="upSpec">設備仕様だけ更新（おすすめ）</button></div></div></div><div class="mdlg" id="errDlg" style="z-index:100"><div class="box"><h3 class="err">⚠ 入力エラー</h3><div id="errMsg"></div><div class="bt"><button class="primary" id="errOk">OK</button></div></div></div>
+<div id="sheet"><div class="bar"><button id="sback">← 戻る</button><b>簡易図面</b><span id="smsg" class="hint"></span><button id="spdf">PDF保存</button><button class="primary" id="ssave">画像を保存</button></div><div id="unmBand" style="display:none;background:#c0392b;color:#fff;padding:6px 12px;font-size:13px;font-weight:700"></div><div class="tools"><div class="tl"><div class="mrow"><b style="font-size:12px">必須</b><span class="hint">管理番号(任意)</span><input type="text" class="mi" data-m="code" inputmode="numeric" placeholder="26051211455-1" style="width:150px"><span class="hint">店舗</span><input type="text" class="mi" data-m="shop"><span class="hint">担当者</span><input type="text" class="mi" data-m="staff"><span class="hint">お客様名</span><input type="text" class="mi" data-m="cust"></div><div class="tr"><span class="hint">用紙</span><button class="chip" data-so="land">横</button><button class="chip" data-so="port">縦</button><button class="chip" data-sp="A4">A4</button><button class="chip" data-sp="A3">A3</button></div><div class="tr"><span class="hint">縮尺</span><button class="chip" data-ss="0">自動</button><button class="chip" data-ss="30">1/30</button><button class="chip" data-ss="50">1/50</button><button class="chip" data-ss="100">1/100</button><button class="chip" data-ss="200">1/200</button></div><div class="tr"><span class="hint">レイヤー</span><button class="chip" data-sl="plan">平面図</button><button class="chip" data-sl="front">正面図</button><button class="chip" data-sl="fin">内装指定</button></div><div class="tr"><span class="hint">階</span><span id="sFl" class="tr"></span></div><div class="tr"><span class="hint">対象の部屋</span><span id="sRooms" class="tr"></span></div><div class="tr"><span class="hint">平面図の拡大</span><button data-sv="zo">－</button><button data-sv="zi">＋</button></div></div><div class="dpad"><span></span><button data-sv="u">↑</button><span></span><button data-sv="l">←</button><button data-sv="reset">●</button><button data-sv="r">→</button><span></span><button data-sv="d">↓</button><span></span></div></div><div id="sheetBody"></div></div><div class="mdlg" id="metaDlg"><div class="box"><h3>図面情報の入力</h3><div class="hint">店舗・担当者・お客様名を入力してください（必須）。管理番号は任意です</div><label>管理番号（任意：顧客番号11桁-管理番号）<input type="text" class="mi" data-m="code" inputmode="numeric" autocomplete="off" placeholder="26051211455-1"></label><label>店舗<input type="text" class="mi" data-m="shop" autocomplete="off"></label><label>担当者<input type="text" class="mi" data-m="staff" autocomplete="off"></label><label>お客様名<input type="text" class="mi" data-m="cust" autocomplete="off"></label><div class="bt"><button id="metaCancel">キャンセル</button><button class="primary" id="metaOk">次へ</button></div></div></div><div class="mdlg" id="clrDlg"><div class="box"><h3 class="err">内装情報の一括削除</h3><div>色・型番・ドア上壁紙の設定を削除します。（↶で元に戻せます）</div><div class="bt" style="flex-wrap:wrap"><button id="clrCancel">キャンセル</button><button class="danger" id="clrOne">この部屋だけ削除</button><button class="danger" id="clrAll">全部屋を削除</button></div></div></div><div class="mdlg" id="ldDlg"><div class="box"><h3>今の図面を上書きします</h3><div>別の案件を読み込むと、いま開いている図面<b id="ldCode"></b>は置き換わります。<br>同じ管理番号の調査データなら、図面はそのままで設備仕様だけ更新できます（次の画面で選べます）。</div><div id="ldKeep" style="color:var(--acc)">いまの図面は「案件一覧」に自動で残っています。</div><div id="ldWarn" style="color:#c0392b;font-weight:700">⚠ 管理番号がないため、この図面は案件一覧に残りません。先にファイル保存してください。</div><div class="bt" style="flex-wrap:wrap"><button id="ldCancel">キャンセル</button><button id="ldSave">保存してから読込</button><button class="primary" id="ldGo">上書きして読込</button></div></div></div><div class="mdlg" id="qrDlg"><div class="box"><h3>QR画像から読み込む</h3><div>現地調査アプリで作ったQR画像を選んでください。複数ある場合はまとめて選べます。<br><span class="hint">パソコンでは、QR画像をコピーしてこの画面で Ctrl+V、またはドラッグでも読み込めます。</span></div><div style="margin:10px 0;padding:10px;border:2px solid var(--acc,#1a73e8);border-radius:10px"><div style="font-weight:700;margin-bottom:6px">① 画像を選ぶ</div><input type="file" id="qin2" accept="image/*" multiple style="font-size:16px;width:100%"></div><div style="margin:10px 0;padding:10px;border:2px dashed #999;border-radius:10px"><div style="font-weight:700;margin-bottom:6px">② または、画像を貼り付ける</div><div id="qrPaste" contenteditable="true" style="min-height:64px;padding:10px;border-radius:8px;background:rgba(127,127,127,.12);font-size:15px;color:#666">ここをクリック（スマホは長押し）して「貼り付け」。パソコンは Ctrl+V。画像をここへドラッグしても読み込めます。</div></div><div id="qrWarn" style="color:#c0392b;font-weight:700">⚠ いまの図面は保存されていません。読み込むと置き換わります。残す場合は先に「ファイル保存」を押してください。</div><div class="bt" style="flex-wrap:wrap"><button id="qrCancel">やめる</button><button id="qrSave">ファイル保存</button></div></div></div><div class="mdlg" id="ldNext"><div class="box"><h3>保存しました</h3><div>続けて、読み込むファイルまたはQR画像を選んでください。</div><div class="bt"><button id="ldNc">やめる</button><button class="primary" id="ldNg">ファイルを選ぶ</button></div></div></div><div class="mdlg" id="caseDlg"><div class="box" style="max-width:620px;max-height:88vh"><h3>案件一覧<span class="hint" style="font-size:12px;font-weight:400">　管理番号ごとに自動で保存（最後に開いてから90日）</span></h3><input type="text" id="cq" placeholder="管理番号の一部（例：1455）・案件名・お客様名・店舗で検索" autocomplete="off" style="font-size:16px;padding:8px;width:100%"><div id="cnote" class="hint" style="font-size:12px"></div><div id="clistBody" style="overflow:auto;max-height:58vh;display:flex;flex-direction:column;gap:6px"></div><div class="bt" style="flex-wrap:wrap;justify-content:space-between"><span><button id="cexp">すべて書き出す（控え）</button> <button id="cimp">控えを読み込む</button><input type="file" id="cimpf" accept=".json,application/json" hidden></span><button id="cclose">閉じる</button></div></div></div><div class="mdlg" id="upDlg"><div class="box"><h3>同じ案件の新しい調査データです</h3><div id="upMsg"></div><div class="bt" style="flex-wrap:wrap"><button id="upCancel">キャンセル</button><button id="upAll">図面も作り直す</button><button id="upDim">設備仕様と部屋の寸法を更新（記号はそのまま）</button><button class="primary" id="upSpec">設備仕様だけ更新（おすすめ）</button></div></div></div><div class="mdlg" id="errDlg" style="z-index:100"><div class="box"><h3 class="err">⚠ 入力エラー</h3><div id="errMsg"></div><div class="bt"><button class="primary" id="errOk">OK</button></div></div></div>
+<script>
+/*! QR encoder core: QRCode for JavaScript, Copyright (c) 2009 Kazuhiko Arase, MIT license (http://www.opensource.org/licenses/mit-license.php). 'QR Code' is a registered trademark of DENSO WAVE INCORPORATED. */
+var QRLIB=(function(){var M={};
+M['./QRMode']=function(){var module={exports:{}};var exports=module.exports;module.exports = {
+MODE_NUMBER :       1 << 0,
+MODE_ALPHA_NUM :    1 << 1,
+MODE_8BIT_BYTE :    1 << 2,
+MODE_KANJI :        1 << 3
+};
+
+return module.exports;};
+M['./QRErrorCorrectLevel']=function(){var module={exports:{}};var exports=module.exports;module.exports = {
+L : 1,
+M : 0,
+Q : 3,
+H : 2
+};
+
+return module.exports;};
+M['./QRMaskPattern']=function(){var module={exports:{}};var exports=module.exports;module.exports = {
+PATTERN000 : 0,
+PATTERN001 : 1,
+PATTERN010 : 2,
+PATTERN011 : 3,
+PATTERN100 : 4,
+PATTERN101 : 5,
+PATTERN110 : 6,
+PATTERN111 : 7
+};
+
+return module.exports;};
+M['./QRMath']=function(){var module={exports:{}};var exports=module.exports;var QRMath = {
+glog : function(n) {
+if (n < 1) {
+throw new Error("glog(" + n + ")");
+}
+return QRMath.LOG_TABLE[n];
+},
+gexp : function(n) {
+while (n < 0) {
+n += 255;
+}
+while (n >= 256) {
+n -= 255;
+}
+return QRMath.EXP_TABLE[n];
+},
+EXP_TABLE : new Array(256),
+LOG_TABLE : new Array(256)
+};
+for (var i = 0; i < 8; i++) {
+QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+^ QRMath.EXP_TABLE[i - 5]
+^ QRMath.EXP_TABLE[i - 6]
+^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+module.exports = QRMath;
+
+return module.exports;};
+M['./QRPolynomial']=function(){var module={exports:{}};var exports=module.exports;var QRMath = R('./QRMath');
+function QRPolynomial(num, shift) {
+if (num.length === undefined) {
+throw new Error(num.length + "/" + shift);
+}
+var offset = 0;
+while (offset < num.length && num[offset] === 0) {
+offset++;
+}
+this.num = new Array(num.length - offset + shift);
+for (var i = 0; i < num.length - offset; i++) {
+this.num[i] = num[i + offset];
+}
+}
+QRPolynomial.prototype = {
+get : function(index) {
+return this.num[index];
+},
+getLength : function() {
+return this.num.length;
+},
+multiply : function(e) {
+var num = new Array(this.getLength() + e.getLength() - 1);
+for (var i = 0; i < this.getLength(); i++) {
+for (var j = 0; j < e.getLength(); j++) {
+num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+}
+}
+return new QRPolynomial(num, 0);
+},
+mod : function(e) {
+if (this.getLength() - e.getLength() < 0) {
+return this;
+}
+var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+var num = new Array(this.getLength() );
+for (var i = 0; i < this.getLength(); i++) {
+num[i] = this.get(i);
+}
+for (var x = 0; x < e.getLength(); x++) {
+num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+}
+return new QRPolynomial(num, 0).mod(e);
+}
+};
+module.exports = QRPolynomial;
+
+return module.exports;};
+M['./QRRSBlock']=function(){var module={exports:{}};var exports=module.exports;var QRErrorCorrectLevel = R('./QRErrorCorrectLevel');
+function QRRSBlock(totalCount, dataCount) {
+this.totalCount = totalCount;
+this.dataCount  = dataCount;
+}
+QRRSBlock.RS_BLOCK_TABLE = [
+[1, 26, 19],
+[1, 26, 16],
+[1, 26, 13],
+[1, 26, 9],
+[1, 44, 34],
+[1, 44, 28],
+[1, 44, 22],
+[1, 44, 16],
+[1, 70, 55],
+[1, 70, 44],
+[2, 35, 17],
+[2, 35, 13],
+[1, 100, 80],
+[2, 50, 32],
+[2, 50, 24],
+[4, 25, 9],
+[1, 134, 108],
+[2, 67, 43],
+[2, 33, 15, 2, 34, 16],
+[2, 33, 11, 2, 34, 12],
+[2, 86, 68],
+[4, 43, 27],
+[4, 43, 19],
+[4, 43, 15],
+[2, 98, 78],
+[4, 49, 31],
+[2, 32, 14, 4, 33, 15],
+[4, 39, 13, 1, 40, 14],
+[2, 121, 97],
+[2, 60, 38, 2, 61, 39],
+[4, 40, 18, 2, 41, 19],
+[4, 40, 14, 2, 41, 15],
+[2, 146, 116],
+[3, 58, 36, 2, 59, 37],
+[4, 36, 16, 4, 37, 17],
+[4, 36, 12, 4, 37, 13],
+[2, 86, 68, 2, 87, 69],
+[4, 69, 43, 1, 70, 44],
+[6, 43, 19, 2, 44, 20],
+[6, 43, 15, 2, 44, 16],
+[4, 101, 81],
+[1, 80, 50, 4, 81, 51],
+[4, 50, 22, 4, 51, 23],
+[3, 36, 12, 8, 37, 13],
+[2, 116, 92, 2, 117, 93],
+[6, 58, 36, 2, 59, 37],
+[4, 46, 20, 6, 47, 21],
+[7, 42, 14, 4, 43, 15],
+[4, 133, 107],
+[8, 59, 37, 1, 60, 38],
+[8, 44, 20, 4, 45, 21],
+[12, 33, 11, 4, 34, 12],
+[3, 145, 115, 1, 146, 116],
+[4, 64, 40, 5, 65, 41],
+[11, 36, 16, 5, 37, 17],
+[11, 36, 12, 5, 37, 13],
+[5, 109, 87, 1, 110, 88],
+[5, 65, 41, 5, 66, 42],
+[5, 54, 24, 7, 55, 25],
+[11, 36, 12],
+[5, 122, 98, 1, 123, 99],
+[7, 73, 45, 3, 74, 46],
+[15, 43, 19, 2, 44, 20],
+[3, 45, 15, 13, 46, 16],
+[1, 135, 107, 5, 136, 108],
+[10, 74, 46, 1, 75, 47],
+[1, 50, 22, 15, 51, 23],
+[2, 42, 14, 17, 43, 15],
+[5, 150, 120, 1, 151, 121],
+[9, 69, 43, 4, 70, 44],
+[17, 50, 22, 1, 51, 23],
+[2, 42, 14, 19, 43, 15],
+[3, 141, 113, 4, 142, 114],
+[3, 70, 44, 11, 71, 45],
+[17, 47, 21, 4, 48, 22],
+[9, 39, 13, 16, 40, 14],
+[3, 135, 107, 5, 136, 108],
+[3, 67, 41, 13, 68, 42],
+[15, 54, 24, 5, 55, 25],
+[15, 43, 15, 10, 44, 16],
+[4, 144, 116, 4, 145, 117],
+[17, 68, 42],
+[17, 50, 22, 6, 51, 23],
+[19, 46, 16, 6, 47, 17],
+[2, 139, 111, 7, 140, 112],
+[17, 74, 46],
+[7, 54, 24, 16, 55, 25],
+[34, 37, 13],
+[4, 151, 121, 5, 152, 122],
+[4, 75, 47, 14, 76, 48],
+[11, 54, 24, 14, 55, 25],
+[16, 45, 15, 14, 46, 16],
+[6, 147, 117, 4, 148, 118],
+[6, 73, 45, 14, 74, 46],
+[11, 54, 24, 16, 55, 25],
+[30, 46, 16, 2, 47, 17],
+[8, 132, 106, 4, 133, 107],
+[8, 75, 47, 13, 76, 48],
+[7, 54, 24, 22, 55, 25],
+[22, 45, 15, 13, 46, 16],
+[10, 142, 114, 2, 143, 115],
+[19, 74, 46, 4, 75, 47],
+[28, 50, 22, 6, 51, 23],
+[33, 46, 16, 4, 47, 17],
+[8, 152, 122, 4, 153, 123],
+[22, 73, 45, 3, 74, 46],
+[8, 53, 23, 26, 54, 24],
+[12, 45, 15, 28, 46, 16],
+[3, 147, 117, 10, 148, 118],
+[3, 73, 45, 23, 74, 46],
+[4, 54, 24, 31, 55, 25],
+[11, 45, 15, 31, 46, 16],
+[7, 146, 116, 7, 147, 117],
+[21, 73, 45, 7, 74, 46],
+[1, 53, 23, 37, 54, 24],
+[19, 45, 15, 26, 46, 16],
+[5, 145, 115, 10, 146, 116],
+[19, 75, 47, 10, 76, 48],
+[15, 54, 24, 25, 55, 25],
+[23, 45, 15, 25, 46, 16],
+[13, 145, 115, 3, 146, 116],
+[2, 74, 46, 29, 75, 47],
+[42, 54, 24, 1, 55, 25],
+[23, 45, 15, 28, 46, 16],
+[17, 145, 115],
+[10, 74, 46, 23, 75, 47],
+[10, 54, 24, 35, 55, 25],
+[19, 45, 15, 35, 46, 16],
+[17, 145, 115, 1, 146, 116],
+[14, 74, 46, 21, 75, 47],
+[29, 54, 24, 19, 55, 25],
+[11, 45, 15, 46, 46, 16],
+[13, 145, 115, 6, 146, 116],
+[14, 74, 46, 23, 75, 47],
+[44, 54, 24, 7, 55, 25],
+[59, 46, 16, 1, 47, 17],
+[12, 151, 121, 7, 152, 122],
+[12, 75, 47, 26, 76, 48],
+[39, 54, 24, 14, 55, 25],
+[22, 45, 15, 41, 46, 16],
+[6, 151, 121, 14, 152, 122],
+[6, 75, 47, 34, 76, 48],
+[46, 54, 24, 10, 55, 25],
+[2, 45, 15, 64, 46, 16],
+[17, 152, 122, 4, 153, 123],
+[29, 74, 46, 14, 75, 47],
+[49, 54, 24, 10, 55, 25],
+[24, 45, 15, 46, 46, 16],
+[4, 152, 122, 18, 153, 123],
+[13, 74, 46, 32, 75, 47],
+[48, 54, 24, 14, 55, 25],
+[42, 45, 15, 32, 46, 16],
+[20, 147, 117, 4, 148, 118],
+[40, 75, 47, 7, 76, 48],
+[43, 54, 24, 22, 55, 25],
+[10, 45, 15, 67, 46, 16],
+[19, 148, 118, 6, 149, 119],
+[18, 75, 47, 31, 76, 48],
+[34, 54, 24, 34, 55, 25],
+[20, 45, 15, 61, 46, 16]
+];
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+if (rsBlock === undefined) {
+throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+}
+var length = rsBlock.length / 3;
+var list = [];
+for (var i = 0; i < length; i++) {
+var count = rsBlock[i * 3 + 0];
+var totalCount = rsBlock[i * 3 + 1];
+var dataCount  = rsBlock[i * 3 + 2];
+for (var j = 0; j < count; j++) {
+list.push(new QRRSBlock(totalCount, dataCount) );	
+}
+}
+return list;
+};
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+switch(errorCorrectLevel) {
+case QRErrorCorrectLevel.L :
+return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+case QRErrorCorrectLevel.M :
+return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+case QRErrorCorrectLevel.Q :
+return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+case QRErrorCorrectLevel.H :
+return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+default :
+return undefined;
+}
+};
+module.exports = QRRSBlock;
+
+return module.exports;};
+M['./QRBitBuffer']=function(){var module={exports:{}};var exports=module.exports;function QRBitBuffer() {
+this.buffer = [];
+this.length = 0;
+}
+QRBitBuffer.prototype = {
+get : function(index) {
+var bufIndex = Math.floor(index / 8);
+return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+},
+put : function(num, length) {
+for (var i = 0; i < length; i++) {
+this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+}
+},
+getLengthInBits : function() {
+return this.length;
+},
+putBit : function(bit) {
+var bufIndex = Math.floor(this.length / 8);
+if (this.buffer.length <= bufIndex) {
+this.buffer.push(0);
+}
+if (bit) {
+this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+}
+this.length++;
+}
+};
+module.exports = QRBitBuffer;
+
+return module.exports;};
+M['./QR8bitByte']=function(){var module={exports:{}};var exports=module.exports;var QRMode = R('./QRMode');
+function QR8bitByte(data) {
+this.mode = QRMode.MODE_8BIT_BYTE;
+this.data = data;
+}
+QR8bitByte.prototype = {
+getLength : function() {
+return this.data.length;
+},
+write : function(buffer) {
+for (var i = 0; i < this.data.length; i++) {
+buffer.put(this.data.charCodeAt(i), 8);
+}
+}
+};
+module.exports = QR8bitByte;
+
+return module.exports;};
+M['./QRUtil']=function(){var module={exports:{}};var exports=module.exports;var QRMode = R('./QRMode');
+var QRPolynomial = R('./QRPolynomial');
+var QRMath = R('./QRMath');
+var QRMaskPattern = R('./QRMaskPattern');
+var QRUtil = {
+PATTERN_POSITION_TABLE : [
+[],
+[6, 18],
+[6, 22],
+[6, 26],
+[6, 30],
+[6, 34],
+[6, 22, 38],
+[6, 24, 42],
+[6, 26, 46],
+[6, 28, 50],
+[6, 30, 54],        
+[6, 32, 58],
+[6, 34, 62],
+[6, 26, 46, 66],
+[6, 26, 48, 70],
+[6, 26, 50, 74],
+[6, 30, 54, 78],
+[6, 30, 56, 82],
+[6, 30, 58, 86],
+[6, 34, 62, 90],
+[6, 28, 50, 72, 94],
+[6, 26, 50, 74, 98],
+[6, 30, 54, 78, 102],
+[6, 28, 54, 80, 106],
+[6, 32, 58, 84, 110],
+[6, 30, 58, 86, 114],
+[6, 34, 62, 90, 118],
+[6, 26, 50, 74, 98, 122],
+[6, 30, 54, 78, 102, 126],
+[6, 26, 52, 78, 104, 130],
+[6, 30, 56, 82, 108, 134],
+[6, 34, 60, 86, 112, 138],
+[6, 30, 58, 86, 114, 142],
+[6, 34, 62, 90, 118, 146],
+[6, 30, 54, 78, 102, 126, 150],
+[6, 24, 50, 76, 102, 128, 154],
+[6, 28, 54, 80, 106, 132, 158],
+[6, 32, 58, 84, 110, 136, 162],
+[6, 26, 54, 82, 110, 138, 166],
+[6, 30, 58, 86, 114, 142, 170]
+],
+G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+getBCHTypeInfo : function(data) {
+var d = data << 10;
+while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+}
+return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+},
+getBCHTypeNumber : function(data) {
+var d = data << 12;
+while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+}
+return (data << 12) | d;
+},
+getBCHDigit : function(data) {
+var digit = 0;
+while (data !== 0) {
+digit++;
+data >>>= 1;
+}
+return digit;
+},
+getPatternPosition : function(typeNumber) {
+return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+},
+getMask : function(maskPattern, i, j) {
+switch (maskPattern) {
+case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+default :
+throw new Error("bad maskPattern:" + maskPattern);
+}
+},
+getErrorCorrectPolynomial : function(errorCorrectLength) {
+var a = new QRPolynomial([1], 0);
+for (var i = 0; i < errorCorrectLength; i++) {
+a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+}
+return a;
+},
+getLengthInBits : function(mode, type) {
+if (1 <= type && type < 10) {
+switch(mode) {
+case QRMode.MODE_NUMBER     : return 10;
+case QRMode.MODE_ALPHA_NUM  : return 9;
+case QRMode.MODE_8BIT_BYTE  : return 8;
+case QRMode.MODE_KANJI      : return 8;
+default :
+throw new Error("mode:" + mode);
+}
+} else if (type < 27) {
+switch(mode) {
+case QRMode.MODE_NUMBER     : return 12;
+case QRMode.MODE_ALPHA_NUM  : return 11;
+case QRMode.MODE_8BIT_BYTE  : return 16;
+case QRMode.MODE_KANJI      : return 10;
+default :
+throw new Error("mode:" + mode);
+}
+} else if (type < 41) {
+switch(mode) {
+case QRMode.MODE_NUMBER     : return 14;
+case QRMode.MODE_ALPHA_NUM  : return 13;
+case QRMode.MODE_8BIT_BYTE  : return 16;
+case QRMode.MODE_KANJI      : return 12;
+default :
+throw new Error("mode:" + mode);
+}
+} else {
+throw new Error("type:" + type);
+}
+},
+getLostPoint : function(qrCode) {
+var moduleCount = qrCode.getModuleCount();
+var lostPoint = 0;
+var row = 0; 
+var col = 0;
+for (row = 0; row < moduleCount; row++) {
+for (col = 0; col < moduleCount; col++) {
+var sameCount = 0;
+var dark = qrCode.isDark(row, col);
+for (var r = -1; r <= 1; r++) {
+if (row + r < 0 || moduleCount <= row + r) {
+continue;
+}
+for (var c = -1; c <= 1; c++) {
+if (col + c < 0 || moduleCount <= col + c) {
+continue;
+}
+if (r === 0 && c === 0) {
+continue;
+}
+if (dark === qrCode.isDark(row + r, col + c) ) {
+sameCount++;
+}
+}
+}
+if (sameCount > 5) {
+lostPoint += (3 + sameCount - 5);
+}
+}
+}
+for (row = 0; row < moduleCount - 1; row++) {
+for (col = 0; col < moduleCount - 1; col++) {
+var count = 0;
+if (qrCode.isDark(row,     col    ) ) count++;
+if (qrCode.isDark(row + 1, col    ) ) count++;
+if (qrCode.isDark(row,     col + 1) ) count++;
+if (qrCode.isDark(row + 1, col + 1) ) count++;
+if (count === 0 || count === 4) {
+lostPoint += 3;
+}
+}
+}
+for (row = 0; row < moduleCount; row++) {
+for (col = 0; col < moduleCount - 6; col++) {
+if (qrCode.isDark(row, col) && 
+!qrCode.isDark(row, col + 1) && 
+qrCode.isDark(row, col + 2) && 
+qrCode.isDark(row, col + 3) && 
+qrCode.isDark(row, col + 4) && 
+!qrCode.isDark(row, col + 5) && 
+qrCode.isDark(row, col + 6) ) {
+lostPoint += 40;
+}
+}
+}
+for (col = 0; col < moduleCount; col++) {
+for (row = 0; row < moduleCount - 6; row++) {
+if (qrCode.isDark(row, col) &&
+!qrCode.isDark(row + 1, col) &&
+qrCode.isDark(row + 2, col) &&
+qrCode.isDark(row + 3, col) &&
+qrCode.isDark(row + 4, col) &&
+!qrCode.isDark(row + 5, col) &&
+qrCode.isDark(row + 6, col) ) {
+lostPoint += 40;
+}
+}
+}
+var darkCount = 0;
+for (col = 0; col < moduleCount; col++) {
+for (row = 0; row < moduleCount; row++) {
+if (qrCode.isDark(row, col) ) {
+darkCount++;
+}
+}
+}
+var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+lostPoint += ratio * 10;
+return lostPoint;       
+}
+};
+module.exports = QRUtil;
+
+return module.exports;};
+M['./index']=function(){var module={exports:{}};var exports=module.exports;
+var QR8bitByte = R('./QR8bitByte');
+var QRUtil = R('./QRUtil');
+var QRPolynomial = R('./QRPolynomial');
+var QRRSBlock = R('./QRRSBlock');
+var QRBitBuffer = R('./QRBitBuffer');
+function QRCode(typeNumber, errorCorrectLevel) {
+this.typeNumber = typeNumber;
+this.errorCorrectLevel = errorCorrectLevel;
+this.modules = null;
+this.moduleCount = 0;
+this.dataCache = null;
+this.dataList = [];
+}
+QRCode.prototype = {
+addData : function(data) {
+var newData = new QR8bitByte(data);
+this.dataList.push(newData);
+this.dataCache = null;
+},
+isDark : function(row, col) {
+if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+throw new Error(row + "," + col);
+}
+return this.modules[row][col];
+},
+getModuleCount : function() {
+return this.moduleCount;
+},
+make : function() {
+if (this.typeNumber < 1 ){
+var typeNumber = 1;
+for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+var buffer = new QRBitBuffer();
+var totalDataCount = 0;
+for (var i = 0; i < rsBlocks.length; i++) {
+totalDataCount += rsBlocks[i].dataCount;
+}
+for (var x = 0; x < this.dataList.length; x++) {
+var data = this.dataList[x];
+buffer.put(data.mode, 4);
+buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+data.write(buffer);
+}
+if (buffer.getLengthInBits() <= totalDataCount * 8)
+break;
+}
+this.typeNumber = typeNumber;
+}
+this.makeImpl(false, this.getBestMaskPattern() );
+},
+makeImpl : function(test, maskPattern) {
+this.moduleCount = this.typeNumber * 4 + 17;
+this.modules = new Array(this.moduleCount);
+for (var row = 0; row < this.moduleCount; row++) {
+this.modules[row] = new Array(this.moduleCount);
+for (var col = 0; col < this.moduleCount; col++) {
+this.modules[row][col] = null;//(col + row) % 3;
+}
+}
+this.setupPositionProbePattern(0, 0);
+this.setupPositionProbePattern(this.moduleCount - 7, 0);
+this.setupPositionProbePattern(0, this.moduleCount - 7);
+this.setupPositionAdjustPattern();
+this.setupTimingPattern();
+this.setupTypeInfo(test, maskPattern);
+if (this.typeNumber >= 7) {
+this.setupTypeNumber(test);
+}
+if (this.dataCache === null) {
+this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+}
+this.mapData(this.dataCache, maskPattern);
+},
+setupPositionProbePattern : function(row, col)  {
+for (var r = -1; r <= 7; r++) {
+if (row + r <= -1 || this.moduleCount <= row + r) continue;
+for (var c = -1; c <= 7; c++) {
+if (col + c <= -1 || this.moduleCount <= col + c) continue;
+if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+(0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+(2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+this.modules[row + r][col + c] = true;
+} else {
+this.modules[row + r][col + c] = false;
+}
+}		
+}		
+},
+getBestMaskPattern : function() {
+var minLostPoint = 0;
+var pattern = 0;
+for (var i = 0; i < 8; i++) {
+this.makeImpl(true, i);
+var lostPoint = QRUtil.getLostPoint(this);
+if (i === 0 || minLostPoint >  lostPoint) {
+minLostPoint = lostPoint;
+pattern = i;
+}
+}
+return pattern;
+},
+createMovieClip : function(target_mc, instance_name, depth) {
+var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+var cs = 1;
+this.make();
+for (var row = 0; row < this.modules.length; row++) {
+var y = row * cs;
+for (var col = 0; col < this.modules[row].length; col++) {
+var x = col * cs;
+var dark = this.modules[row][col];
+if (dark) {
+qr_mc.beginFill(0, 100);
+qr_mc.moveTo(x, y);
+qr_mc.lineTo(x + cs, y);
+qr_mc.lineTo(x + cs, y + cs);
+qr_mc.lineTo(x, y + cs);
+qr_mc.endFill();
+}
+}
+}
+return qr_mc;
+},
+setupTimingPattern : function() {
+for (var r = 8; r < this.moduleCount - 8; r++) {
+if (this.modules[r][6] !== null) {
+continue;
+}
+this.modules[r][6] = (r % 2 === 0);
+}
+for (var c = 8; c < this.moduleCount - 8; c++) {
+if (this.modules[6][c] !== null) {
+continue;
+}
+this.modules[6][c] = (c % 2 === 0);
+}
+},
+setupPositionAdjustPattern : function() {
+var pos = QRUtil.getPatternPosition(this.typeNumber);
+for (var i = 0; i < pos.length; i++) {
+for (var j = 0; j < pos.length; j++) {
+var row = pos[i];
+var col = pos[j];
+if (this.modules[row][col] !== null) {
+continue;
+}
+for (var r = -2; r <= 2; r++) {
+for (var c = -2; c <= 2; c++) {
+if (Math.abs(r) === 2 || 
+Math.abs(c) === 2 ||
+(r === 0 && c === 0) ) {
+this.modules[row + r][col + c] = true;
+} else {
+this.modules[row + r][col + c] = false;
+}
+}
+}
+}
+}
+},
+setupTypeNumber : function(test) {
+var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+var mod;
+for (var i = 0; i < 18; i++) {
+mod = (!test && ( (bits >> i) & 1) === 1);
+this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+}
+for (var x = 0; x < 18; x++) {
+mod = (!test && ( (bits >> x) & 1) === 1);
+this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+}
+},
+setupTypeInfo : function(test, maskPattern) {
+var data = (this.errorCorrectLevel << 3) | maskPattern;
+var bits = QRUtil.getBCHTypeInfo(data);
+var mod;
+for (var v = 0; v < 15; v++) {
+mod = (!test && ( (bits >> v) & 1) === 1);
+if (v < 6) {
+this.modules[v][8] = mod;
+} else if (v < 8) {
+this.modules[v + 1][8] = mod;
+} else {
+this.modules[this.moduleCount - 15 + v][8] = mod;
+}
+}
+for (var h = 0; h < 15; h++) {
+mod = (!test && ( (bits >> h) & 1) === 1);
+if (h < 8) {
+this.modules[8][this.moduleCount - h - 1] = mod;
+} else if (h < 9) {
+this.modules[8][15 - h - 1 + 1] = mod;
+} else {
+this.modules[8][15 - h - 1] = mod;
+}
+}
+this.modules[this.moduleCount - 8][8] = (!test);
+},
+mapData : function(data, maskPattern) {
+var inc = -1;
+var row = this.moduleCount - 1;
+var bitIndex = 7;
+var byteIndex = 0;
+for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+if (col === 6) col--;
+while (true) {
+for (var c = 0; c < 2; c++) {
+if (this.modules[row][col - c] === null) {
+var dark = false;
+if (byteIndex < data.length) {
+dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+}
+var mask = QRUtil.getMask(maskPattern, row, col - c);
+if (mask) {
+dark = !dark;
+}
+this.modules[row][col - c] = dark;
+bitIndex--;
+if (bitIndex === -1) {
+byteIndex++;
+bitIndex = 7;
+}
+}
+}
+row += inc;
+if (row < 0 || this.moduleCount <= row) {
+row -= inc;
+inc = -inc;
+break;
+}
+}
+}
+}
+};
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+var buffer = new QRBitBuffer();
+for (var i = 0; i < dataList.length; i++) {
+var data = dataList[i];
+buffer.put(data.mode, 4);
+buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+data.write(buffer);
+}
+var totalDataCount = 0;
+for (var x = 0; x < rsBlocks.length; x++) {
+totalDataCount += rsBlocks[x].dataCount;
+}
+if (buffer.getLengthInBits() > totalDataCount * 8) {
+throw new Error("code length overflow. (" + 
+buffer.getLengthInBits() + 
+">" +  
+totalDataCount * 8 + 
+")");
+}
+if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+buffer.put(0, 4);
+}
+while (buffer.getLengthInBits() % 8 !== 0) {
+buffer.putBit(false);
+}
+while (true) {
+if (buffer.getLengthInBits() >= totalDataCount * 8) {
+break;
+}
+buffer.put(QRCode.PAD0, 8);
+if (buffer.getLengthInBits() >= totalDataCount * 8) {
+break;
+}
+buffer.put(QRCode.PAD1, 8);
+}
+return QRCode.createBytes(buffer, rsBlocks);
+};
+QRCode.createBytes = function(buffer, rsBlocks) {
+var offset = 0;
+var maxDcCount = 0;
+var maxEcCount = 0;
+var dcdata = new Array(rsBlocks.length);
+var ecdata = new Array(rsBlocks.length);
+for (var r = 0; r < rsBlocks.length; r++) {
+var dcCount = rsBlocks[r].dataCount;
+var ecCount = rsBlocks[r].totalCount - dcCount;
+maxDcCount = Math.max(maxDcCount, dcCount);
+maxEcCount = Math.max(maxEcCount, ecCount);
+dcdata[r] = new Array(dcCount);
+for (var i = 0; i < dcdata[r].length; i++) {
+dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+}
+offset += dcCount;
+var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+var modPoly = rawPoly.mod(rsPoly);
+ecdata[r] = new Array(rsPoly.getLength() - 1);
+for (var x = 0; x < ecdata[r].length; x++) {
+var modIndex = x + modPoly.getLength() - ecdata[r].length;
+ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+}
+}
+var totalCodeCount = 0;
+for (var y = 0; y < rsBlocks.length; y++) {
+totalCodeCount += rsBlocks[y].totalCount;
+}
+var data = new Array(totalCodeCount);
+var index = 0;
+for (var z = 0; z < maxDcCount; z++) {
+for (var s = 0; s < rsBlocks.length; s++) {
+if (z < dcdata[s].length) {
+data[index++] = dcdata[s][z];
+}
+}
+}
+for (var xx = 0; xx < maxEcCount; xx++) {
+for (var t = 0; t < rsBlocks.length; t++) {
+if (xx < ecdata[t].length) {
+data[index++] = ecdata[t][xx];
+}
+}
+}
+return data;
+};
+module.exports = QRCode;
+
+return module.exports;};
+var Cc={};function R(p){if(!Cc[p])Cc[p]=M[p]();return Cc[p];}
+var m=function(n){return R('./'+n)};return {QRCode:R('./index'),QRMath:R('./QRMath'),QRUtil:R('./QRUtil'),QRRSBlock:R('./QRRSBlock'),QRErrorCorrectLevel:R('./QRErrorCorrectLevel')};})();/* QR画像の読取（自作・MIT相当）。作成部品の表（RSブロック・GF・位置表）を共用 */
+var QRDEC=(function(L){
+var RSB=L.QRRSBlock,QM=L.QRMath,QU=L.QRUtil,ECL=L.QRErrorCorrectLevel;
+function gray(d,w,h){var g=new Uint8Array(w*h);for(var i=0;i<w*h;i++)g[i]=(d[i*4]*299+d[i*4+1]*587+d[i*4+2]*114)/1000|0;return g;}
+function binarize(g,w,h){
+  var s=Math.max(15,((Math.min(w,h)/8)|0)|1),W1=w+1,I=new Float64Array(W1*(h+1)),hs=s>>1,x,y;
+  for(y=0;y<h;y++){var r=0;for(x=0;x<w;x++){r+=g[y*w+x];I[(y+1)*W1+x+1]=I[y*W1+x+1]+r;}}
+  var b=new Uint8Array(w*h);
+  for(y=0;y<h;y++){var y0=Math.max(0,y-hs),y1=Math.min(h,y+hs+1);
+    for(x=0;x<w;x++){var x0=Math.max(0,x-hs),x1=Math.min(w,x+hs+1),n=(x1-x0)*(y1-y0),
+      sum=I[y1*W1+x1]-I[y0*W1+x1]-I[y1*W1+x0]+I[y0*W1+x0];
+      b[y*w+x]=g[y*w+x]*n<sum*0.9?1:0;}}
+  return b;
+}
+function chk(c,tol){var t=c[0]+c[1]+c[2]+c[3]+c[4];if(t<7)return 0;var m=t/7,v=m*(tol||0.6);
+  return(Math.abs(m-c[0])<v&&Math.abs(m-c[1])<v&&Math.abs(3*m-c[2])<3*v&&Math.abs(m-c[3])<v&&Math.abs(m-c[4])<v)?m:0;}
+// 中心(x,y)から方向(dx,dy)へ：黒の中心→白→黒 の長さを数える
+function axis(b,w,h,x,y,dx,dy){
+  var c=[0,0,0,0,0],px,py,lim=w+h;
+  var get=function(i){var X=x+dx*i,Y=y+dy*i;if(X<0||Y<0||X>=w||Y>=h)return -1;return b[Y*w+X];};
+  if(get(0)!==1)return null;
+  var i,st=2;c[2]=1;
+  for(i=1;;i++){var v=get(i);if(v<0)break;if(v===1&&st===2)c[2]++;else if(v===0&&(st===2||st===3)){st=3;c[3]++;}else if(v===1&&(st===3||st===4)){st=4;c[4]++;}else break;if(i>lim)break;}
+  if(c[3]===0||c[4]===0)return null;
+  st=2;
+  for(i=1;;i++){var v2=get(-i);if(v2<0)break;if(v2===1&&st===2)c[2]++;else if(v2===0&&(st===2||st===1)){st=1;c[1]++;}else if(v2===1&&(st===1||st===0)){st=0;c[0]++;}else break;if(i>lim)break;}
+  if(c[1]===0||c[0]===0)return null;
+  return c;
+}
+function finders(b,w,h){
+  var cand=[],y,x;
+  for(y=0;y<h;y+=1){
+    var list=[];x=0;var c0=b[y*w],s0=0;
+    for(x=1;x<=w;x++){var vv=x<w?b[y*w+x]:2;if(vv!==c0){list.push({c:c0,s:s0,l:x-s0});s0=x;c0=vv;}}
+    for(var i=0;i+4<list.length;i++){
+      if(list[i].c!==1)continue;
+      var cc=[list[i].l,list[i+1].l,list[i+2].l,list[i+3].l,list[i+4].l],m=chk(cc);
+      if(!m)continue;
+      var cx=list[i+2].s+list[i+2].l/2,cxi=Math.floor(cx);
+      var v1=axis(b,w,h,cxi,y,0,1);if(!v1||!chk(v1,0.7))continue;
+      cand.push({x:cx,y:y+0.5,m:m});
+    }
+  }
+  // 縦方向の中心を補正しつつ集約
+  var out=[];
+  cand.forEach(function(c){var f=null;for(var i=0;i<out.length;i++){var o=out[i];if(Math.abs(o.x-c.x)<o.m*1.5&&c.y-o.y2<=2.01&&c.y-o.y2>=0){f=o;break;}}
+    if(f){f.n++;f.sx+=c.x;f.sm+=c.m;f.y2=c.y;f.ymax=c.y;}else out.push({sx:c.x,n:1,sm:c.m,y0:c.y,y2:c.y,ymax:c.y,x:c.x,m:c.m});});
+  var res=[];
+  out.forEach(function(o){if(o.n<2)return;var m=o.sm/o.n,cx=o.sx/o.n,cy=(o.y0+o.ymax)/2,xi=Math.round(cx-0.5),yi=Math.round(cy-0.5);
+    var hh=axis(b,w,h,xi,yi,1,0),vv=axis(b,w,h,xi,yi,0,1);if(!hh||!vv)return;
+    var mh=chk(hh,0.5),mv=chk(vv,0.5);if(!mh||!mv)return;
+    var d1=axis(b,w,h,xi,yi,1,1),d2=axis(b,w,h,xi,yi,1,-1);
+    if(!d1||!d2||!chk(d1,0.75)||!chk(d2,0.75))return;
+    if(Math.abs(mh-mv)/Math.max(mh,mv)>0.25)return;
+    // 水平・垂直それぞれの中心を再計算
+    var hs=hh[0]+hh[1]+hh[2]+hh[3]+hh[4],vs=vv[0]+vv[1]+vv[2]+vv[3]+vv[4];
+    res.push({x:xi+0.5+(hh[3]+hh[4]-hh[0]-hh[1])/2,y:yi+0.5+(vv[3]+vv[4]-vv[0]-vv[1])/2,m:(mh+mv)/2,n:o.n});});
+  var fin=[];res.sort(function(p,q){return q.n-p.n;}).forEach(function(r){if(!fin.some(function(f){return Math.hypot(f.x-r.x,f.y-r.y)<f.m*3;}))fin.push(r);});
+  return fin;
+}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+function triples(f){
+  var out=[],used={};
+  for(var i=0;i<f.length;i++)for(var j=i+1;j<f.length;j++)for(var k=j+1;k<f.length;k++){
+    var t=[f[i],f[j],f[k]],ms=(t[0].m+t[1].m+t[2].m)/3;
+    if(Math.max(t[0].m,t[1].m,t[2].m)/Math.min(t[0].m,t[1].m,t[2].m)>1.5)continue;
+    var d=[dist(t[1],t[2]),dist(t[0],t[2]),dist(t[0],t[1])]; // 各頂点の対辺
+    var ix=d.indexOf(Math.max(d[0],d[1],d[2])); // 斜辺の対 → 直角の頂点(TL)
+    var tl=t[ix],o=t.filter(function(_,q){return q!==ix;});
+    var a=dist(tl,o[0]),b2=dist(tl,o[1]);if(Math.abs(a-b2)/Math.max(a,b2)>0.2)continue;
+    var hyp=dist(o[0],o[1]);if(Math.abs(hyp/Math.hypot(a,b2)-1)>0.12)continue;
+    // 向き：TL→A × TL→B が正なら A=TR
+    var cr=(o[0].x-tl.x)*(o[1].y-tl.y)-(o[0].y-tl.y)*(o[1].x-tl.x);
+    var tr=cr>0?o[0]:o[1],bl=cr>0?o[1]:o[0];
+    if(a<ms*14)continue;
+    out.push({tl:tl,tr:tr,bl:bl,m:ms,s:a+b2});
+  }
+  out.sort(function(p,q){return q.s-p.s;});
+  return out;
+}
+var MASKS=[function(i,j){return(i+j)%2===0;},function(i,j){return i%2===0;},function(i,j){return j%3===0;},function(i,j){return(i+j)%3===0;},
+ function(i,j){return(((i/2)|0)+((j/3)|0))%2===0;},function(i,j){return(i*j)%2+(i*j)%3===0;},function(i,j){return((i*j)%2+(i*j)%3)%2===0;},function(i,j){return((i*j)%3+(i+j)%2)%2===0;}];
+function pop(x){var c=0;while(x){c+=x&1;x>>=1;}return c;}
+var FMT=[];for(var fl=0;fl<4;fl++)for(var mk=0;mk<8;mk++){FMT.push({v:QU.getBCHTypeInfo((fl<<3)|mk),ec:fl,mask:mk});}
+function readFormat(M,dim){
+  var a=0,b=0,i;
+  for(i=0;i<15;i++){
+    var r1,c1,r2,c2;
+    if(i<6){r1=i;c1=8;}else if(i<8){r1=i+1;c1=8;}else{r1=dim-15+i;c1=8;}
+    if(i<8){r2=8;c2=dim-i-1;}else if(i<9){r2=8;c2=15-i-1+1;}else{r2=8;c2=15-i-1;}
+    if(M[r1*dim+c1])a|=1<<i;if(M[r2*dim+c2])b|=1<<i;
+  }
+  var best=null,bd=99;
+  for(i=0;i<FMT.length;i++){var d=Math.min(pop(FMT[i].v^a),pop(FMT[i].v^b));if(d<bd){bd=d;best=FMT[i];}}
+  return bd<=3?best:null;
+}
+function funcMask(dim,ver){
+  var F=new Uint8Array(dim*dim),r,c;
+  function box(r0,c0,h,w){for(var y=r0;y<r0+h;y++)for(var x=c0;x<c0+w;x++)if(y>=0&&x>=0&&y<dim&&x<dim)F[y*dim+x]=1;}
+  box(0,0,9,9);box(0,dim-8,9,8);box(dim-8,0,8,9);
+  for(r=0;r<dim;r++){F[r*dim+6]=1;F[6*dim+r]=1;}
+  var pp=QU.getPatternPosition(ver);
+  for(var i=0;i<pp.length;i++)for(var j=0;j<pp.length;j++){
+    if((i===0&&j===0)||(i===0&&j===pp.length-1)||(i===pp.length-1&&j===0))continue;
+    box(pp[i]-2,pp[j]-2,5,5);}
+  if(ver>=7){box(0,dim-11,6,3);box(dim-11,0,3,6);}
+  return F;
+}
+function rsFix(msg,nsym){
+  var n=msg.length,S=[],any=false,j,i,mul=function(a,b){return(a&&b)?QM.gexp(QM.glog(a)+QM.glog(b)):0;},dv=function(a,b){return a?QM.gexp(QM.glog(a)-QM.glog(b)+255):0;};
+  for(j=0;j<nsym;j++){var s=0,al=QM.gexp(j);for(i=0;i<n;i++)s=mul(s,al)^msg[i];S.push(s);if(s)any=true;}
+  if(!any)return msg;
+  var C=[1],B=[1],Ld=0,m=1,bb=1;
+  for(var ni=0;ni<nsym;ni++){
+    var d=S[ni];for(i=1;i<=Ld;i++)d^=mul(C[i]||0,S[ni-i]);
+    if(d===0){m++;continue;}
+    var T=C.slice(),cf=dv(d,bb);
+    for(i=0;i<B.length;i++)C[i+m]=(C[i+m]||0)^mul(cf,B[i]);
+    if(2*Ld<=ni){Ld=ni+1-Ld;B=T;bb=d;m=1;}else m++;
+  }
+  if(Ld*2>nsym)return null;
+  var pos=[];
+  for(var p=0;p<n;p++){var v=0;for(i=0;i<C.length;i++)if(C[i])v^=mul(C[i],QM.gexp((-p*i)%255+255));if(v===0)pos.push(p);}
+  if(pos.length!==Ld)return null;
+  var Om=[];for(i=0;i<nsym;i++){var o=0;for(j=0;j<=i;j++)o^=mul(C[j]||0,S[i-j]);Om.push(o);}
+  var out=msg.slice();
+  for(var q=0;q<pos.length;q++){
+    var P=pos[q],X=QM.gexp(P),Xi=QM.gexp(-P+255),num=0,den=0,pw=1;
+    for(i=0;i<nsym;i++){num^=mul(Om[i],pw);pw=mul(pw,Xi);}
+    pw=1;for(i=1;i<C.length;i+=2){den^=mul(C[i],pw);pw=mul(pw,mul(Xi,Xi));}
+    if(!den)return null;
+    out[n-1-P]^=mul(X,dv(num,den));
+  }
+  // 検算
+  for(j=0;j<nsym;j++){var s2=0,al2=QM.gexp(j);for(i=0;i<n;i++)s2=mul(s2,al2)^out[i];if(s2)return null;}
+  return out;
+}
+function decodeMatrix(M,dim){
+  var ver=(dim-17)/4;if(ver<1||ver>40||ver!==(ver|0))return null;
+  var f=readFormat(M,dim);if(!f)return null;
+  var F=funcMask(dim,ver),mask=MASKS[f.mask],bits=[],r,c,up=true,col;
+  for(col=dim-1;col>0;col-=2){
+    if(col===6)col--;
+    for(var k=0;k<dim;k++){r=up?dim-1-k:k;
+      for(var t=0;t<2;t++){c=col-t;if(F[r*dim+c])continue;var v=M[r*dim+c];if(mask(r,c))v^=1;bits.push(v);}}
+    up=!up;
+  }
+  var cw=[];for(var i=0;i+7<bits.length;i+=8){var x=0;for(var q=0;q<8;q++)x=(x<<1)|bits[i+q];cw.push(x);}
+  var blocks=RSB.getRSBlocks(ver,f.ec),maxD=0,maxE=0;
+  blocks.forEach(function(b){maxD=Math.max(maxD,b.dataCount);maxE=Math.max(maxE,b.totalCount-b.dataCount);});
+  var dat=blocks.map(function(){return[];}),ecc=blocks.map(function(){return[];}),p=0;
+  for(i=0;i<maxD;i++)for(var bi=0;bi<blocks.length;bi++)if(i<blocks[bi].dataCount)dat[bi].push(cw[p++]);
+  for(i=0;i<maxE;i++)for(bi=0;bi<blocks.length;bi++)if(i<blocks[bi].totalCount-blocks[bi].dataCount)ecc[bi].push(cw[p++]);
+  var out=[];
+  for(bi=0;bi<blocks.length;bi++){
+    var fixed=rsFix(dat[bi].concat(ecc[bi]),blocks[bi].totalCount-blocks[bi].dataCount);if(!fixed)return null;
+    for(i=0;i<blocks[bi].dataCount;i++)out.push(fixed[i]);
+  }
+  // ビット列を読む（バイトモードのみ）
+  var bp=0,rd=function(n){var v=0;for(var z=0;z<n;z++){v=(v<<1)|((out[bp>>3]>>(7-(bp&7)))&1);bp++;}return v;};
+  var s='';
+  while(bp+4<=out.length*8){
+    var mode=rd(4);if(mode===0)break;
+    if(mode!==4)return null;
+    var len=rd(ver<10?8:16);
+    for(i=0;i<len;i++)s+=String.fromCharCode(rd(8));
+  }
+  return s;
+}
+function sampleAt(b,w,h,x,y){x=Math.floor(x);y=Math.floor(y);if(x<0||y<0||x>=w||y>=h)return 0;return b[y*w+x];}
+function sampleQR(b,w,h,t){
+  var dm=dist(t.tl,t.tr)/t.m+7,dim=Math.round((dm-17)/4)*4+17;
+  var res=[];
+  for(var dd=-4;dd<=4;dd+=4){ // 版の見積りが±1ずれた場合も試す
+    var D=dim+dd;if(D<21||D>177)continue;
+    var ux={x:(t.tr.x-t.tl.x)/(D-7),y:(t.tr.y-t.tl.y)/(D-7)},uy={x:(t.bl.x-t.tl.x)/(D-7),y:(t.bl.y-t.tl.y)/(D-7)};
+    var M=new Uint8Array(D*D);
+    for(var j=0;j<D;j++)for(var i=0;i<D;i++){
+      var px=t.tl.x+ux.x*(i-3)+uy.x*(j-3),py=t.tl.y+ux.y*(i-3)+uy.y*(j-3);
+      var cnt=sampleAt(b,w,h,px,py)*2+sampleAt(b,w,h,px+(ux.x+uy.x)*.25,py+(ux.y+uy.y)*.25)+sampleAt(b,w,h,px-(ux.x+uy.x)*.25,py-(ux.y+uy.y)*.25)
+        +sampleAt(b,w,h,px+(ux.x-uy.x)*.25,py+(ux.y-uy.y)*.25)+sampleAt(b,w,h,px-(ux.x-uy.x)*.25,py-(ux.y-uy.y)*.25);
+      M[j*D+i]=cnt>=4?1:0;}
+    res.push({M:M,D:D});
+  }
+  return res;
+}
+// 画像データ（RGBA）から、見つかったQRの文字列を全部返す
+function decodeAll(rgba,w,h){
+  var g=gray(rgba,w,h),outs=[],seen={};
+  var bin=binarize(g,w,h),f=finders(bin,w,h),T=triples(f);
+  var used={};function kk(p){return Math.round(p.x)+','+Math.round(p.y);}
+  for(var q=0;q<T.length;q++){
+    var key=[T[q].tl,T[q].tr,T[q].bl];if(key.some(function(p){return used[kk(p)];}))continue;
+    var cands=sampleQR(bin,w,h,T[q]),got=null;
+    for(var ci=0;ci<cands.length&&!got;ci++){try{got=decodeMatrix(cands[ci].M,cands[ci].D);}catch(e){got=null;}}
+    if(got){key.forEach(function(p){used[kk(p)]=1;});if(!seen[got]){seen[got]=1;outs.push(got);}}
+  }
+  return outs;
+}
+return {_dm:decodeMatrix,_fmt:readFormat,decodeAll:decodeAll,_finders:finders,_bin:binarize,_gray:gray,_triples:triples};
+})(QRLIB);
+
+/* 案件データ ⇄ QR画像（複数枚に分割・圧縮・誤り検査つき） */
+var QRX=(function(){
+var CH=330; // 1枚のQRに入れる文字数（これ以下なら版15前後で読み取りやすい）
+var CT=null;function crc32(u){if(!CT){CT=[];for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;CT[n]=c>>>0;}}
+  var c2=0xFFFFFFFF;for(var i=0;i<u.length;i++)c2=CT[(c2^u[i])&255]^(c2>>>8);return((c2^0xFFFFFFFF)>>>0).toString(16).padStart(8,'0');}
+function b64u(u){var s='';for(var i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function unb64u(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;}
+async function pipe(u,S){var s=new S('deflate-raw'),w=s.writable.getWriter();w.write(u);w.close();return new Uint8Array(await new Response(s.readable).arrayBuffer());}
+async function pack(obj,meta){meta=meta||{};var code=String(meta.code||'').replace(/[^0-9A-Za-z-]/g,'').slice(0,24),rv=(+meta.rev||0);
+  var raw=new TextEncoder().encode(JSON.stringify(obj)),body=raw,mode='r';
+  if(typeof CompressionStream!=='undefined'){try{var z=await pipe(raw,CompressionStream);if(z.length<raw.length){body=z;mode='z';}}catch(e){}}
+  var ch=meta.ch||CH,id=crc32(body),s=b64u(body),n=Math.max(1,Math.ceil(s.length/ch)),parts=[];
+  for(var i=0;i<n;i++)parts.push('SQ2|'+id+'|'+(i+1)+'|'+n+'|'+mode+'|'+code+'|'+rv+'|'+s.substr(i*ch,ch));
+  return{id:id,parts:parts,bytes:raw.length,packed:body.length};
+}
+function qrMake(text,ecl){var ec=QRLIB.QRErrorCorrectLevel[ecl||'M'],q;
+  for(var t=1;t<=40;t++){try{q=new QRLIB.QRCode(t,ec);q.addData(text);q.make();return q;}catch(e){q=null;}}return null;}
+// parts → 画像（canvas）の配列。1枚に最大6個
+function sheets(parts,title){
+  var qs=parts.map(function(p){return qrMake(p,'M');}),mod=0;qs.forEach(function(q){mod=Math.max(mod,q.getModuleCount());});
+  var ms=Math.max(4,Math.floor(440/(mod+8))),T=(mod+8)*ms,PER=6,out=[];
+  for(var s0=0;s0<parts.length;s0+=PER){
+    var grp=qs.slice(s0,s0+PER),cols=grp.length===1?1:2,rows=Math.ceil(grp.length/cols),head=100,lab=44,pad=24;
+    var W=cols*T+(cols+1)*pad,H=head+rows*(T+lab)+(rows+1)*pad,c=document.createElement('canvas');c.width=W;c.height=H;
+    var g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,W,H);g.fillStyle='#000';g.textBaseline='middle';
+    var t=(typeof title==='object'&&title)?title:{title:title||''},mw=W-pad*2,NI=Math.ceil(parts.length/PER),ii=s0/PER+1;
+    g.font='bold 26px sans-serif';g.fillText([t.code,t.rev?'第'+t.rev+'版':''].filter(Boolean).join('　')+(NI>1?'　（画像 '+ii+'/'+NI+'）':''),pad,30,mw);
+    g.font='20px sans-serif';g.fillStyle='#333';g.fillText([t.title,t.date,t.staff?'担当 '+t.staff:''].filter(Boolean).join('　')||'現地調査データ',pad,60,mw);
+    g.fillStyle='#666';g.font='16px sans-serif';g.fillText('かんたん図面の「QR読込」で、画像'+(NI>1?NI+'枚を全部':'を')+'選んでください（QR全'+parts.length+'個）',pad,84,mw);
+    grp.forEach(function(q,k){
+      var col=k%cols,row=(k/cols)|0,x0=pad+col*(T+pad),y0=head+pad+row*(T+lab+pad);
+      g.fillStyle='#000';g.font='bold 22px sans-serif';g.fillText('QR '+(s0+k+1)+'/'+parts.length,x0+8,y0+lab/2);
+      var n=q.getModuleCount(),off=Math.floor((T-n*ms)/2);
+      for(var r=0;r<n;r++)for(var cc=0;cc<n;cc++)if(q.isDark(r,cc))g.fillRect(x0+off+cc*ms,y0+lab+off+r*ms,ms,ms);
+    });
+    out.push(c);
+  }
+  return out;
+}
+function parse(t){var m=/^SQ2\|([0-9a-f]{8})\|(\d+)\|(\d+)\|([zr])\|([0-9A-Za-z-]*)\|(\d+)\|([A-Za-z0-9_-]*)$/.exec(t);
+  if(m)return{id:m[1],i:+m[2],n:+m[3],mode:m[4],code:m[5],rev:+m[6],c:m[7]};
+  m=/^SQ1\|([0-9a-f]{8})\|(\d+)\|(\d+)\|([zr])\|([A-Za-z0-9_-]*)$/.exec(t);return m?{id:m[1],i:+m[2],n:+m[3],mode:m[4],code:'',rev:0,c:m[5]}:null;}
+// 読み取った文字列のリスト → {ok,obj} か {need:[足りない番号],n,id} か {err}
+// 読み取った文字列 → {ok,obj,old} / {mixed:[案件]} / {need,n,imgs,code,rev} / {err}
+async function decodeGroup(g,id){
+  var str='';for(var i=1;i<=g.n;i++)str+=g.parts[i];
+  var u;try{u=unb64u(str);}catch(e){return{err:'bad'};}
+  if(crc32(u)!==id)return{err:'crc'};
+  try{if(g.mode==='z'){if(typeof DecompressionStream==='undefined')return{err:'nodecomp'};u=await pipe(u,DecompressionStream);}return{ok:true,obj:JSON.parse(new TextDecoder().decode(u)),id:id,n:g.n};}catch(e){return{err:'bad'};}
+}
+function groups(texts){
+  var by={};
+  texts.forEach(function(t){var p=parse(t);if(!p)return;var g=by[p.id]=by[p.id]||{id:p.id,n:p.n,mode:p.mode,code:p.code,rev:p.rev,parts:{}};g.parts[p.i]=p.c;});
+  return Object.keys(by).map(function(k){var g=by[k],need=[];for(var i=1;i<=g.n;i++)if(!g.parts[i])need.push(i);g.need=need;return g;});
+}
+function imgsOf(need){var o={};need.forEach(function(i){o[Math.ceil(i/6)]=1;});return Object.keys(o).map(Number);}
+async function assemble(texts){
+  var gs=groups(texts);if(!gs.length)return{err:'none'};
+  var codes={};gs.forEach(function(g){codes[g.code||'?'+g.id]=1;});
+  if(Object.keys(codes).length>1)return{mixed:gs.map(function(g){return{code:g.code,rev:g.rev,n:g.n,have:g.n-g.need.length};})};
+  // 同じ案件：いちばん新しい版を使う
+  gs.sort(function(a,b){return b.rev-a.rev||(a.need.length-b.need.length);});
+  var top=gs[0],old=gs.length>1;
+  if(top.need.length)return{need:top.need,n:top.n,imgs:imgsOf(top.need),nimg:Math.ceil(top.n/6),code:top.code,rev:top.rev,id:top.id,old:old};
+  var r=await decodeGroup(top,top.id);if(r.ok){r.old=old;r.code=top.code;r.rev=top.rev;}return r;
+}
+// 作った画像をその場で読み返し、全部読めるか確かめる（読めなければ区切り方を変えて作り直す）
+async function makeChecked(obj,meta){
+  var tries=[CH,CH-23,CH-41,CH-67],k,cs;
+  for(var t=0;t<tries.length;t++){
+    var m={};for(var key in meta)m[key]=meta[key];m.ch=tries[t];
+    k=await pack(obj,m);cs=sheets(k.parts,meta);
+    if(typeof QRDEC==='undefined')return{k:k,cs:cs,checked:false};
+    var got={};cs.forEach(function(c){var g=c.getContext('2d').getImageData(0,0,c.width,c.height);QRDEC.decodeAll(g.data,c.width,c.height).forEach(function(x){got[x]=1;});});
+    if(k.parts.every(function(p){return got[p];}))return{k:k,cs:cs,checked:true,tries:t+1};
+  }
+  return{k:k,cs:cs,checked:false,failed:true};
+}
+async function readImages(files){
+  var texts=[];
+  for(var f=0;f<files.length;f++){
+    var bmp;try{bmp=await createImageBitmap(files[f]);}catch(e){continue;}
+    var s=Math.min(1,3000/Math.max(bmp.width,bmp.height)),w=Math.round(bmp.width*s),h=Math.round(bmp.height*s),c=document.createElement('canvas');c.width=w;c.height=h;
+    var g=c.getContext('2d',{willReadFrequently:true});g.fillStyle='#fff';g.fillRect(0,0,w,h);g.drawImage(bmp,0,0,w,h);
+    var d=g.getImageData(0,0,w,h),got=QRDEC.decodeAll(d.data,w,h);got.forEach(function(t){texts.push(t);});
+    if(!got.length)texts.blank=(texts.blank||0)+1;
+  }
+  return texts;
+}
+return{pack:pack,makeChecked:makeChecked,sheets:sheets,assemble:assemble,readImages:readImages,parse:parse,groups:groups};
+})();
+
+</script>
 <script>
 const S=50,VW=1000,VH=800;
 const st=(a)=>a;
@@ -444,7 +1640,15 @@ function endDrag(drop){
 window.addEventListener('pointerup',()=>endDrag(true));window.addEventListener('pointercancel',()=>endDrag(false));
 const LIGHT={'--room':'#fffdf7','--fg':'#222','--wall':'#333','--acc':'#2b6cb0','--line':'#e2dfd6','--sha':'#e6e1d3','--shb':'#cfc9b7','--card':'#fff'};
 const msg=document.getElementById('msg');
-function say(t){msg.textContent=t;setTimeout(()=>{msg.textContent='寸法はmm・細線100/太線1000'},3000);}
+window.addEventListener('error',e=>{try{msg.textContent='エラー：'+(e.message||'')+' ('+(e.lineno||'')+')';}catch(x){}});
+window.addEventListener('unhandledrejection',e=>{try{msg.textContent='エラー：'+((e.reason&&e.reason.message)||e.reason||'');}catch(x){}});
+// 読み込み完了などを、ふわっと出してすぐ消すお知らせ
+function pop(t){let p=document.getElementById('popMsg');if(!p){p=document.createElement('div');p.id='popMsg';p.setAttribute('role','status');
+  p.style.cssText='position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.96);z-index:9999;background:rgba(30,40,55,.88);color:#fff;font-size:18px;font-weight:700;padding:16px 26px;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .35s,transform .35s;text-align:center;white-space:nowrap';
+  document.body.appendChild(p);}
+  p.textContent=t;clearTimeout(p._t);requestAnimationFrame(()=>{p.style.opacity='1';p.style.transform='translate(-50%,-50%) scale(1)';});
+  p._t=setTimeout(()=>{p.style.opacity='0';p.style.transform='translate(-50%,-50%) scale(.96)';},1600);}
+let sayT=0;function say(t,ms){clearTimeout(sayT);msg.textContent=t;sayT=setTimeout(()=>{msg.textContent='寸法はmm・細線100/太線1000'},ms||3000);}
 const $=id=>document.getElementById(id);
 const sheetEl=$('sheet'),sheetBody=$('sheetBody'),sm=$('smsg');
 let sheetSvg='',sheetPf=1,sheetSize=[0,0],sheetDw=1,sheetOri='land',sheetPaper='A4',sheetScale=0,sheetFi=0,sheetLay={plan:true,front:true,fin:true},sheetRid=null,sv={z:1,x:0,y:0};
@@ -1158,7 +2362,7 @@ document.getElementById('cimp').onclick=()=>document.getElementById('cimpf').cli
 document.getElementById('cimpf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
   try{const j=JSON.parse(await f.text());if(j.app!=='zumen-cases'||!Array.isArray(j.cases))throw 0;let n=0,sk=0;
     for(const r of j.cases){if(!r||!codeOK(r.code)||!r.data)continue;const cur=await CDB.get(r.code);if(cur&&cur.updatedAt>=r.updatedAt){sk++;continue;}await CDB.put(r);n++;}
-    say(`${n}件を読み込みました${sk?`（新しい方を残したもの${sk}件）`:''}`);drawCaseList();}catch(err){say('読み込めませんでした');}};
+    say(`${n}件を読み込みました${sk?`（新しい方を残したもの${sk}件）`:''}`);drawCaseList();}catch(err){fail('読み込めませんでした');}};
 document.getElementById('cclose').onclick=()=>document.getElementById('caseDlg').classList.remove('on');
 document.getElementById('cq').addEventListener('input',drawCaseList);
 document.getElementById('clistBody').addEventListener('click',async e=>{
@@ -1200,19 +2404,103 @@ $('fsv').onclick=async()=>{
     if(await saveFile(outName('図面データ','json'),new Blob([JSON.stringify({v:4,floors,fi,uid,detail,north,meta:META,case:CASE,zrev:ZREV})],{type:'application/json'})))say('ファイルを保存しました');
   }catch(err){say('保存できませんでした');}
 };
-$('fld').onclick=()=>{
-  flush();
-  if(!floors.some(x=>x.rooms.length)){$('fin').click();return;}
+let loadMode='json';
+// 何も描いていない初期状態（部屋1だけ・記号なし・管理番号なし）
+const isBlankDraw=()=>!META.code&&!CASE&&floors.length===1&&rooms.length===1&&rooms[0].name==='部屋1'&&!rooms[0].items.length;
+const loadRun=()=>{if(loadMode==='pend'){const f=qrPend;qrPend=null;if(f)qrFiles(f);}else $(loadMode==='qr'?'qin':'fin').click();};
+const loadOpen=m=>{
+  loadMode=m;flush();
+  if(!floors.some(x=>x.rooms.length)||isBlankDraw()){loadRun();return;}
   const dirty=!caseKey&&curHash()!==savedHash;
   document.getElementById('ldWarn').style.display=dirty?'':'none';
   document.getElementById('ldKeep').style.display=caseKey?'':'none';
   document.getElementById('ldSave').className=dirty?'primary':'';document.getElementById('ldGo').className=dirty?'danger':'primary';
   document.getElementById('ldDlg').classList.add('on');
 };
+$('fld').onclick=()=>loadOpen('json');
+// QR読込：押したら必ず案内を出し、画像はブラウザ本来の仕組み（label）で選ぶ
+$('qld').onclick=()=>{
+  const d=document.getElementById('qrDlg');
+  let dirty=false;try{flush();dirty=!(isBlankDraw()||!floors.some(x=>x.rooms.length))&&!caseKey&&curHash()!==savedHash;}catch(err){}
+  document.getElementById('qrWarn').style.display=dirty?'':'none';
+  d.classList.add('on');
+};
+document.getElementById('qrCancel').onclick=()=>document.getElementById('qrDlg').classList.remove('on');
+document.getElementById('qrSave').onclick=async()=>{try{await $('fsv').onclick();}catch(err){}document.getElementById('qrWarn').style.display='none';};
+document.getElementById('qin2').onchange=e=>{const fs=[...e.target.files];e.target.value='';document.getElementById('qrDlg').classList.remove('on');if(fs.length)qrFiles(fs);};
+{const pz=document.getElementById('qrPaste'),T0=pz.textContent;
+ const take=fs=>{fs=fs.filter(isImg);if(!fs.length)return false;document.getElementById('qrDlg').classList.remove('on');qrFiles(fs);return true;};
+ pz.addEventListener('paste',e=>{e.preventDefault();e.stopPropagation();const cd=e.clipboardData;let fs=[...((cd&&cd.files)||[])];
+   if(!fs.length&&cd&&cd.items)fs=[...cd.items].filter(i=>i.kind==='file').map(i=>i.getAsFile()).filter(Boolean);
+   if(!take(fs))pz.textContent='画像が見つかりませんでした。QR画像そのものをコピーしてから貼り付けてください。';});
+ pz.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();take([...((e.dataTransfer&&e.dataTransfer.files)||[])]);});
+ pz.addEventListener('input',()=>{const im=pz.querySelector('img');pz.textContent=T0;if(im&&im.src){fetch(im.src).then(r=>r.blob()).then(b=>take([new File([b],'qr.png',{type:b.type||'image/png'})])).catch(()=>{pz.textContent='この画像は読み取れませんでした。画像を保存してから「① 画像を選ぶ」をお使いください。';});}});
+}
+function sayL(t,ms){say(t,ms||8000);}
+// 読み込めなかったとき：画面全体を薄いグレーで覆い、真ん中に大きく出す（タップで閉じる）
+function fail(t,title,kind){say(t.replace(/\n/g,' '),10000);let o=document.getElementById('failPop');
+  if(!o){o=document.createElement('div');o.id='failPop';o.setAttribute('role','alertdialog');
+    o.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(90,90,90,.35);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .25s';
+    o.innerHTML='<div style="background:#fff;color:#222;max-width:440px;width:100%;border-radius:16px;padding:22px 20px 16px;box-shadow:0 10px 40px rgba(0,0,0,.3);border-top:6px solid #c0392b"><div style="font-size:20px;font-weight:800;color:#c0392b;margin-bottom:10px">読み込めませんでした</div><div id="failTx" style="font-size:16px;line-height:1.6"></div><div style="text-align:right;margin-top:16px"><button id="failOk" class="primary" style="font-size:16px;padding:10px 22px">閉じる</button></div></div>';
+    document.body.appendChild(o);
+    const cl=()=>{o.style.opacity='0';setTimeout(()=>o.style.display='none',250);};
+    o.addEventListener('click',e=>{if(e.target===o||e.target.id==='failOk')cl();});}
+  const bx=o.firstChild,hd=bx.firstChild,col=kind==='info'?'#1a5fb4':'#c0392b';hd.textContent=title||'読み込めませんでした';hd.style.color=col;bx.style.borderTopColor=col;
+  const tx=document.getElementById('failTx');tx.style.whiteSpace='pre-line';tx.textContent=t.replace(/^読み込めませんでした。?/,'')||'ファイルの形式が違うか、壊れている可能性があります。';
+  o.style.display='flex';requestAnimationFrame(()=>o.style.opacity='1');setTimeout(()=>document.getElementById('failOk').focus(),50);}
+const isImg=f=>/^image\//.test(f.type)||/\.(png|jpe?g|gif|bmp|webp)$/i.test(f.name||'');
 $('fin').onchange=async e=>{
-  const f=e.target.files[0];e.target.value='';if(!f)return;
+  const fs=[...e.target.files];e.target.value='';if(!fs.length)return;
+  if(fs.some(isImg))return qrFiles(fs.filter(isImg));
+  let o;try{o=JSON.parse(await fs[0].text());}catch(err){fail('読み込めませんでした');return;}
+  await loadObj(o);
+};
+$('qin').onchange=e=>{const fs=[...e.target.files];e.target.value='';document.getElementById('qrDlg').classList.remove('on');if(fs.length)qrFiles(fs);};
+// 画像の貼り付け（Ctrl+V）・ドラッグでもQRを読み込む
+let qrPend=null;
+function qrAsk(fs){
+  fs=fs.filter(isImg);if(!fs.length)return;
+  if(qrBuf.t.length&&Date.now()-qrBuf.at<15*60000)return qrFiles(fs);
+  if(!floors.some(x=>x.rooms.length)||isBlankDraw())return qrFiles(fs);
+  qrPend=fs;loadOpen('pend');
+}
+document.addEventListener('paste',e=>{
+  const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable))return;
+  const fs=[...((e.clipboardData&&e.clipboardData.files)||[])];if(fs.some(isImg)){e.preventDefault();const q=document.getElementById('qrDlg');if(q.classList.contains('on')){q.classList.remove('on');qrFiles(fs.filter(isImg));}else qrAsk(fs);}
+});
+document.addEventListener('dragover',e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files'))e.preventDefault();});
+document.addEventListener('drop',e=>{const fs=[...((e.dataTransfer&&e.dataTransfer.files)||[])];if(!fs.length)return;e.preventDefault();
+  if(fs.some(isImg))qrAsk(fs);else{const dt=new DataTransfer();fs.forEach(f=>dt.items.add(f));$('fin').files=dt.files;$('fin').onchange({target:$('fin')});}});
+// 読み取ったQRを少しの間ためておき、画像を1枚ずつ選んだり貼り付けたりしても合わせて読めるようにする
+let qrBuf={t:[],at:0,code:null};
+async function qrFiles(fs){
+  {const fp=document.getElementById('failPop');if(fp)fp.style.display='none';}
+  sayL('QR画像を読み取り中…',30000);
   try{
-    const o=JSON.parse(await f.text());
+    const got=await QRX.readImages(fs),blank=got.blank||0;
+    if(Date.now()-qrBuf.at>15*60000)qrBuf={t:[],at:0,code:null};
+    const ng=QRX.groups(got),nc=[...new Set(ng.map(g=>g.code||'?'))];
+    // 前にためた分と別の案件なら、ためた分は捨てて読み直す
+    let all=(qrBuf.t.length&&nc.length&&!nc.every(c=>c===qrBuf.code))?[...got]:[...qrBuf.t,...got];
+    const a=await QRX.assemble(all);
+    const nm=(c,r)=>(c||'管理番号なし')+(r?` 第${r}版`:'');
+    if(a.ok){qrBuf={t:[],at:0,code:null};await loadObj(a.obj);
+      if(a.old)setTimeout(()=>say(`古い版の画像も混ざっていたため、新しい ${nm(a.code,a.rev)} を読み込みました`,10000),400);return;}
+    if(a.mixed){qrBuf={t:[],at:0,code:null};
+      fail('別の案件のQR画像が混ざっています。1件ずつ選んでください。\n'+a.mixed.map(m=>`・${nm(m.code,m.rev)}（QR ${m.have}/${m.n}）`).join('\n'),'案件が混ざっています');return;}
+    if(a.need){qrBuf={t:all,at:Date.now(),code:a.code||'?'};
+      const gg=QRX.groups(all).find(g=>g.id===a.id),seenImg=new Set(Object.keys(gg?gg.parts:{}).map(i=>Math.ceil(i/6))),allIn=[...Array(a.nimg)].every((_,i)=>seenImg.has(i+1)),lowq=blank>0||allIn;
+      if(allIn)fail(`${nm(a.code,a.rev)}：画像はそろっていますが、QR ${a.need.join('・')}番が読み取れませんでした。\n画質が落ちている可能性があります。LINEなら「オリジナル画質」で送り直してもらってください。`+(a.nimg>1?`\n（読み取れていないのは 画像 ${a.imgs.join('・')} です。読み取った分は覚えています）`:''),'一部が読み取れませんでした');
+      else fail(`${nm(a.code,a.rev)}：画像は全部で${a.nimg}枚あります。\nあと 画像 ${a.imgs.join('・')} が必要です（QR ${a.need.join('・')}番）。\n続けて残りの画像を選ぶか、貼り付けてください。読み取った分は覚えています。`+(lowq?'\n\n※ 画像はそろっているのに読めない場合は、画質が落ちています。LINEなら「オリジナル画質」で送り直してもらってください。':''),'続きの画像が必要です','info');
+      return;}
+    if(a.err==='crc')fail('読み取り内容に誤りがありました。画像を送り直して（できれば元のサイズのまま）もう一度お試しください');
+    else if(a.err==='nodecomp')fail('このブラウザでは読み取れません。ChromeかEdgeでお試しください');
+    else if(a.err==='none'&&qrBuf.t.length)fail('この画像からQRコードが見つかりませんでした。先に読み取った分は覚えています。残りの画像を選び直してください');
+    else fail('QRコードが見つかりませんでした。現地調査アプリで作ったQR画像を、縮小・加工せずにそのまま選んでください。'+(blank?'\n画質が落ちている可能性があります。LINEなら「オリジナル画質」で送り直してもらってください。':''));
+  }catch(err){fail('QR画像を読み取れませんでした。もう一度お試しください');}
+}
+async function loadObj(o){
+  try{
     // 同じ管理番号の調査データ：図面は残して設備仕様・注意事項だけ差し替えを選べる
     let stored=null;
     if(o.case){o.case.code=normCode(o.case.code);if(o.meta)o.meta.code=normCode(o.meta.code);}
@@ -1232,7 +2520,7 @@ $('fin').onchange=async e=>{
         bc.onclick=()=>done('cancel');document.getElementById('upAll').onclick=()=>done('all');bs.onclick=()=>done('spec');bd.onclick=()=>done('dim');});
       if(choice==='cancel')return;
       if(choice==='dim'){applyDims(o.floors||[]);}
-      if(choice==='spec'||choice==='dim'){CASE=o.case;if(!META.staff&&o.meta&&o.meta.staff)META.staff=String(o.meta.staff);metaSync();draw();drawPanel();flush();say(`調査 第${CASE.rev||1}版の設備仕様・注意事項${choice==='dim'?'と部屋の寸法':''}に更新しました（記号はそのまま）`);return;}
+      if(choice==='spec'||choice==='dim'){{const ks=CASE&&CASE.survey;CASE=o.case;if(!CASE.survey&&ks)CASE.survey=ks;}if(!META.staff&&o.meta&&o.meta.staff)META.staff=String(o.meta.staff);metaSync();draw();drawPanel();flush();pop('✓ 更新しました');say(`調査 第${CASE.rev||1}版の設備仕様・注意事項${choice==='dim'?'と部屋の寸法':''}に更新しました（記号はそのまま）`);return;}
     }
     let fl=Array.isArray(o.floors)?o.floors:(Array.isArray(o.rooms)?[{n:'1F',rooms:o.rooms}]:null);
     const okR=r=>r&&typeof r.w==='number'&&typeof r.h==='number'&&Array.isArray(r.items);
@@ -1249,14 +2537,19 @@ $('fin').onchange=async e=>{
     if(typeof o.detail==='boolean')detail=o.detail;
     selR=selI=null;if(lay!=='plan')showLay('plan');
     META.code=normCode(META.code);caseKey=codeOK(META.code)?META.code:null;metaSync();
-    draw();drawPanel();flush();centerPlan();{const um=unmTxt(unmeas());say((CASE&&CASE.app==='genchi-chousa'?`現地調査データ（第${CASE.rev||1}版）を読み込みました`:'読み込みました')+(um?`（未測：${um}）`:''));}
-  }catch(err){say('読み込めませんでした');}
-};
+    draw();drawPanel();flush();centerPlan();{const um=unmTxt(unmeas());say((CASE&&CASE.app==='genchi-chousa'?`現地調査データ（第${CASE.rev||1}版）を読み込みました`:'読み込みました')+(um?`（未測：${um}）`:''));pop('✓ 読み込みました');}
+  }catch(err){fail('読み込めませんでした');}
+}
 wrap.addEventListener('scroll',persist,{passive:true});
 {const dl=document.getElementById('ldDlg'),close=()=>dl.classList.remove('on');
-  document.getElementById('ldCancel').onclick=close;
-  document.getElementById('ldGo').onclick=()=>{close();$('fin').click();};
-  document.getElementById('ldSave').onclick=async()=>{close();await $('fsv').onclick();$('fin').click();};
+  document.getElementById('ldCancel').onclick=()=>{qrPend=null;close();};
+  document.getElementById('ldGo').onclick=()=>{close();loadRun();};
+  document.getElementById('ldSave').onclick=async()=>{close();await $('fsv').onclick();
+    // 保存のあとはブラウザがファイル選択を開かせないため、もう一度押してもらう
+    if(loadMode==='pend'){loadRun();return;}
+    const nx=document.getElementById('ldNext');nx.classList.add('on');
+    document.getElementById('ldNc').onclick=()=>nx.classList.remove('on');
+    document.getElementById('ldNg').onclick=()=>{nx.classList.remove('on');loadRun();};};
   const obs=new MutationObserver(()=>{if(dl.classList.contains('on'))document.getElementById('ldCode').textContent=META.code?'（'+META.code+'）':'';});obs.observe(dl,{attributes:true});}
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist();}catch(e){}
 if(/\/zumen\/?/.test(location.pathname)&&!window.claude){document.getElementById('toSurvey').style.display='';
