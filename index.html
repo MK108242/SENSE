@@ -93,6 +93,17 @@ textarea.inp{min-height:110px;resize:vertical}
 /* report */
 .rp-prev img{width:100%;display:block;border:1px solid var(--line);border-radius:4px;margin-bottom:6px;background:#fff}
 .rp-page{margin-bottom:14px}
+/* 報告書の全画面表示（拡大・縮小） */
+#zv{position:fixed;inset:0;z-index:9999;background:#0b0e13;touch-action:none;overflow:hidden;user-select:none;-webkit-user-select:none}
+#zv .zimg{position:absolute;left:50%;top:50%;max-width:100vw;max-height:100vh;max-height:100dvh;transform-origin:0 0;will-change:transform;background:#fff;pointer-events:none;-webkit-user-drag:none}
+#zv .zbar{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 8px;background:linear-gradient(#000c,#0000);color:#fff;z-index:2;pointer-events:none}
+#zv .zbar>*{pointer-events:auto}
+#zv button{font:inherit;color:#fff;background:#ffffff26;border:1px solid #ffffff40;border-radius:12px;min-width:48px;min-height:48px;padding:0 14px;font-size:17px;font-weight:700}
+#zv .zpg{font-size:17px;font-weight:700;text-shadow:0 1px 3px #000}
+#zv .zhint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);text-align:center;color:#fffc;font-size:14px;text-shadow:0 1px 3px #000;pointer-events:none;transition:opacity .6s}
+#zv .znav{position:absolute;top:50%;transform:translateY(-50%);z-index:2}
+.rp-page img{cursor:zoom-in}
+
 .sw{display:flex;align-items:center;justify-content:space-between;padding:12px 0;min-height:60px;font-size:19px}
 .sw input{width:32px;height:32px;accent-color:var(--accent)}
 /* modal & toast */
@@ -1380,12 +1391,13 @@ const TYPES=[
   P('cornermodel','隅付けタンクの商品','sel',['同じメーカーの後継品がある','!後継品が見つからない（要確認）'],{hint:'隅付けタンクは商品が少ないため、早めに確認',show:a=>a.cur==='隅付けタンク'&&a.cornerto==='同じ隅付けタンクにする'}),
   P('bowl','便器の品番（排水芯チェック）','bowl',[],{hint:'便座ではなく便器の品番を入力。途中まででも候補が出ます'}),
   P('drain','排水方式','sel',['床排水','壁排水']),
-  P('pitch','排水芯（床排水：壁から）','dim',['120','200','120/200','305〜540'],{u:'mm',hint:'「120/200」「305〜540」のような入力もできます',show:a=>a.drain==='床排水'}),
+  P('pitch','排水芯（床排水：壁から）','dim',['120','200','120/200','305〜540'],{u:'mm',hint:'120か200か分からない・両方の可能性がある現場は「120/200」を選びます。その場合は両対応の便器でないと警告が出ます',show:a=>a.drain==='床排水'}),
   P('wallh','排水高さ（壁排水：床から）','dim',['100','120','148','155'],{u:'mm',show:a=>a.drain==='壁排水'}),
   P('pitchsrc','排水芯・排水高さの根拠','sel',['実測','!型番表のみ（未実測）'],{show:a=>!!(String(a.pitch||'').trim()||String(a.wallh||'').trim())}),
-  P('newrange','新しい便器の排水芯 対応範囲','dim',['200','305〜460','305〜540','250〜550'],{u:'mm',hint:'決まっていれば、カタログの対応範囲を入力（リモデル便器など）',show:a=>a.drain==='床排水'}),
+  P('newrange','新しい便器の排水芯 対応範囲','dim',['120','200','120/200','305〜460','305〜540','250〜550'],{u:'mm',hint:'決まっていれば、カタログの対応範囲を入力（リモデル便器など）。120・200の両方に使える便器は「120/200」',show:a=>a.drain==='床排水'}),
   P('water','給水位置','sel',['床給水','壁給水']),
   P('valve','止水栓','sel',['あり・正常','!あり・固着/漏れ','!なし']),
+  P('valvemove','止水栓の移設','sel',['不要','!移設が必要'],{hint:'止水栓が「あり」でも「なし」でも選べます'}),
   P('waterpos','給水管・止水栓の位置','text',[],{hint:'例：右壁から150・床から200（mm）'}),
   P('outlet','コンセント','sel',['あり','!なし（新設が必要）']),
   P('outletpos','コンセントの位置','sel',['左','右'],{hint:'便器・洗面台に向かって',show:a=>a.outlet==='あり'}),
@@ -1486,6 +1498,7 @@ const TYPES=[
   P('wpos','給排水の位置','sel',['床から','壁から']),
   P('faucet','水栓','sel',['シングルレバー','シャワー水栓','2ハンドル']),
   P('valve','止水栓','sel',['あり・正常','!あり・固着/漏れ','!なし']),
+  P('valvemove','止水栓の移設','sel',['不要','!移設が必要'],{hint:'止水栓が「あり」でも「なし」でも選べます'}),
   P('outlet','コンセント','sel',['あり（見える場所）','化粧台の裏（見えない）','!なし'],{hint:'洗面台のコンセントは化粧台の裏にあることが多い'}),
   P('outletpos','コンセントの位置','sel',['左','右'],{hint:'便器・洗面台に向かって',show:a=>a.outlet==='あり'||a.outlet==='あり（見える場所）'}),
   P('mirror','ミラー','sel',['一面鏡','三面鏡','なし']),
@@ -1527,11 +1540,12 @@ const TYPES=[
   P('width','幅','sel',['45cm','60cm','わからない']),
   P('depth','深さ','sel',['浅型','深型','わからない']),
   P('open','扉の開き方','sel',['スライドオープン','フロントオープン','トップオープン']),
-  P('face','面材のタイプ','sel',['ドアパネル（枠有り）','ドア面材（枠無し）','わからない'],{show:a=>a.work!=='撤去のみ'}),
+  P('face','面材のタイプ','sel',['ドアパネル（枠有り）','ドア面材（枠無し）','!わからない（現地で確認）'],{hint:'ビルトインの食洗機の扉に付ける面材。キッチンの扉と合わせます',show:a=>a.work!=='撤去のみ'}),
   P('cabinet','入れる場所','sel',['今の食洗機の場所','!キャビネットを外して入れる'],{show:a=>a.work==='新設（ビルトイン）'}),
   P('power','電源','sel',['専用コンセントあり','!専用回路なし（新設が必要）']),
   P('water','給水（分岐）','sel',['分岐水栓・止水栓あり','!分岐の取り付けが必要']),
-  P('drain','排水の接続先','sel',['シンク下に接続','単独配管（床の排水へ）','わからない']),
+  P('drain','排水の接続先','sel',['シンク下に接続','単独配管（床の排水へ）','!わからない（現地で確認）'],{show:a=>a.work!=='撤去のみ'}),
+  P('drainh','ホースの出口の高さ（床から）','num',[],{u:'mm',hint:'単独配管の場合：排水ホースを出す位置の床からの高さ',show:a=>a.work!=='撤去のみ'&&a.drain==='単独配管（床の排水へ）'}),
   P('model','現在のメーカー・型番','text',[],{show:a=>a.work!=='新設（ビルトイン）'})]},
  {k:'faucet',name:'水栓',points:[
   P('where','場所','sel',['キッチン','洗面','浴室','トイレ','屋外','その他'],{req:1}),
@@ -1539,6 +1553,7 @@ const TYPES=[
   P('wpitch','取付ピッチ（芯から芯まで）','num',[],{u:'mm',req:1,hint:'壁付き：左右の給水口の中心から中心まで（ふつう200前後）／台付き穴2つ：2つの穴の中心から中心まで',show:a=>a.mount==='壁付き'||a.mount==='台付き（穴2つ）'}),
   P('cur','今の水栓','sel',['シングルレバー','2ハンドル','サーモスタット','浄水器一体型','タッチレス']),
   P('valve','止水栓','sel',['あり・正常','!あり・固着/漏れ','!なし']),
+  P('valvemove','止水栓の移設','sel',['不要','!移設が必要'],{hint:'止水栓が「あり」でも「なし」でも選べます'}),
   P('want','希望','sel',['同じタイプ','浄水器一体型','タッチレス','食洗機の分岐付き','その他']),
   P('model','現在のメーカー・型番','text')]},
  {k:'bathdryer',name:'浴室暖房乾燥機',points:[
@@ -2031,14 +2046,14 @@ const BOWL_SRC=[
 ["パナソニック", "床排水", "285〜565/305〜585", ["CH420R□", "CH420RK□", "CH420RYK□"], [["サイホン便器タイプ（ねじ位置 奥105/手前205）", "285〜565"], ["シャワレインタイプ（ねじ位置 奥127/手前227）", "305〜585"]], "品番末尾の□は色などの記号。パナソニック公式資料「水洗便器 主要機種の判別ポイントと排水芯判別ポイント」（2026.11.11更新）。販売終了品。リフォーム便器は排水芯が範囲で調整できる。床固定ねじの位置でタイプを見分ける"],
 ["パナソニック", "床排水", "305〜450", ["CH45M2R□", "CH45M3R□", "CH45M2RM□", "CH45M3RM□", "CH4682R□", "CH4682RM□"], null, "品番末尾の□は色などの記号。パナソニック公式資料「水洗便器 主要機種の判別ポイントと排水芯判別ポイント」（2026.11.11更新）。販売終了品。リフォーム便器は排水芯が範囲で調整できる"],
 ["パナソニック", "壁排水", "148", ["CH467PY□"], null, "品番末尾の□は色などの記号。パナソニック公式資料「水洗便器 主要機種の判別ポイントと排水芯判別ポイント」（2026.11.11更新）。販売終了品。資料の表記は「排水芯148mm・便器側接続位置170mm」。現地で確認"],
-["ジャニス", "床排水", "120/200/305〜380", ["C820S＊"], [["床排水 120", "120"], ["床排水 200", "200"], ["リフォーム対応（排水アジャスターで調整）", "305〜380"]], "スマートクリンⅢ。品番末尾の＊は記号。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）。120は壁排水・床上の排水位置120対応ではなく、資料の120の列（スマートクリン系）"],
+["ジャニス", "床排水", "120/200/305〜380", ["C820S＊"], [["120か200か未確認（両対応の便器が必要）", "120/200"], ["床排水 120", "120"], ["床排水 200", "200"], ["リフォーム対応（排水アジャスターで調整）", "305〜380"]], "スマートクリンⅢ。品番末尾の＊は記号。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）。120は壁排水・床上の排水位置120対応ではなく、資料の120の列（スマートクリン系）"],
 ["ジャニス", "床排水", "200/305〜435", ["C825S＊"], [["床排水 200", "200"], ["リフォーム対応（排水アジャスターで調整）", "305〜435"]], "キュアーズ クーペ・コア。品番末尾の＊は記号。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）"],
 ["ジャニス", "床排水", "200/305〜540", ["C809S＊"], [["床排水 200", "200"], ["リフォーム対応（排水アジャスターで調整）", "305〜540"]], "バリュークリンⅡ・Ⅲ。品番末尾の＊は記号。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）"],
 ["ジャニス", "床排水", "200", ["C801S＊"], null, "BM。品番末尾の＊は記号。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）"],
 ["ジャニス", "床排水", "200", ["C802S＊"], null, "BM。品番末尾の＊は記号。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）"],
 ["ジャニス", "床排水", "200/265〜435", ["C803S＊"], [["床排水 200", "200"], ["リフォーム対応（排水アジャスターで調整）", "265〜435"]], "マイティクリン。品番末尾の＊は記号。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）"],
 ["ジャニス", "床排水", "200/305〜540", ["C804S＊"], [["床排水 200", "200"], ["リフォーム対応（排水アジャスターで調整）", "305〜540"]], "BM。品番末尾の＊は記号。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）"],
-["ジャニス", "床排水", "120/200/305〜380", ["C806S＊"], [["床排水 120", "120"], ["床排水 200", "200"], ["リフォーム対応（排水アジャスターで調整）", "305〜380"]], "スマートクリンⅡα。品番末尾の＊は記号。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）。120は壁排水・床上の排水位置120対応ではなく、資料の120の列（スマートクリン系）"],
+["ジャニス", "床排水", "120/200/305〜380", ["C806S＊"], [["120か200か未確認（両対応の便器が必要）", "120/200"], ["床排水 120", "120"], ["床排水 200", "200"], ["リフォーム対応（排水アジャスターで調整）", "305〜380"]], "スマートクリンⅡα。品番末尾の＊は記号。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）。120は壁排水・床上の排水位置120対応ではなく、資料の120の列（スマートクリン系）"],
 ["ジャニス", "床排水", "200/265〜435", ["C807S＊"], [["床排水 200", "200"], ["リフォーム対応（排水アジャスターで調整）", "265〜435"]], "マイティクリン。品番末尾の＊は記号。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）"],
 ["ジャニス", "床排水", "200", ["C73S＊"], null, "楽れっとシリーズ。品番末尾の＊は記号。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）。ジャニス公式チャットで確認：C73S・C77S・C80S・C81S・C85S・C86SGの排水芯は200mm。品番の末尾や途中にG・H（例：C81SG、C81SHG）が付いても同じ条件"],
 ["ジャニス", "床排水", "200", ["C77S＊"], null, "品番末尾の＊は記号。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）。ジャニス公式チャットで確認：C73S・C77S・C80S・C81S・C85S・C86SGの排水芯は200mm。品番の末尾や途中にG・H（例：C81SG、C81SHG）が付いても同じ条件"],
@@ -2056,6 +2071,14 @@ const BOWL_SRC=[
 ["ジャニス", "床排水", "405", ["C1418"], null, "洋式便器。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）"],
 ["ジャニス", "床排水", "385", ["C1210"], null, "洋式便器。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）"],
 ["ジャニス", "床排水", "200", ["C1220"], null, "洋式便器。ジャニス工業「便器排水芯一覧」（カタログ2026年4月版 P112・公式PDF）。ジャニス公式チャットで確認：C1220は排水芯200mm（同一品番で他社品がある）"],
+["ジャニス", "床排水", "120/200/305〜380", ["C89S＊"], [["120か200か未確認（両対応の便器が必要）", "120/200"], ["床排水 120", "120"], ["床排水 200", "200"], ["リフォーム対応（排水アジャスターで調整）", "305〜380"]], "スマートクリン。品番末尾の＊は記号（C89SG・C89SHGなど）。LIXILのC-89Sと読みが重なるためメーカーを選ぶ。ジャニス工業 部品カタログ（便器セット部）（排水芯200・120／リフォーム305〜380）"],
+["ジャニス", "床排水", "120/200", ["SMA8204SGB"], [["120か200か未確認（両対応の便器が必要）", "120/200"], ["床排水 120", "120"], ["床排水 200", "200"]], "スマートクリンⅢ（便器記号 C820S1G／C820P1G）。配管の向きで120・200に合わせる床排水仕様。ジャニス工業 部品カタログ（便器セット部）（セット CS8207-SGB）"],
+["ジャニス", "床排水", "200", ["SC8251-SGB"], null, "キュアーズ クーペ（便器記号 C825S＊）の床排水仕様。排水芯200。リフォーム仕様は別品番（-RGB）。ジャニス工業 部品カタログ（便器セット部）"],
+["ジャニス", "床排水", "200", ["SC8250-SGB"], null, "キュアーズ コア（便器記号 C825S＊）の床排水仕様。排水芯200。リフォーム仕様は別品番（-RGB）。ジャニス工業 部品カタログ（便器セット部）"],
+["ジャニス", "床排水", "200", ["SC8091-SGB"], null, "バリュークリンⅡ／Ⅲ（便器記号 C809S＊）の床排水仕様。排水芯200。リフォーム仕様は別品番（-RGB）。ジャニス工業 部品カタログ（便器セット部）"],
+["ジャニス", "床排水", "495/520", ["C760"], [["樹脂タンク", "495"], ["陶器タンク", "520"]], "旧品（部品供給終了）。TOTOのC760と品番が重なるためメーカーを選ぶ。ジャニス工業 部品カタログ（便器セット部）"],
+["ジャニス", "壁排水", "148/155", ["C80P"], [["左右（横）抜き", "155"], ["後ろ抜き", "148", -7]], "楽れっとシリーズ。後抜き148／左右抜き155。ジャニス工業 部品カタログ（便器セット部）"],
+["ジャニス", "壁排水", "120", ["C808P＊"], null, "ユニクリン（C808PAGなど）。後ろ抜き120。品番末尾の＊は記号。ジャニス工業 部品カタログ（便器セット部）"],
 ["ジャニス", "壁排水", "100", ["C1230"], null, "後抜きのみ。大形、偏芯なし。ジャニス工業「床上排水便器 排水高さ一覧」（20230530J-GK.MA・公式PDF）"],
 ["ジャニス", "壁排水", "155", ["C1231"], null, "後抜き・左右抜きとも155。大形、偏芯なし。ジャニス工業「床上排水便器 排水高さ一覧」（20230530J-GK.MA・公式PDF）"],
 ["ジャニス", "壁排水", "120", ["C87PAG"], null, "後抜きのみ。大形、偏芯なし。ジャニス工業「床上排水便器 排水高さ一覧」（20230530J-GK.MA・公式PDF）"],
@@ -2109,20 +2132,46 @@ function bowlResultHtml(scope,v){
 const TYPE=Object.fromEntries(TYPES.map(t=>[t.k,t]));
 const PROP_TYPES=['戸建','マンション','アパート','店舗','事務所','その他'];
 const STRUCTS=['木造','軽量鉄骨','重量鉄骨','RC造','SRC造','その他'];
+const METHOD_OTHER='その他（自由入力）';
+const METHODS=[
+ ['木造（一般）',['在来工法（木造軸組）','ツーバイフォー（2×4・枠組壁工法）','ツーバイシックス（2×6）','木質パネル工法','丸太組（ログハウス）','伝統工法（石場建て等）']],
+ ['鉄骨・コンクリート（一般）',['軽量鉄骨造（プレハブ）','鉄骨ユニット工法','重量鉄骨ラーメン構造','ALCパネル造','RCラーメン構造','壁式RC造','PC（プレキャスト）工法']],
+ ['ハウスメーカー別',[
+  '積水ハウス：鉄骨（イズ・ステージ／ビエナ等）','積水ハウス：木造（シャーウッド）',
+  '大和ハウス：鉄骨（xevo Σ／skye等）','大和ハウス：木造（xevo GranWood）',
+  'ミサワホーム：木質パネル接着工法','ミサワホーム：鉄骨ユニット','ミサワホーム：木造（MJWood）',
+  '住友林業：木造軸組（マルチバランス）','住友林業：ビッグフレーム構法','住友林業：ツーバイフォー',
+  '一条工務店：ツインモノコック（枠組壁）','一条工務店：木造軸組',
+  'セキスイハイム：鉄骨ユニット','セキスイハイム：木質ユニット',
+  '三井ホーム：プレミアム・モノコック（2×4）','トヨタホーム：鉄骨ユニット',
+  'ヘーベルハウス：重量鉄骨＋ALC','パナソニックホームズ：鉄骨（HS構法）',
+  'スウェーデンハウス：木造（枠組壁）','住友不動産：ツーバイフォー','タマホーム：木造軸組']],
+ ['その他',['わからない',METHOD_OTHER]]];
 const M_KINDS=['部屋','開口部','設備','その他'];
 const isWarn=o=>String(o).startsWith('!');
 // 「120/200」「305〜540」を範囲の配列に
 function parseRanges(v){return String(v||'').replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).split(/[\/、,，]/).map(x=>x.trim()).filter(Boolean)
   .map(x=>{const m=x.split(/[〜~～\-ー－]/).map(n=>parseFloat(n)).filter(n=>!isNaN(n));return m.length?[Math.min(...m),Math.max(...m)]:null}).filter(Boolean)}
+// 「120/200」のように区切られた入力を、1つずつの値（文字と範囲）にする
+function parseTokens(v){return String(v||'').replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[ｍＭmM]{2}/g,'').replace(/(\d)[\s　]+(?=\d)/g,'$1/').split(/[\/／、,，・･;；]|と/).map(x=>x.trim()).filter(Boolean)
+  .map(x=>{const m=x.split(/[〜~～\-ー－]/).map(n=>parseFloat(n)).filter(n=>!isNaN(n));return m.length?{t:x,r:[Math.min(...m),Math.max(...m)]}:null}).filter(Boolean)}
 // 今の排水芯が、新しい便器の対応範囲に入るか
+// 今の排水芯が「120/200」＝120か200か未確認の現場 → 両方に対応した便器でないと警告
+// 新しい便器の対応範囲も「120/200」のように複数書ける（120と200の両対応）
 function pitchCheck(a){
-  if(!a||a.drain==='壁排水')return null;const cur=parseRanges(a.pitch),nw=parseRanges(a.newrange)[0];
-  if(!cur.length||!nw)return null;
-  const inR=r=>r[0]>=nw[0]&&r[1]<=nw[1],n=cur.filter(inR).length,cs=String(a.pitch).trim(),ns=String(a.newrange).trim();
+  if(!a||a.drain==='壁排水')return null;const cur=parseTokens(a.pitch),nw=parseTokens(a.newrange);
+  if(!cur.length)return null;
+  if(!nw.length)return cur.length>1?{ok:false,msg:`この現場は${cur.map(c=>c.t).join('・')}両対応の便器が必要です。新しい便器の対応範囲が未入力です（両対応品か確認）`}:null;
+  const inR=c=>nw.some(w=>c.r[0]>=w.r[0]&&c.r[1]<=w.r[1]);
+  const okL=cur.filter(inR),cs=String(a.pitch).trim(),ns=String(a.newrange).trim();
   const src=a.pitchsrc==='実測'?'':'（型番表の値・要実測）';
-  if(n===cur.length)return {ok:true,msg:`今の排水芯 ${cs}mm は対応範囲 ${ns}mm に入っています${src}`};
-  if(n>0)return {ok:false,msg:`今の排水芯 ${cs}mm の一部が対応範囲 ${ns}mm から外れています。実測して確認してください`};
-  return {ok:false,msg:`今の排水芯 ${cs}mm は、新しい便器の対応範囲 ${ns}mm に入りません。取り付けできない可能性があります`};
+  const both=cur.length>1,list=cur.map(c=>c.t).join('・');
+  if(okL.length===cur.length)return {ok:true,msg:both?`この現場は排水芯 ${list}mm のどちらか未確認の現場です。選んだ便器（${ns}mm）は両方に対応しています${src}`:`今の排水芯 ${cs}mm は対応範囲 ${ns}mm に入っています${src}`};
+  if(both){
+    if(okL.length)return {ok:false,msg:`この現場は${list}両対応の便器が必要です。選んだ便器は${okL.map(c=>c.t).join('・')}だけの対応です${src}`};
+    return {ok:false,msg:`この現場は${list}両対応の便器が必要です。選んだ便器（${ns}mm）はどちらにも対応していません${src}`};
+  }
+  return {ok:false,msg:`排水芯${cs}に対応していません（選んだ便器の対応：${ns}mm）。取り付けできない可能性があります`};
 }
 // 壁排水：実測が型番表（カタログ値）と違うとき（配管が傾いて取り付けられている現場など）。実測を優先して説明を出す
 function wallNote(a){
@@ -2341,7 +2390,7 @@ function renderList(){
     confirmBox('調査を削除','「'+(s.title||'無題')+'」を削除します。元に戻せません。','削除',async()=>{await Store.del(s.id);surveys=await loadSurveys();render();toast('削除しました')})});
   a.querySelectorAll('[data-dup]').forEach(b=>b.onclick=async()=>{const s=JSON.parse(JSON.stringify(surveys.find(x=>x.id===b.dataset.dup)));
     // 現場ごとに変わる情報は引き継がない
-    // 引き継ぐのは物件種別・構造・築年数・階数・担当者と、交換対象の種類・呼び名・追加した確認ポイントだけ
+    // 引き継ぐのは物件種別・構造・工法・築年数・階数・担当者と、交換対象の種類・呼び名・追加した確認ポイントだけ
     normalize(s);s.id=uid();s.title='';s.date=today();s.code='';s.custNo='';s.seq='';s.purpose='';s.note='';s.measures=[];s.common={};delete s.rev;delete s.repAt;
     s.targets.forEach(t=>{t.id=uid();t.memo='';t.ans={}});
     s.createdAt=s.updatedAt=Date.now();await Store.put(s);surveys=await loadSurveys();openSurvey(s.id,'info');
@@ -2361,7 +2410,7 @@ $('#jsonIn').onchange=async e=>{
 };
 const useHist=!window.claude;let histPushed=false;
 async function goList(){clearTimeout(saveTimer);if(cur)await Store.put(cur);histPushed=false;surveys=await loadSurveys();view='list';cur=null;report=null;closeModal();render();scrollTo(0,0)}
-window.addEventListener('popstate',()=>{if(view==='survey')goList()});
+window.addEventListener('popstate',()=>{if(zoomBack){zoomBack=false;return}if(zv){closeZoom(true);return}if(view==='survey')goList()});
 function openSurvey(id,t){cur=surveys.find(s=>s.id===id);if(!cur)return;normalize(cur);
   if(useHist&&!histPushed){try{history.pushState({v:'survey'},'');histPushed=true}catch(e){}}
   view='survey';tab=t||'check';report=null;openT=new Set(cur.targets.slice(-1).map(x=>x.id));render();scrollTo(0,0)}
@@ -2385,6 +2434,8 @@ function renderInfo(){
     <div class="grid2">
       <label class="f"><span>物件種別</span><select class="inp" data-f="propType">${opt(PROP_TYPES,s.propType)}</select></label>
       <label class="f"><span>構造</span><select class="inp" data-f="structure">${opt(STRUCTS,s.structure)}</select></label>
+      <label class="f" style="grid-column:1/-1"><span>工法（ツーバイフォー・在来・メーカー別）</span><select class="inp" data-f="method"><option value="">選んでください</option>${METHODS.map(g=>`<optgroup label="${esc(g[0])}">${g[1].map(o=>`<option ${o===s.method?'selected':''}>${esc(o)}</option>`).join('')}</optgroup>`).join('')}</select>
+        <input class="inp" data-f="methodOther" id="methodOther" value="${esc(s.methodOther||'')}" placeholder="工法・メーカー名・商品名を入力" style="margin-top:6px;${s.method===METHOD_OTHER?'':'display:none'}"></label>
       <label class="f" style="margin:0"><span>築年数（年）</span><input class="inp" type="number" inputmode="numeric" data-f="age" value="${esc(s.age)}"></label>
       <label class="f" style="margin:0"><span>階数・調査階</span><input class="inp" data-f="floors" value="${esc(s.floors)}" placeholder="2階建"></label>
     </div>
@@ -2395,6 +2446,7 @@ function renderInfo(){
     <label class="f" style="margin:0"><span>総評・特記事項（報告書に記載）</span><textarea class="inp" data-f="note">${esc(s.note)}</textarea></label>
   </div>
   <button class="btn block" id="go">確認ポイントへ進む ›</button>`;
+  {const mt=document.querySelector('[data-f=method]');if(mt)mt.addEventListener('change',()=>{const o=$('#methodOther');if(o){o.style.display=mt.value===METHOD_OTHER?'':'none';if(mt.value===METHOD_OTHER)o.focus()}})}
   $('#app').querySelectorAll('[data-f]').forEach(el=>el.addEventListener('input',()=>{cur[el.dataset.f]=el.value;touch();if(el.dataset.f==='title')$('#hdr h1').textContent=el.value||'無題'}));
   $('#app').querySelectorAll('[data-c]').forEach(el=>el.addEventListener('input',()=>{let v=toHalf(el.value).replace(/\D/g,'');if(el.dataset.c==='seq')v=v.replace(/^0+(?=\d)/,'');if(v!==el.value)el.value=v;cur[el.dataset.c]=v;setCode(cur);touch();codeHint()}));
   codeHint();
@@ -2420,7 +2472,7 @@ function pointHtml(scope,p,v){
       <div data-bowlres="${esc(key)}">${bowlResultHtml(scope,v)}</div>`;
   }else if(p.t==='dim'){
     body=`<div class="numrow"><input class="inp" data-in="${esc(key)}" value="${esc(v)}" inputmode="text" placeholder="例：200"><span class="u">${esc(p.u||'')}</span></div>
-      <div class="chips dimchips">${p.o.map(o=>`<button class="chip ${String(v)===o?'on':''}" data-dim="${esc(key)}" data-o="${esc(o)}">${esc(o)}</button>`).join('')}</div>${p.id==='newrange'||p.id==='wallh'?compatHtml(scope):''}`;
+      <div class="chips dimchips">${p.o.map(o=>`<button class="chip ${String(v)===o?'on':''}" data-dim="${esc(key)}" data-o="${esc(o)}">${esc(o==='120/200'?(p.id==='pitch'?'120か200か未確認（両対応が必要）':p.id==='newrange'?'120/200（両対応）':o):o)}</button>`).join('')}</div>${p.id==='newrange'||p.id==='wallh'?compatHtml(scope):''}`;
   }else if(p.t==='num'){
     body=`<div class="numrow"><input class="inp" type="number" inputmode="decimal" data-in="${esc(key)}" value="${esc(v)}"><span class="u">${esc(p.u||'')}</span></div>${p.id==='newkpa'?kpaHtml(scope):''}`;
   }else{
@@ -2487,7 +2539,7 @@ function bindCheck(){
   a.querySelectorAll('[data-addpt]').forEach(b=>b.onclick=()=>addPointDialog(b.dataset.addpt));
   bindExtra(a);
 }
-const normDim=v=>String(v).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[／]/g,'/').replace(/[~～\-ー－]/g,'〜').replace(/\s+/g,'');
+const normDim=v=>String(v).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[／]/g,'/').replace(/[ｍＭmM]{2}/g,'').replace(/(\d)[\s　]+(?=\d)/g,'$1/').replace(/[・･、,，;；]|と/g,'/').replace(/[~～\-ー－]/g,'〜').replace(/\s+/g,'');
 function bindExtra(root){
   root.querySelectorAll('[data-dim]').forEach(b=>b.onclick=()=>{const [scope,pid]=b.dataset.dim.split('|');const sc=getScope(scope);const p=sc.pts.find(x=>x.id===pid);
     sc.ans[pid]=b.dataset.o;touch();if(pid==='pitch'||pid==='wallh'||pid==='newrange'||pid==='pitchsrc'){const y=scrollY;renderCheck();scrollTo(0,y)}else refreshPoint(scope,p)});
@@ -2771,6 +2823,7 @@ function showReport(){
      <button class="btn block" id="pdf">PDFで保存・共有</button>
      <button class="btn sec block" id="img" style="margin-top:10px">画像で保存・共有（全ページ）</button>
      <p class="muted" style="margin-bottom:0">共有画面から「ファイルに保存」やLINE・メールに送れます。画像は全ページを1枚につなげて保存します（ページごとの画像は下の各ページから）。</p>
+     <p class="muted" style="margin-bottom:0">下のページをタップすると、全画面で拡大して確認できます。</p>
      <p class="muted" style="margin-bottom:0">LINEで送るときは、PDFを「ファイル」として送ると画質が落ちません。画像で送ると、LINEが縮小して荒くなります。</p>
      <p class="muted" style="margin-bottom:0">全${report.length}ページ（A4縦）・作成 ${stamp(report.at||new Date())}<br>ファイル名：${esc(base)}.pdf</p>
    </div>
@@ -2784,7 +2837,56 @@ function showReport(){
     ib.disabled=true;ib.textContent='画像を作成中…';
     try{const c=stitchPages(report);const blob=new Blob([dataUrlBytes(c.toDataURL('image/jpeg',0.9))],{type:'image/jpeg'});await saveFile(base+'.jpg',blob)}catch(e){toast('画像を作成できませんでした')}
     ib.disabled=false;ib.textContent='画像で保存・共有（全ページ）'};
+  el.querySelectorAll('.rp-page img').forEach((m,i)=>{m.onclick=()=>openZoom(i);m.setAttribute('role','button');m.setAttribute('tabindex','0');m.onkeydown=e=>{if(e.key==='Enter')openZoom(i)}});
   el.querySelectorAll('[data-png]').forEach(b=>b.onclick=()=>{const i=+b.dataset.png;saveFile(`${base}_${i+1}.png`,new Blob([dataUrlBytes(report[i].toDataURL('image/png'))],{type:'image/png'}))});
+}
+
+
+/* ===== 報告書の全画面表示：タップで開く／ピンチ・ダブルタップ・ホイールで拡大／ドラッグで移動 ===== */
+let zv=null,zoomPushed=false,zoomBack=false;
+function openZoom(i0){
+  if(!report||zv)return;let idx=i0;
+  const o=document.createElement('div');o.id='zv';o.setAttribute('role','dialog');o.setAttribute('aria-label','報告書の拡大表示');
+  o.innerHTML=`<img class="zimg" alt=""><div class="zbar"><span class="zpg"></span><span style="display:flex;gap:8px"><button type="button" data-z="out" aria-label="縮小">−</button><button type="button" data-z="in" aria-label="拡大">＋</button><button type="button" data-z="x" aria-label="閉じる">✕ 閉じる</button></span></div>
+   <button type="button" class="znav" data-z="prev" style="left:8px" aria-label="前のページ">‹</button><button type="button" class="znav" data-z="next" style="right:8px" aria-label="次のページ">›</button>
+   <div class="zhint">ピンチで拡大・ダブルタップで拡大／元に戻す・ドラッグで移動</div>`;
+  document.body.appendChild(o);zv=o;document.body.style.overflow='hidden';
+  const im=o.querySelector('.zimg'),pg=o.querySelector('.zpg');
+  let S=1,TX=0,TY=0,W=0,H=0;const P=new Map();let pinch=null,lastTap=0,lastTapXY=null,moved=0;
+  const vw=()=>window.innerWidth,vh=()=>window.innerHeight;
+  const clamp=()=>{const w=W*S,h=H*S,mx=Math.max(0,(w-vw())/2),my=Math.max(0,(h-vh())/2);
+    const cx=(vw()-w)/2,cy=(vh()-h)/2; // 中央寄せの位置
+    TX=w<=vw()?cx:Math.min(cx+mx,Math.max(cx-mx,TX));TY=h<=vh()?cy:Math.min(cy+my,Math.max(cy-my,TY));};
+  const apply=()=>{clamp();im.style.transform=`translate(${TX}px,${TY}px) scale(${S})`;};
+  const fit=()=>{const r=im.naturalWidth/im.naturalHeight,k=Math.min(vw()/im.naturalWidth,vh()/im.naturalHeight);W=im.naturalWidth*k;H=im.naturalHeight*k;im.style.width=W+'px';im.style.height=H+'px';im.style.maxWidth='none';im.style.maxHeight='none';im.style.left='0';im.style.top='0';S=1;TX=(vw()-W)/2;TY=(vh()-H)/2;apply();};
+  const show=i=>{idx=(i+report.length)%report.length;pg.textContent=`${idx+1} / ${report.length}`;im.onload=fit;im.src=report[idx].toDataURL('image/jpeg',0.92);if(im.complete&&im.naturalWidth)fit();};
+  const zoomAt=(ns,px,py)=>{ns=Math.max(1,Math.min(6,ns));const k=ns/S;TX=px-(px-TX)*k;TY=py-(py-TY)*k;S=ns;apply();};
+  o.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;try{o.setPointerCapture(e.pointerId)}catch(x){}P.set(e.pointerId,{x:e.clientX,y:e.clientY});moved=0;
+    if(P.size===2){const [a,b]=[...P.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,S:S};}});
+  o.addEventListener('pointermove',e=>{const p=P.get(e.pointerId);if(!p)return;
+    if(P.size===2&&pinch){P.set(e.pointerId,{x:e.clientX,y:e.clientY});const [a,b]=[...P.values()];const d=Math.hypot(a.x-b.x,a.y-b.y)||1;zoomAt(pinch.S*d/pinch.d,(a.x+b.x)/2,(a.y+b.y)/2);moved=9;return;}
+    const dx=e.clientX-p.x,dy=e.clientY-p.y;moved+=Math.abs(dx)+Math.abs(dy);p.x=e.clientX;p.y=e.clientY;if(S>1){TX+=dx;TY+=dy;apply();}});
+  const up=e=>{if(!P.has(e.pointerId))return;P.delete(e.pointerId);if(P.size<2)pinch=null;
+    if(P.size===0&&moved<8&&e.type==='pointerup'){const t=Date.now(),near=lastTapXY&&Math.hypot(lastTapXY.x-e.clientX,lastTapXY.y-e.clientY)<40;
+      if(t-lastTap<320&&near){zoomAt(S>1.05?1:2.5,e.clientX,e.clientY);lastTap=0;}else{lastTap=t;lastTapXY={x:e.clientX,y:e.clientY};}}
+    if(S<1.02&&P.size===0){S=1;apply();}};
+  o.addEventListener('pointerup',up);o.addEventListener('pointercancel',up);
+  o.addEventListener('wheel',e=>{e.preventDefault();zoomAt(S*(e.deltaY<0?1.15:1/1.15),e.clientX,e.clientY);},{passive:false});
+  o.addEventListener('click',e=>{const b=e.target.closest('button[data-z]');if(!b)return;const z=b.dataset.z;
+    if(z==='x')closeZoom();else if(z==='in')zoomAt(S*1.5,vw()/2,vh()/2);else if(z==='out')zoomAt(S/1.5,vw()/2,vh()/2);
+    else if(z==='prev')show(idx-1);else if(z==='next')show(idx+1);});
+  const onKey=e=>{if(e.key==='Escape')closeZoom();else if(e.key==='ArrowLeft')show(idx-1);else if(e.key==='ArrowRight')show(idx+1);else if(e.key==='+'||e.key==='=')zoomAt(S*1.5,vw()/2,vh()/2);else if(e.key==='-')zoomAt(S/1.5,vw()/2,vh()/2);};
+  const onRs=()=>{if(im.naturalWidth)fit();};
+  document.addEventListener('keydown',onKey);window.addEventListener('resize',onRs);
+  o._off=()=>{document.removeEventListener('keydown',onKey);window.removeEventListener('resize',onRs)};
+  if(report.length<2)o.querySelectorAll('.znav').forEach(b=>b.style.display='none');
+  setTimeout(()=>{const h=o.querySelector('.zhint');if(h)h.style.opacity='0'},3500);
+  if(useHist){try{history.pushState({v:'zoom'},'');zoomPushed=true}catch(e){}}
+  show(idx);o.querySelector('[data-z=x]').focus&&o.querySelector('[data-z=x]').focus();
+}
+function closeZoom(fromPop){
+  if(!zv)return;const o=zv;zv=null;o._off&&o._off();o.remove();document.body.style.overflow='';
+  if(zoomPushed){zoomPushed=false;if(!fromPop){zoomBack=true;try{history.back()}catch(e){zoomBack=false}setTimeout(()=>{zoomBack=false},600)}}
 }
 
 /* ===== 報告書レンダラー（A4 150dpi） ===== */
@@ -2797,7 +2899,9 @@ function wrap(ctx,text,maxW){
 function ansText(p,v,ans){
   if(p.t==='multi')return (v||[]).map(optTxt).join('、');
   if(p.t==='bowl'&&String(v||'').trim()){const L=bowlLookup(v,ans&&ans.bowlMaker),e=L.exact;return String(v).trim()+(e?`（${e.maker} ${e.drain} ${e.val}mm）`:L.multi?'（メーカー未選択・要確認）':'（型番表に未登録・要実測）')}
-  if(p.t==='dim')return String(v||'').trim()?String(v).trim()+' '+(p.u||''):'';
+  if(p.t==='dim'){const s0=String(v||'').trim();if(!s0)return '';
+    if(p.id==='pitch'){const tk=parseTokens(s0);if(tk.length>1&&tk.every(c=>c.r[0]===c.r[1]))return tk.map(c=>c.t).join('か')+' '+(p.u||'')+'（どちらか未確認）'}
+    return s0+' '+(p.u||'')}
   if(p.t==='num')return v!==undefined&&String(v).trim()!==''?Number(v).toLocaleString()+' '+(p.u||''):'';
   return optTxt(v||'');
 }
@@ -2885,6 +2989,9 @@ async function buildReportK(s,opt,K){
       ctx.fillStyle='#f1f3f6';ctx.fillRect(x,y,200,rowH);ctx.strokeRect(x,y,colW,rowH);ctx.beginPath();ctx.moveTo(x+200,y);ctx.lineTo(x+200,y+rowH);ctx.stroke();
       txt(k,x+14,y+19,22,700,'#4a525c');ctx.font=font(26,600);let vv=String(v||'—');while(ctx.measureText(vv).width>colW-230&&vv.length>1)vv=vv.slice(0,-1);txt(vv,x+216,y+16,26,600)}
     y+=rowH}
+  {const mv=s.method===METHOD_OTHER?(s.methodOther||''):(s.method||'');
+    ctx.fillStyle='#f1f3f6';ctx.fillRect(MG,y,200,rowH);ctx.strokeRect(MG,y,W,rowH);ctx.beginPath();ctx.moveTo(MG+200,y);ctx.lineTo(MG+200,y+rowH);ctx.stroke();
+    txt('工法',MG+14,y+19,22,700,'#4a525c');ctx.font=font(26,600);let vv=String(mv||'—');while(ctx.measureText(vv).width>W-230&&vv.length>1)vv=vv.slice(0,-1);txt(vv,MG+216,y+16,26,600);y+=rowH}
   y+=12;
   para('ご要望',s.purpose);
 
