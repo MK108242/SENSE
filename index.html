@@ -2331,8 +2331,9 @@ function render(){
   ({info:renderInfo,check:renderCheck,measure:renderMeasure,report:renderReport})[tab]();
 }
 
-const APP_VER='v28'; // sw.js の VERSION と同じ値にする
+const APP_VER='v29'; // sw.js の VERSION と同じ値にする
 const NOTES=[ // 更新履歴（新しい順。古いものは消してよい）
+['v29','11/25',['報告書の各ページに作成アプリのバージョンを表示','送信データにもバージョンを記録']],
 ['v28','11/25',['バージョン表示と更新履歴を追加']],
 ['v27','11/25',['便器の品番データを追加・修正']],
 ['v24','11/25',['報告書の画像を全画面で拡大','止水栓の「移設が必要」を選べる','建物情報に「工法」を追加']],
@@ -2712,7 +2713,7 @@ function caseFile(s){
   const z=toZumen(s);
   return {data:{v:4,floors:z.floors.length?z.floors:[{n:'1F',rooms:[]}],fi:0,uid:z.uid+10,north:0,
     meta:{shop:'',staff:s.surveyor||'',cust:''},
-    case:{app:'genchi-chousa',v:1,spec:specFor(s),code:s.code||'',custNo:s.custNo||'',seq:s.seq||'',title:s.title||'',date:s.date||'',exportedAt:stamp(new Date()),rev:s.rev||0,survey:s}},warn:z.warn,rooms:z.rooms.length};
+    case:{app:'genchi-chousa',v:1,av:APP_VER,spec:specFor(s),code:s.code||'',custNo:s.custNo||'',seq:s.seq||'',title:s.title||'',date:s.date||'',exportedAt:stamp(new Date()),rev:s.rev||0,survey:s}},warn:z.warn,rooms:z.rooms.length};
 }
 async function bumpRev(){clearTimeout(saveTimer);if(!cur.rev||(cur.repAt&&cur.updatedAt>cur.repAt))cur.rev=(cur.rev||0)+1;cur.repAt=Date.now()+1;await Store.put(cur);setStat('保存済み')}
 async function sendToOffice(qr){
@@ -2727,7 +2728,7 @@ async function sendToOffice(qr){
     const name=[cur.code?safeName(cur.code):'管理番号なし',safeName(cur.title),cur.date||'','現調データ',`第${cur.rev}版`].filter(Boolean).join('_')+'.json';
     if(!qr)return saveFile(name,JSON.stringify(c.data));
     // QRには図面アプリで使う分だけを入れる（調査の全回答 case.survey は入れない＝画像の枚数を減らす）
-    const d=JSON.parse(JSON.stringify(c.data));if(d.case)delete d.case.survey;
+    const d=JSON.parse(JSON.stringify(c.data));if(d.case){delete d.case.survey;delete d.case.av}
     showQr(d,name.replace(/\.json$/,''),{code:cur.code||'',title:cur.title||'',rev:cur.rev,date:cur.date||'',staff:cur.surveyor||''});
   };
   const notes=[...(c0.rooms?[]:['採寸に「部屋」がないため、図面の下書きは入りません（図面アプリでは読み込めません）']),...c0.warn];
@@ -3019,7 +3020,7 @@ async function buildReportK(s,opt,K){
         x+=cw});
       y+=h}
   }
-  pages.forEach((c,i)=>{const g=c.getContext('2d');g.setTransform(RS*K,0,0,RS*K,0,0);g.font=font(18);g.fillStyle='#68717d';g.textAlign='center';g.textBaseline='top';g.fillText(`${i+1} / ${pages.length}`,PW/2,PH-MG+20)});
+  pages.forEach((c,i)=>{const g=c.getContext('2d');g.setTransform(RS*K,0,0,RS*K,0,0);g.font=font(18);g.fillStyle='#68717d';g.textAlign='center';g.textBaseline='top';g.fillText(`${i+1} / ${pages.length}`,PW/2,PH-MG+20);g.textAlign='right';g.fillText('作成アプリ '+APP_VER,PW-MG,PH-MG+20)});
   pages.at=at;pages.fill=(y-MG)/(PH-MG*2);
   return pages;
 }
