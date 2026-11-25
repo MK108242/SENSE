@@ -60,33 +60,6 @@ textarea.inp{min-height:110px;resize:vertical}
 .cat{background:#fff;border-radius:12px;margin-bottom:10px;overflow:hidden}
 .cat>button{width:100%;display:flex;align-items:center;gap:8px;background:var(--navy2);color:#fff;border:0;padding:18px 18px;min-height:64px;font-weight:700;font-size:21px}
 .cat>button .cnt{margin-left:auto;font-size:17px;opacity:.85;font-weight:400}
-.item{border-top:1px solid var(--line);padding:16px}
-.item:first-of-type{border-top:0}
-.item .hd{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.item .hd b{font-size:20px}
-.item .hd .ind{font-size:15px;color:var(--sub)}
-.item .hd .tg{margin-left:auto;background:#f1f3f6;border:0;color:var(--navy);font-size:16px;font-weight:700;padding:10px 16px;border-radius:10px;min-height:48px;white-space:nowrap}
-.seg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.seg button{border:2px solid #d3d8df;background:#fff;border-radius:12px;padding:12px 0;min-height:62px;font-size:19px;font-weight:700}
-.seg button.on[data-v=good]{background:var(--good);border-color:var(--good);color:#fff}
-.seg button.on[data-v=watch]{background:var(--watch);border-color:var(--watch);color:#fff}
-.seg button.on[data-v=repair]{background:var(--repair);border-color:var(--repair);color:#fff}
-.seg button.on[data-v=na]{background:var(--na);border-color:var(--na);color:#fff}
-.det{margin-top:14px}
-.det .chips{margin-bottom:14px}
-.thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
-.thumb{width:100px;height:100px;border-radius:10px;overflow:hidden;position:relative;background:#ddd;border:0;padding:0}
-.thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.addph{width:100px;height:100px;border-radius:10px;border:2.5px dashed var(--accent);background:#fff4ec;color:var(--accent);font-size:16px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-.addph svg{width:34px;height:34px}
-/* photos */
-.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
-.pcell{background:#fff;border-radius:10px;overflow:hidden}
-.pcell button.im{display:block;width:100%;aspect-ratio:4/3;border:0;padding:0;background:#ddd}
-.pcell img{width:100%;height:100%;object-fit:cover;display:block}
-.pcell .cap{padding:10px}
-.pcell .cap small{display:block;font-size:15px;color:var(--accent);font-weight:700;margin-bottom:3px}
-.pcell input{width:100%;border:2px solid #d3d8df;border-radius:8px;padding:10px;min-height:50px;font-size:17px}
 /* measures */
 .ms .dims{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .ms .area{font-size:18px;color:var(--navy);font-weight:700;margin-top:4px}
@@ -111,9 +84,6 @@ textarea.inp{min-height:110px;resize:vertical}
 #modal.on{display:flex}
 #modal .box{background:#fff;border-radius:14px;padding:18px;width:100%;max-width:420px;max-height:90vh;overflow:auto}
 #modal .box h3{margin:0 0 10px;font-size:22px}
-#modal .viewer{background:#000;max-width:none;padding:0;position:relative}
-#modal .viewer img{width:100%;display:block;max-height:75vh;object-fit:contain}
-#modal .viewer .vb{background:#fff;padding:12px}
 #toast{position:fixed;left:50%;bottom:calc(120px + var(--safe-b));transform:translateX(-50%);background:rgba(20,26,34,.92);color:#fff;padding:14px 22px;border-radius:26px;font-size:18px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
 #toast.on{opacity:1}
 .fab{position:fixed;right:16px;bottom:calc(20px + var(--safe-b));z-index:15;border-radius:36px;padding:18px 28px;min-height:68px;font-size:21px;box-shadow:0 4px 14px rgba(232,119,46,.4)}
@@ -2152,8 +2122,6 @@ const METHODS=[
 const M_KINDS=['部屋','開口部','設備','その他'];
 const isWarn=o=>String(o).startsWith('!');
 // 「120/200」「305〜540」を範囲の配列に
-function parseRanges(v){return String(v||'').replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).split(/[\/、,，]/).map(x=>x.trim()).filter(Boolean)
-  .map(x=>{const m=x.split(/[〜~～\-ー－]/).map(n=>parseFloat(n)).filter(n=>!isNaN(n));return m.length?[Math.min(...m),Math.max(...m)]:null}).filter(Boolean)}
 // 「120/200」のように区切られた入力を、1つずつの値（文字と範囲）にする
 function parseTokens(v){return String(v||'').replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[ｍＭmM]{2}/g,'').replace(/(\d)[\s　]+(?=\d)/g,'$1/').split(/[\/／、,，・･;；]|と/).map(x=>x.trim()).filter(Boolean)
   .map(x=>{const m=x.split(/[〜~～\-ー－]/).map(n=>parseFloat(n)).filter(n=>!isNaN(n));return m.length?{t:x,r:[Math.min(...m),Math.max(...m)]}:null}).filter(Boolean)}
@@ -2363,6 +2331,14 @@ function render(){
   ({info:renderInfo,check:renderCheck,measure:renderMeasure,report:renderReport})[tab]();
 }
 
+const APP_VER='v28'; // sw.js の VERSION と同じ値にする
+const NOTES=[ // 更新履歴（新しい順。古いものは消してよい）
+['v28','11/25',['バージョン表示と更新履歴を追加']],
+['v27','11/25',['便器の品番データを追加・修正']],
+['v24','11/25',['報告書の画像を全画面で拡大','止水栓の「移設が必要」を選べる','建物情報に「工法」を追加']],
+['v23','11/24',['図面アプリへの受け渡しをQR画像で簡単に']]
+];
+function showNotes(){modal(`<div class="box"><h3>更新履歴</h3>${NOTES.map(n=>`<p style="margin:10px 0 0"><b>${n[0]}</b> <span class="muted">${n[1]}</span><br>${n[2].map(esc).join('<br>')}</p>`).join('')}<div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn sec" id="mc">閉じる</button></div></div>`);$('#mc').onclick=closeModal}
 function renderList(){
   const a=$('#app');
   const list=[...surveys].map(normalize).sort((x,y)=>y.updatedAt-x.updatedAt);
@@ -2385,8 +2361,10 @@ function renderList(){
      <p class="muted" style="margin-top:0">データはこの端末のブラウザ内に保存されます。機種変更や履歴削除に備えて、ときどきバックアップを保存してください。</p>
      <div class="row"><button class="btn sec" id="bkup" style="flex:1">バックアップ保存</button><button class="btn sec" id="rstr" style="flex:1">読み込み</button></div>
    </div>
+   <div class="muted" style="text-align:center;margin-top:14px">バージョン ${APP_VER} <button class="btn ghost" id="vn" style="padding:6px 12px">更新履歴</button></div>
    <div style="height:70px"></div>
    <button class="btn fab" id="nw">＋ 新規調査</button>`;
+  $('#vn').onclick=showNotes;
   a.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openSurvey(b.dataset.open));
   a.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const s=surveys.find(x=>x.id===b.dataset.del);
     confirmBox('調査を削除','「'+(s.title||'無題')+'」を削除します。元に戻せません。','削除',async()=>{await Store.del(s.id);surveys=await loadSurveys();render();toast('削除しました')})});
