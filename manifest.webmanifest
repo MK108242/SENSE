@@ -1,7 +1,7 @@
 {
-  "name": "リフォーム現地調査",
-  "short_name": "現地調査",
-  "description": "設備交換リフォームの現地調査・報告書作成アプリ",
+  "name": "SENSE調査",
+  "short_name": "SENSE調査",
+  "description": "RF支援システムSENSE｜設備交換リフォームの現地調査・報告書作成",
   "lang": "ja",
   "start_url": "./",
   "scope": "./",

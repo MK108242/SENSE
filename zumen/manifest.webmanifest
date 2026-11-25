@@ -1,7 +1,7 @@
 {
-  "name": "かんたん図面",
-  "short_name": "かんたん図面",
-  "description": "事務所での作図・工事発注図面の作成",
+  "name": "SENSE図面",
+  "short_name": "SENSE図面",
+  "description": "RF支援システムSENSE｜事務所での作図・工事発注図面の作成",
   "lang": "ja",
   "start_url": "./",
   "scope": "./",

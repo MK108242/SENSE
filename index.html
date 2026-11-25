@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>リフォーム現地調査</title>
+<title>SENSE調査</title>
 <meta name="theme-color" content="#1f2a37">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="現地調査">
+<meta name="apple-mobile-web-app-title" content="SENSE調査">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -1253,7 +1253,7 @@ function sheets(parts,title){
     var t=(typeof title==='object'&&title)?title:{title:title||''},mw=W-pad*2,NI=Math.ceil(parts.length/PER),ii=s0/PER+1;
     g.font='bold 26px sans-serif';g.fillText([t.code,t.rev?'第'+t.rev+'版':''].filter(Boolean).join('　')+(NI>1?'　（画像 '+ii+'/'+NI+'）':''),pad,30,mw);
     g.font='20px sans-serif';g.fillStyle='#333';g.fillText([t.title,t.date,t.staff?'担当 '+t.staff:''].filter(Boolean).join('　')||'現地調査データ',pad,60,mw);
-    g.fillStyle='#666';g.font='16px sans-serif';g.fillText('かんたん図面の「QR読込」で、画像'+(NI>1?NI+'枚を全部':'を')+'選んでください（QR全'+parts.length+'個）',pad,84,mw);
+    g.fillStyle='#666';g.font='16px sans-serif';g.fillText('SENSE図面の「QR読込」で、画像'+(NI>1?NI+'枚を全部':'を')+'選んでください（QR全'+parts.length+'個）',pad,84,mw);
     grp.forEach(function(q,k){
       var col=k%cols,row=(k/cols)|0,x0=pad+col*(T+pad),y0=head+pad+row*(T+lab+pad);
       g.fillStyle='#000';g.font='bold 22px sans-serif';g.fillText('QR '+(s0+k+1)+'/'+parts.length,x0+8,y0+lab/2);
@@ -2322,7 +2322,7 @@ const TABS=[['info','物件'],['check','確認ポイント'],['measure','採寸'
 /* ===== 描画 ===== */
 function render(){
   const h=$('#hdr'),tb=$('#tabs');
-  if(view==='list'){h.innerHTML=`<h1>リフォーム現地調査</h1>`;tb.style.display='none';renderList();return}
+  if(view==='list'){h.innerHTML=`<h1>SENSE調査</h1>`;tb.style.display='none';renderList();return}
   h.innerHTML=`<button class="back" id="bk">‹ 一覧</button><h1>${esc(cur.title||'無題')}</h1><span class="stat" id="hstat">保存済み</span>`;
   $('#bk').onclick=()=>{if(histPushed)history.back();else goList()};
   tb.style.display='flex';
@@ -2331,8 +2331,9 @@ function render(){
   ({info:renderInfo,check:renderCheck,measure:renderMeasure,report:renderReport})[tab]();
 }
 
-const APP_VER='v29'; // sw.js の VERSION と同じ値にする
+const APP_VER='v30'; // sw.js の VERSION と同じ値にする
 const NOTES=[ // 更新履歴（新しい順。古いものは消してよい）
+['v30','11/25',['アプリ名を「SENSE調査」に変更（図面アプリは「SENSE図面」）']],
 ['v29','11/25',['報告書の各ページに作成アプリのバージョンを表示','送信データにもバージョンを記録']],
 ['v28','11/25',['バージョン表示と更新履歴を追加']],
 ['v27','11/25',['便器の品番データを追加・修正']],
@@ -2752,7 +2753,7 @@ async function showQr2(data,base,meta){
   let k,cs;try{const r=await QRX.makeChecked(data,meta);k=r.k;cs=r.cs;if(r.failed){closeModal();toast('QR画像の読み取り確認ができませんでした。「図面アプリ用データを出力」をお使いください');return}}catch(e){console.error(e);closeModal();toast('QR画像を作れませんでした');return}
   const bl=await Promise.all(cs.map(c=>new Promise(r=>c.toBlob(r,'image/png'))));
   const urls=bl.map(b=>URL.createObjectURL(b)),nm=i=>bl.length>1?`${base}_QR_${i+1}of${bl.length}.png`:`${base}_QR.png`;
-  modal(`<div class="box"><h3>QR画像ができました</h3><p class="muted" style="margin:0 0 8px">QRコード ${k.parts.length}枚 ／ 画像 ${bl.length}枚。事務所のパソコンへ送り、かんたん図面の「QR読込」で全部の画像を選んでください。</p>
+  modal(`<div class="box"><h3>QR画像ができました</h3><p class="muted" style="margin:0 0 8px">QRコード ${k.parts.length}枚 ／ 画像 ${bl.length}枚。事務所のパソコンへ送り、SENSE図面の「QR読込」で全部の画像を選んでください。</p>
     ${urls.map((u,i)=>`<img src="${u}" alt="QR画像${i+1}" style="width:100%;border:1px solid var(--line,#ccc);border-radius:8px;margin-bottom:6px"><button class="btn sec block" data-sv="${i}" style="margin-bottom:12px">画像${bl.length>1?(i+1)+'/'+bl.length:''}を保存</button>`).join('')}
     <div class="row" style="justify-content:flex-end"><button class="btn" id="mc">閉じる</button></div></div>`);
   document.querySelectorAll('[data-sv]').forEach(b=>b.onclick=()=>saveFile(nm(+b.dataset.sv),bl[+b.dataset.sv]));
@@ -2769,7 +2770,7 @@ function renderReport(){
      <button class="btn block" id="gen" style="margin-top:8px">現地調査報告書を作成</button>
      <button class="btn sec block" id="send" style="margin-top:10px">図面アプリ用データを出力</button>
      <button class="btn sec block" id="sendqr" style="margin-top:8px">QR画像で出力（図面アプリ用）</button>
-     <p class="muted" style="margin:6px 0 0">出力したファイルは、かんたん図面の「読込」で部屋・ドア・窓・設備の下書きとして開けます。QR画像は、ファイルを送れないときにLINEなどで画像として送れます。</p>
+     <p class="muted" style="margin:6px 0 0">出力したファイルは、SENSE図面の「読込」で部屋・ドア・窓・設備の下書きとして開けます。QR画像は、ファイルを送れないときにLINEなどで画像として送れます。</p>
      <p class="muted" style="margin-bottom:0">交換対象 ${cur.targets.length}件 ・ 確認 ${st.done}/${st.total} ・ 注意 ${st.warn}件</p>
    </div>
    <div id="rp"></div>`;
