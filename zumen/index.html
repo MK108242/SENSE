@@ -1600,6 +1600,15 @@ document.getElementById('info').addEventListener('click',e=>{
     return;
   }
   const c=e.target.closest('[data-rid]');if(!c)return;selR=+c.dataset.rid;selI=null;markSel();drawPanel();refreshPrev();});
+// 物の外形が、中心(it.x,it.y)から見てどこまで広がるか（m・向きと大きさを反映）
+function itemExt(it){
+  let b;if(BX(it.t)){const hw=it.w*S/2,hh=it.h*S/2;b=[-hw,-hh,hw*2,hh*2];}else b=T[it.t].b;
+  const k=it.sc||1,a=(it.r||0)*Math.PI/180,c=Math.cos(a),n=Math.sin(a);
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  for(const [px,py] of [[b[0],b[1]],[b[0]+b[2],b[1]],[b[0],b[1]+b[3]],[b[0]+b[2],b[1]+b[3]]]){
+    const X=(px*c-py*n)*k/S,Y=(px*n+py*c)*k/S;x0=Math.min(x0,X);x1=Math.max(x1,X);y0=Math.min(y0,Y);y1=Math.max(y1,Y);}
+  return{x0,x1,y0,y1};
+}
 function assist(d){
   const o=d.o,r=d.r,ax=r.x+o.x,ay=r.y+o.y,TH=.12;
   const t=[...rooms].reverse().find(q=>ax>=q.x&&ax<=q.x+q.w&&ay>=q.y&&ay<=q.y+q.h)||r;
@@ -1615,6 +1624,13 @@ function assist(d){
       if(k==='n')o.y=t.y-wh-r.y;else if(k==='s')o.y=t.y+t.h+wh-r.y;else if(k==='w')o.x=t.x-wh-r.x;else o.x=t.x+t.w+wh-r.x;
       o.r=IB[k]+(out?180:0);sw=k;
     }
+  }
+  // 壁を貫通しない：中心が部屋の中にある間は、物の外形（大きさ・向き）が壁の内側で止まるようにする
+  if(!isOp(o.t)&&o.t!=='wall'&&o.t!=='beam'&&ax>=t.x&&ax<=t.x+t.w&&ay>=t.y&&ay<=t.y+t.h){
+    const f=itemExt(o),X=r.x+o.x,Y=r.y+o.y;
+    const lx=t.x-f.x0,hx=t.x+t.w-f.x1,ly=t.y-f.y0,hy=t.y+t.h-f.y1;
+    const nx=lx<=hx?Math.min(hx,Math.max(lx,X)):t.x+t.w/2-(f.x0+f.x1)/2,ny=ly<=hy?Math.min(hy,Math.max(ly,Y)):t.y+t.h/2-(f.y0+f.y1)/2;
+    o.x=+(nx-r.x).toFixed(4);o.y=+(ny-r.y).toFixed(4);
   }
   cv.querySelectorAll('.guide').forEach(e=>e.remove());
   const g=cv.querySelector(`[data-g="${t.id}"]`);if(!g)return;

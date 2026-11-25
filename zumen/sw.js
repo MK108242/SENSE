@@ -1,5 +1,5 @@
 // かんたん図面 オフライン用（/zumen/ の中だけを受け持つ）
-const VERSION = 'z11';
+const VERSION = 'z12';
 const CACHE = 'zumen-' + VERSION;
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
