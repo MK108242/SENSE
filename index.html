@@ -1366,10 +1366,10 @@ const TYPES=[
   P('pitchsrc','排水芯・排水高さの根拠','sel',['実測','!型番表のみ（未実測）'],{show:a=>!!(String(a.pitch||'').trim()||String(a.wallh||'').trim())}),
   P('newrange','新しい便器の排水芯 対応範囲','dim',['120','200','120/200','305〜460','305〜540','250〜550'],{u:'mm',hint:'決まっていれば、カタログの対応範囲を入力（リモデル便器など）。120・200の両方に使える便器は「120/200」',show:a=>a.drain==='床排水'}),
   P('water','給水位置','sel',['床給水','壁給水']),
-  P('valve','止水栓','sel',['あり・正常','!あり・固着/漏れ','!なし']),
-  P('valvemove','止水栓の移設','sel',['不要','!移設が必要'],{hint:'止水栓が「あり」でも「なし」でも選べます'}),
+  P('valve','止水栓','multi',['あり・正常','!あり・固着/漏れ','!なし','その他'],{excl:['あり・正常','!あり・固着/漏れ','!なし'],hint:'「その他」は、ほかの選択肢と一緒に選べます。給水管が架橋ポリのときなどは「その他」に書きます'}),
+  P('valveother','止水栓のその他（記入）','text',[],{hint:'例：給水管は架橋ポリ',show:a=>(a.valve||[]).includes('その他')}),
   P('valvehide','止水栓の隠蔽','sel',['露出（見えている）','!隠蔽'],{hint:'壁や床の中に隠れている止水栓は「隠蔽」を選んでください'}),
-  P('pipemat','給水管の種類','sel',['架橋ポリ','架橋ポリ以外（金属管・塩ビ管など）','!わからない（現地で確認）'],{hint:'架橋ポリ＝樹脂製のやわらかい給水管'}),
+  P('valvemove','止水栓の移設','sel',['不要','!移設が必要'],{hint:'止水栓が「あり」でも「なし」でも選べます'}),
   P('waterpos','給水管・止水栓の位置','text',[],{hint:'例：右壁から150・床から200（mm）'}),
   P('outlet','コンセント','sel',['あり','!なし（新設が必要）']),
   P('outletpos','コンセントの位置','sel',['左','右'],{hint:'便器・洗面台に向かって',show:a=>a.outlet==='あり'}),
@@ -1469,10 +1469,9 @@ const TYPES=[
   P('width','間口','sel',['600','750','900','1000','その他']),
   P('wpos','給排水の位置','sel',['床から','壁から']),
   P('faucet','水栓','sel',['シングルレバー','シャワー水栓','2ハンドル']),
-  P('valve','止水栓','sel',['あり・正常','!あり・固着/漏れ','!なし']),
+  P('valve','止水栓','multi',['あり・正常','!あり・固着/漏れ','!なし','その他'],{excl:['あり・正常','!あり・固着/漏れ','!なし'],hint:'「その他」は、ほかの選択肢と一緒に選べます。給水管が架橋ポリのときなどは「その他」に書きます'}),
+  P('valveother','止水栓のその他（記入）','text',[],{hint:'例：給水管は架橋ポリ',show:a=>(a.valve||[]).includes('その他')}),
   P('valvemove','止水栓の移設','sel',['不要','!移設が必要'],{hint:'止水栓が「あり」でも「なし」でも選べます'}),
-  P('valvehide','止水栓の隠蔽','sel',['露出（見えている）','!隠蔽'],{hint:'壁や床の中に隠れている止水栓は「隠蔽」を選んでください'}),
-  P('pipemat','給水管の種類','sel',['架橋ポリ','架橋ポリ以外（金属管・塩ビ管など）','!わからない（現地で確認）'],{hint:'架橋ポリ＝樹脂製のやわらかい給水管'}),
   P('outlet','コンセント','sel',['あり（見える場所）','化粧台の裏（見えない）','!なし'],{hint:'洗面台のコンセントは化粧台の裏にあることが多い'}),
   P('outletpos','コンセントの位置','sel',['左','右'],{hint:'便器・洗面台に向かって',show:a=>a.outlet==='あり'||a.outlet==='あり（見える場所）'}),
   P('mirror','ミラー','sel',['一面鏡','三面鏡','なし']),
@@ -1526,10 +1525,9 @@ const TYPES=[
   P('mount','取り付け方','sel',['台付き（穴1つ）','台付き（穴2つ）','壁付き'],{req:1}),
   P('wpitch','取付ピッチ（芯から芯まで）','num',[],{u:'mm',req:1,hint:'壁付き：左右の給水口の中心から中心まで（ふつう200前後）／台付き穴2つ：2つの穴の中心から中心まで',show:a=>a.mount==='壁付き'||a.mount==='台付き（穴2つ）'}),
   P('cur','今の水栓','sel',['シングルレバー','2ハンドル','サーモスタット','浄水器一体型','タッチレス']),
-  P('valve','止水栓','sel',['あり・正常','!あり・固着/漏れ','!なし']),
+  P('valve','止水栓','multi',['あり・正常','!あり・固着/漏れ','!なし','その他'],{excl:['あり・正常','!あり・固着/漏れ','!なし'],hint:'「その他」は、ほかの選択肢と一緒に選べます。給水管が架橋ポリのときなどは「その他」に書きます'}),
+  P('valveother','止水栓のその他（記入）','text',[],{hint:'例：給水管は架橋ポリ',show:a=>(a.valve||[]).includes('その他')}),
   P('valvemove','止水栓の移設','sel',['不要','!移設が必要'],{hint:'止水栓が「あり」でも「なし」でも選べます'}),
-  P('valvehide','止水栓の隠蔽','sel',['露出（見えている）','!隠蔽'],{hint:'壁や床の中に隠れている止水栓は「隠蔽」を選んでください'}),
-  P('pipemat','給水管の種類','sel',['架橋ポリ','架橋ポリ以外（金属管・塩ビ管など）','!わからない（現地で確認）'],{hint:'架橋ポリ＝樹脂製のやわらかい給水管'}),
   P('want','希望','sel',['同じタイプ','浄水器一体型','タッチレス','食洗機の分岐付き','その他']),
   P('model','現在のメーカー・型番','text')]},
  {k:'bathdryer',name:'浴室暖房乾燥機',points:[
@@ -1538,14 +1536,20 @@ const TYPES=[
   P('oldfan','既存の換気扇の穴','sel',['そのまま使える','開け直しが必要','不明'],{show:a=>a.work==='新設（換気扇から）'}),
   P('oldduct','既存の換気扇のダクト','sel',['再利用できる','新設が必要','不明'],{show:a=>a.work==='新設（換気扇から）'}),
   P('oldwire','既存の換気扇のスイッチ線','sel',['あり（流用できるか確認）','なし','不明'],{show:a=>a.work==='新設（換気扇から）'}),
-  P('heat','暖房の方式','sel',['電気（100V）','電気（200V）','ガス温水式'],{req:1,hint:'ガス温水式は暖房付きのガス給湯器が必要'}),
-  P('mount','取り付け','sel',['天井埋め込み','壁付け']),
-  P('rooms','換気する部屋','sel',['浴室のみ（1室）','浴室＋脱衣所など（2室）','3室']),
+  P('heat','暖房の方式','sel',['電気（100V）','電気（200V）','ガス温水式'],{req:1,hint:'ガス温水式は暖房付きのガス給湯器が必要。壁付けには200V専用の機種もあります'}),
+  P('mount','取り付け','sel',['天井埋め込み','壁付け'],{req:1,hint:'壁付けは戸建ての浴室専用の機種が多く、マンションなど集合住宅には付けられないことがあります'}),
+  P('wallstr','取り付ける壁（換気口の木枠）の強度','sel',['しっかりしている','!弱い・補強が必要','!不明'],{req:a=>a.mount==='壁付け',hint:'壁付けの本体は約9kgの機種があり、壁や既設の換気口の木枠に十分な強さが必要です。補強が要ることもあります',show:a=>a.mount==='壁付け'}),
+  P('wallfan','浴室の換気扇（暖房機とは別）','sel',['ある（連動できるか確認）','!ない','不明'],{hint:'壁付けは換気機能のない機種があり、浴室にある別の換気扇と連動させて使います',show:a=>a.mount==='壁付け'&&a.work!=='新設（換気扇から）'}),
+  P('ceilspace','天井裏の作業スペース','sel',['十分ある','!狭い（要確認）','!不明（点検口から確認できない）'],{req:a=>a.mount==='天井埋め込み',hint:'必要な高さは機種で違います。点検口から天井裏を見て、機器の上や周りに作業できる余裕があるか確認してください',show:a=>a.mount==='天井埋め込み'}),
+  P('hung','天吊り（吊りボルト）','sel',['天吊り','天吊りではない（補強材・下地に固定）','不明（天井裏が見られない）'],{hint:'今の機器が、天井裏から吊りボルトで吊られているか',show:a=>a.mount==='天井埋め込み'&&a.work==='交換'}),
+  P('ceilshape','天井の形','sel',['平ら','!傾斜している・ドーム型'],{hint:'傾斜した天井・ドーム型の天井には天井埋め込みが付けられない機種があります',show:a=>a.mount==='天井埋め込み'}),
+  P('rooms','換気する部屋','sel',['浴室のみ（1室）','浴室＋脱衣所など（2室）','3室'],{hint:'今の天井にある通気口（脱衣所・トイレなど）の数と同じにします',show:a=>a.mount!=='壁付け'}),
   P('opening','開口の大きさ','text',[],{hint:'例：410×260。型番で分かれば不要'}),
-  P('circuit','電源','sel',['専用回路あり','!専用回路なし（新設が必要）'],{show:a=>a.heat!=='ガス温水式'}),
+  P('circuit','電源','sel',['専用回路あり','!専用回路なし（新設が必要）'],{hint:'コンセントではなく、専用ブレーカーからの直結です。換気扇からの取り替えは、今のブレーカーの容量と電線の太さが新しい機器に合うか確認してください（三菱の説明書では20A・太さ2.0mm）',show:a=>a.heat!=='ガス温水式'}),
   P('duct','ダクトの径','sel',['φ100','φ150','その他','不明']),
-  P('inspect','天井の点検口','sel',['あり','!なし']),
+  P('inspect','天井の点検口','sel',['あり','!なし'],{req:a=>a.mount==='天井埋め込み',hint:'点検口がないと、新しく付ける機器の取り付けが難しくなります',show:a=>a.mount!=='壁付け'}),
   P('remote','リモコンの位置','sel',['脱衣所','浴室内','なし']),
+  P('lightsw','照明スイッチ','sel',['リモコンとは別にある','リモコンの枠の中にある','!リモコンに照明ボタンがある'],{hint:'リモコンに照明ボタンがあると、交換のとき照明スイッチを新しく付けることになる場合があります',show:a=>a.work==='交換'&&a.remote!=='なし'}),
   P('model','現在のメーカー・型番','text',[],{show:a=>a.work!=='新規（穴なし）'&&a.work!=='新設（換気扇から）'}),
   P('newmodel','取り付ける機種（メーカー・型番）','text',[],{hint:'決まっていれば（任意）',show:a=>a.work==='新規（穴なし）'})]},
  {k:'other',name:'その他の設備',points:[
@@ -2270,7 +2274,7 @@ const stamp=d=>{const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-
 function reportBase(s,at){const p=n=>String(n).padStart(2,'0');return [s.code?safeName(s.code):'管理番号なし',safeName(s.title),s.date||'','現調報告',`第${s.rev||1}版`].filter(Boolean).join('_')}
 
 /* ===== 状態 ===== */
-let surveys=[],cur=null,view='list',tab='info',openT=new Set(),report=null,saveTimer=null;
+let surveys=[],cur=null,view='list',tab='info',openT=new Set(),openC=true,report=null,saveTimer=null;
 
 function newSurvey(){
   const d=new Date();
@@ -2286,6 +2290,10 @@ function codeHint(){const el=$('#codeHint');if(!el)return;const c=cur.custNo||''
 function normalize(s){s.targets=s.targets||[];s.common=s.common||{};s.measures=s.measures||[];
   // 止水栓の選択肢名を「隠蔽」に短縮（旧データの移行）
   [s.common,...s.targets.map(t=>t.ans)].forEach(o=>{if(o&&o.valvehide==='!隠蔽（壁・床の中）')o.valvehide='!隠蔽'});
+  // 止水栓を複数選択に変更、「給水管の種類」を止水栓の「その他」へ統合（旧データの移行）
+  [s.common,...s.targets.map(t=>t.ans)].forEach(o=>{if(!o)return;
+    if(typeof o.valve==='string')o.valve=o.valve?[o.valve]:[];
+    if(o.pipemat){const t='給水管：'+String(o.pipemat).replace(/^!/,'');o.valveother=o.valveother?o.valveother+'／'+t:t;o.valve=o.valve||[];if(!o.valve.includes('その他'))o.valve.push('その他');delete o.pipemat}});
   if(s.code&&s.custNo===undefined){const m=/^(\d{11})-(\d{1,4})$/.exec(s.code);if(m){s.custNo=m[1];s.seq=m[2]}}
   // 部屋の紐づけを名前から番号へ（旧データの移行）
   s.measures.forEach(m=>{if((m.kind==='開口部'||m.kind==='設備')&&m.room&&!m.roomId){const r=s.measures.find(x=>x.kind==='部屋'&&x.place===m.room);if(r)m.roomId=r.id}});
@@ -2295,11 +2303,12 @@ const WANT=P('want','希望の商品・色（決まっていれば）','text');
 function pointsOf(t){const all=[...TYPE[t.type].points,WANT,...(t.extra||[])];all.forEach(p=>{if(p.calc){const c=p.calc(t.ans);if(c)t.ans[p.id]=c;else delete t.ans[p.id]}});return vis(all,t.ans)}
 const commonPts=s=>vis(COMMON,s.common,s);
 // 表示を切り替える元になる項目
-const CTRL=new Set(['cur','newkind','space','oldplace','overhead','elec','ev','evfloor','fence','gas','kind','stove','gaswork','mgmt','drain','outlet','watersrc','mgmtby','water','width','cornerto','mount','tall','work','heat','interior','cornerwalltype','ext','vent']);
+const CTRL=new Set(['cur','valve','newkind','space','oldplace','overhead','elec','ev','evfloor','fence','gas','kind','stove','gaswork','mgmt','drain','outlet','watersrc','mgmtby','water','width','cornerto','mount','tall','work','heat','interior','cornerwalltype','ext','vent']);
 const answered=(p,v)=>p.t==='multi'?(v||[]).length>0:(v!==undefined&&v!==null&&String(v).trim()!=='');
 // 型番の「読めない」も入力済みとして扱う
 const isDone=(p,ans)=>answered(p,ans[p.id])||(!!p.ng&&!!ans[p.id+'_ng']);
 function valText(p,ans){const t=ansText(p,ans[p.id],ans);if(!(p.ng&&ans[p.id+'_ng']))return t;return t?t+'（銘板は読めない）':'読めない（銘板が消えている）'}
+function cStats(s){const ps=commonPts(s);return {total:ps.length,done:ps.filter(p=>isDone(p,s.common)).length}}
 function tStats(t){const ps=pointsOf(t);return {total:ps.length,done:ps.filter(p=>isDone(p,t.ans)).length}}
 function stats(s){let total=0,done=0,warn=0;
   s.targets.forEach(t=>{const st=tStats(t);total+=st.total;done+=st.done;if(t.type==='toilet'){const pc=pitchCheck(t.ans);if(pc&&!pc.ok)warn++}pointsOf(t).forEach(p=>{const v=t.ans[p.id];if((Array.isArray(v)?v:[v]).some(isWarn))warn++})});
@@ -2341,8 +2350,9 @@ function render(){
   ({info:renderInfo,check:renderCheck,measure:renderMeasure,report:renderReport})[tab]();
 }
 
-const APP_VER='v34'; // sw.js の VERSION と同じ値にする
+const APP_VER='v35'; // sw.js の VERSION と同じ値にする
 const NOTES=[ // 更新履歴（新しい順。古いものは消してよい）
+['v35','11/27',['共通を畳めるようにし（入力が終わったら「共通」の見出しを押すと閉じます）、報告書も「共通 → 設備ごと」の順にしました。浴室暖房乾燥機の「取り付け」を必須にしました','浴室暖房乾燥機の壁付けに「壁の強度」「浴室の換気扇」を追加。電源・暖房方式の説明を追記し、「照明スイッチ」の項目を追加しました','浴室暖房乾燥機（天井埋め込み）に「天井裏の作業スペース」「天吊り」「天井の形」を追加し、点検口を必須にしました','確認タブで「共通（搬入・作業環境）」を一番上に移動。共通の確認を先に聞いて漏れを防ぎます','止水栓の「隠蔽」はトイレだけにしました（洗面・水栓からは外しました）。止水栓を複数選択にして「その他」を追加（記入欄付き）。「給水管の種類」の項目は止水栓の「その他」にまとめました（以前の入力は自動で移ります）']],
 ['v34','11/27',['エレベーターが「あり」のときだけ「部屋の階まで行きますか」を表示。「途中階まで（そこから階段）」は注意の赤扱いで、選ぶと止まる階と階段で運ぶ階数を書く欄が出ます']],
 ['v33','11/27',['報告書の各ページの下（左）に「RF支援システムSENSE」を小さく表示','止水栓の選択肢を「隠蔽」だけの表記に変更（注意の赤扱いは今のまま）']],
 ['v32','11/25',['排水芯の欄に「測れないときは空欄で大丈夫」の説明を追加']],
@@ -2407,7 +2417,7 @@ async function goList(){clearTimeout(saveTimer);if(cur)await Store.put(cur);hist
 window.addEventListener('popstate',()=>{if(zoomBack){zoomBack=false;return}if(zv){closeZoom(true);return}if(view==='survey')goList()});
 function openSurvey(id,t){cur=surveys.find(s=>s.id===id);if(!cur)return;normalize(cur);
   if(useHist&&!histPushed){try{history.pushState({v:'survey'},'');histPushed=true}catch(e){}}
-  view='survey';tab=t||'check';report=null;openT=new Set(cur.targets.slice(-1).map(x=>x.id));render();scrollTo(0,0)}
+  view='survey';tab=t||'check';report=null;openC=true;openT=new Set(cur.targets.slice(-1).map(x=>x.id));render();scrollTo(0,0)}
 
 /* --- 物件情報 --- */
 function renderInfo(){
@@ -2484,7 +2494,7 @@ function bindPick(b){
   const run=unset=>{const [scope,pid]=b.dataset.pick.split('|');const sc=getScope(scope);if(!sc)return;
     const p=sc.pts.find(x=>x.id===pid);if(!p)return;const o=b.dataset.o;
     if(unset){if(p.t==='multi'||sc.ans[pid]!==o)return;delete sc.ans[pid]}
-    else if(p.t==='multi'){const arr=sc.ans[pid]||[];sc.ans[pid]=arr.includes(o)?arr.filter(x=>x!==o):[...arr,o]}
+    else if(p.t==='multi'){const arr=sc.ans[pid]||[];sc.ans[pid]=arr.includes(o)?arr.filter(x=>x!==o):[...arr.filter(x=>!(p.excl&&p.excl.includes(o)&&p.excl.includes(x))),o]}
     else sc.ans[pid]=o;
     touch();if(CTRL.has(pid))renderCheck();else{refreshPoint(scope,p);if(pid==='pitchsrc')updateCompat(scope)}};
   let tm=null,fired=false;
@@ -2498,9 +2508,11 @@ function bindPick(b){
 function renderCheck(){
   const st=stats(cur);
   $('#app').innerHTML=`
-   <button class="btn sec block" id="toCommon" style="margin-bottom:12px">↓ 共通（搬入・作業環境）へ</button>
    <div class="legend"><span>確認 ${st.done}/${st.total}</span>${st.warn?`<span style="color:var(--repair);font-weight:700">注意 ${st.warn}件</span>`:''}<span style="margin-left:auto">赤枠＝注意が必要な選択肢</span></div>
    <p class="muted" style="margin:-4px 0 10px;font-size:15px">選んだ項目を長押しすると、未選択に戻せます</p>
+   <div class="cat" id="commonTop"><button data-togc="1"><span>${openC?'▼':'▶'}</span>共通（搬入・作業環境）<span class="cnt">${cStats(cur).done}/${cStats(cur).total}</span></button>
+   ${openC?commonPts(cur).map(p=>pointHtml('common',p,cur.common[p.id])).join(''):''}</div>
+   <div class="sec-title">交換する設備ごとの確認</div>
    ${cur.targets.map(t=>{const op=openT.has(t.id);const s=tStats(t);
      return `<div class="cat"><button data-tog="${t.id}"><span>${op?'▼':'▶'}</span>${esc(t.label||TYPE[t.type].name)}<span class="cnt">${s.done}/${s.total}</span></button>
      ${op?`<div class="pt"><div class="lb">場所・呼び名</div><div class="tbar"><input class="inp" data-label="${t.id}" value="${esc(t.label)}" placeholder="例：1Fトイレ"></div></div>
@@ -2510,14 +2522,12 @@ function renderCheck(){
      </div>`}).join('')}
    <div class="sec-title">交換する設備を追加</div>
    <div class="tgt-add">${TYPES.filter(t=>!t.hide).map(t=>`<button data-addt="${t.k}">＋ ${esc(t.name)}<small>${t.points.length}項目</small></button>`).join('')}</div>
-   <div class="sec-title" id="commonTop">共通（搬入・作業環境）</div>
-   <div class="cat">${commonPts(cur).map(p=>pointHtml('common',p,cur.common[p.id])).join('')}</div>
    <datalist id="gascos">${['東京ガス','大阪ガス','東邦ガス','西部ガス','北海道ガス','LPガス販売店'].map(x=>`<option value="${x}">`).join('')}</datalist>`;
   bindCheck();
 }
 function bindCheck(){
   const a=$('#app');
-  const tc=$('#toCommon');if(tc)tc.onclick=()=>$('#commonTop').scrollIntoView({behavior:'smooth',block:'start'});
+    a.querySelectorAll('[data-togc]').forEach(b=>b.onclick=()=>{openC=!openC;renderCheck()});
   a.querySelectorAll('[data-tog]').forEach(b=>b.onclick=()=>{const id=b.dataset.tog;openT.has(id)?openT.delete(id):openT.add(id);renderCheck()});
   a.querySelectorAll('[data-addt]').forEach(b=>b.onclick=()=>{const k=b.dataset.addt;const n=cur.targets.filter(t=>t.type===k).length;
     const t={id:uid(),type:k,label:TYPE[k].name+(n?` ${n+1}`:''),ans:{},memo:'',extra:[]};cur.targets.push(t);openT=new Set([t.id]);touch();renderCheck();
@@ -2593,6 +2603,7 @@ function updCounts(){
   const st=stats(cur);const l=$('.legend');
   if(l)l.innerHTML=`<span>確認 ${st.done}/${st.total}</span>${st.warn?`<span style="color:var(--repair);font-weight:700">注意 ${st.warn}件</span>`:''}<span style="margin-left:auto">赤枠＝注意が必要な選択肢</span>`;
   cur.targets.forEach(t=>{const b=document.querySelector(`[data-tog="${t.id}"] .cnt`);if(b){const s=tStats(t);b.textContent=`${s.done}/${s.total}`}});
+  {const b=document.querySelector('[data-togc] .cnt');if(b){const s=cStats(cur);b.textContent=`${s.done}/${s.total}`}}
 }
 function addPointDialog(tid){
   modal(`<div class="box"><h3>確認ポイントを追加</h3>
@@ -2916,7 +2927,7 @@ function specFor(s){
     if(t.memo)rows.push(['メモ',t.memo,false]);
     return {title:t.label||TYPE[t.type].name,rows}});
   const crow=commonPts(s).filter(p=>answered(p,s.common[p.id])||rq(p,s.common,s)).map(p=>{const v=s.common[p.id];return [p.label,ansText(p,v)||'未測',(Array.isArray(v)?v:[v]).some(isWarn)]});
-  if(crow.length)blocks.push({title:'共通（搬入・作業環境）',rows:crow});
+  if(crow.length)blocks.unshift({title:'共通（搬入・作業環境）',rows:crow});
   return {blocks,warns:collectWarns(s)};
 }
 // 最後のページに少しだけはみ出すと1枚もったいないので、全体を少し縮めて1枚減らせるか試す
@@ -3001,7 +3012,9 @@ async function buildReportK(s,opt,K){
     y+=20}
   para('総評・特記事項',s.note);
 
-  // 対象ごと
+  // 共通 → 対象ごと
+  section('共通（搬入・作業環境）');
+  table('【共通】',commonPts(s),s.common);y+=10;
   if(s.targets.length){
     section('交換対象ごとの確認結果');
     for(const t of s.targets){
@@ -3009,8 +3022,6 @@ async function buildReportK(s,opt,K){
       if(t.memo){y+=6;para('メモ',t.memo)}
       y+=18}
   }
-  section('共通（搬入・作業環境）');
-  table('【共通】',commonPts(s),s.common);y+=10;
 
   // 採寸
   const ms=(s.measures||[]).filter(m=>m.place||m.room||m.w||m.d||m.h||m.memo);
