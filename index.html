@@ -1560,6 +1560,8 @@ const TYPES=[
 const COMMON=[
   P('park','駐車スペース','sel',['あり','!なし（近隣パーキング）']),
   P('ev','エレベーター','sel',['あり','なし','該当なし（戸建）']),
+  P('evfloor','エレベーターは部屋の階まで行きますか','sel',['行く','!途中階まで（そこから階段）'],{show:a=>a.ev==='あり'}),
+  P('evstop','止まる階と、階段で運ぶ階数','text',[],{hint:'例：3階まで。そこから階段で1階分',show:a=>a.ev==='あり'&&a.evfloor==='!途中階まで（そこから階段）'}),
   P('route','搬入経路','sel',['問題なし','!狭い・要確認']),
   P('narrowplace','一番狭いところ（場所）','text',[],{hint:'例：階段の曲がり、玄関ドア、廊下の角',req:ECO_ANY}),
   P('narroww','一番狭いところ（幅）','num',[],{u:'mm',req:ECO_ANY}),
@@ -2293,7 +2295,7 @@ const WANT=P('want','希望の商品・色（決まっていれば）','text');
 function pointsOf(t){const all=[...TYPE[t.type].points,WANT,...(t.extra||[])];all.forEach(p=>{if(p.calc){const c=p.calc(t.ans);if(c)t.ans[p.id]=c;else delete t.ans[p.id]}});return vis(all,t.ans)}
 const commonPts=s=>vis(COMMON,s.common,s);
 // 表示を切り替える元になる項目
-const CTRL=new Set(['cur','newkind','space','oldplace','overhead','elec','fence','gas','kind','stove','gaswork','mgmt','drain','outlet','watersrc','mgmtby','water','width','cornerto','mount','tall','work','heat','interior','cornerwalltype','ext','vent']);
+const CTRL=new Set(['cur','newkind','space','oldplace','overhead','elec','ev','evfloor','fence','gas','kind','stove','gaswork','mgmt','drain','outlet','watersrc','mgmtby','water','width','cornerto','mount','tall','work','heat','interior','cornerwalltype','ext','vent']);
 const answered=(p,v)=>p.t==='multi'?(v||[]).length>0:(v!==undefined&&v!==null&&String(v).trim()!=='');
 // 型番の「読めない」も入力済みとして扱う
 const isDone=(p,ans)=>answered(p,ans[p.id])||(!!p.ng&&!!ans[p.id+'_ng']);
@@ -2339,8 +2341,9 @@ function render(){
   ({info:renderInfo,check:renderCheck,measure:renderMeasure,report:renderReport})[tab]();
 }
 
-const APP_VER='v33'; // sw.js の VERSION と同じ値にする
+const APP_VER='v34'; // sw.js の VERSION と同じ値にする
 const NOTES=[ // 更新履歴（新しい順。古いものは消してよい）
+['v34','11/27',['エレベーターが「あり」のときだけ「部屋の階まで行きますか」を表示。「途中階まで（そこから階段）」は注意の赤扱いで、選ぶと止まる階と階段で運ぶ階数を書く欄が出ます']],
 ['v33','11/27',['報告書の各ページの下（左）に「RF支援システムSENSE」を小さく表示','止水栓の選択肢を「隠蔽」だけの表記に変更（注意の赤扱いは今のまま）']],
 ['v32','11/25',['排水芯の欄に「測れないときは空欄で大丈夫」の説明を追加']],
 ['v31','11/25',['止水栓に「隠蔽」と、給水管の「架橋ポリ」の項目を追加']],
