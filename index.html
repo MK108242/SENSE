@@ -1368,7 +1368,7 @@ const TYPES=[
   P('water','給水位置','sel',['床給水','壁給水']),
   P('valve','止水栓','sel',['あり・正常','!あり・固着/漏れ','!なし']),
   P('valvemove','止水栓の移設','sel',['不要','!移設が必要'],{hint:'止水栓が「あり」でも「なし」でも選べます'}),
-  P('valvehide','止水栓の隠蔽','sel',['露出（見えている）','!隠蔽（壁・床の中）'],{hint:'壁や床の中に隠れている止水栓は「隠蔽」を選んでください'}),
+  P('valvehide','止水栓の隠蔽','sel',['露出（見えている）','!隠蔽'],{hint:'壁や床の中に隠れている止水栓は「隠蔽」を選んでください'}),
   P('pipemat','給水管の種類','sel',['架橋ポリ','架橋ポリ以外（金属管・塩ビ管など）','!わからない（現地で確認）'],{hint:'架橋ポリ＝樹脂製のやわらかい給水管'}),
   P('waterpos','給水管・止水栓の位置','text',[],{hint:'例：右壁から150・床から200（mm）'}),
   P('outlet','コンセント','sel',['あり','!なし（新設が必要）']),
@@ -1471,7 +1471,7 @@ const TYPES=[
   P('faucet','水栓','sel',['シングルレバー','シャワー水栓','2ハンドル']),
   P('valve','止水栓','sel',['あり・正常','!あり・固着/漏れ','!なし']),
   P('valvemove','止水栓の移設','sel',['不要','!移設が必要'],{hint:'止水栓が「あり」でも「なし」でも選べます'}),
-  P('valvehide','止水栓の隠蔽','sel',['露出（見えている）','!隠蔽（壁・床の中）'],{hint:'壁や床の中に隠れている止水栓は「隠蔽」を選んでください'}),
+  P('valvehide','止水栓の隠蔽','sel',['露出（見えている）','!隠蔽'],{hint:'壁や床の中に隠れている止水栓は「隠蔽」を選んでください'}),
   P('pipemat','給水管の種類','sel',['架橋ポリ','架橋ポリ以外（金属管・塩ビ管など）','!わからない（現地で確認）'],{hint:'架橋ポリ＝樹脂製のやわらかい給水管'}),
   P('outlet','コンセント','sel',['あり（見える場所）','化粧台の裏（見えない）','!なし'],{hint:'洗面台のコンセントは化粧台の裏にあることが多い'}),
   P('outletpos','コンセントの位置','sel',['左','右'],{hint:'便器・洗面台に向かって',show:a=>a.outlet==='あり'||a.outlet==='あり（見える場所）'}),
@@ -1528,7 +1528,7 @@ const TYPES=[
   P('cur','今の水栓','sel',['シングルレバー','2ハンドル','サーモスタット','浄水器一体型','タッチレス']),
   P('valve','止水栓','sel',['あり・正常','!あり・固着/漏れ','!なし']),
   P('valvemove','止水栓の移設','sel',['不要','!移設が必要'],{hint:'止水栓が「あり」でも「なし」でも選べます'}),
-  P('valvehide','止水栓の隠蔽','sel',['露出（見えている）','!隠蔽（壁・床の中）'],{hint:'壁や床の中に隠れている止水栓は「隠蔽」を選んでください'}),
+  P('valvehide','止水栓の隠蔽','sel',['露出（見えている）','!隠蔽'],{hint:'壁や床の中に隠れている止水栓は「隠蔽」を選んでください'}),
   P('pipemat','給水管の種類','sel',['架橋ポリ','架橋ポリ以外（金属管・塩ビ管など）','!わからない（現地で確認）'],{hint:'架橋ポリ＝樹脂製のやわらかい給水管'}),
   P('want','希望','sel',['同じタイプ','浄水器一体型','タッチレス','食洗機の分岐付き','その他']),
   P('model','現在のメーカー・型番','text')]},
@@ -2282,6 +2282,8 @@ function codeHint(){const el=$('#codeHint');if(!el)return;const c=cur.custNo||''
   el.innerHTML=validCode(cur)?`管理番号：<b style="color:var(--navy);font-size:19px">${esc(cur.code)}</b>`
    :c.length&&c.length!==11?`<span style="color:var(--repair)">顧客番号は11桁です（いま${c.length}桁）</span>`:c&&!q?'<span style="color:var(--repair)">管理番号（枝番）を入力してください</span>':'例：26051211455-1';}
 function normalize(s){s.targets=s.targets||[];s.common=s.common||{};s.measures=s.measures||[];
+  // 止水栓の選択肢名を「隠蔽」に短縮（旧データの移行）
+  [s.common,...s.targets.map(t=>t.ans)].forEach(o=>{if(o&&o.valvehide==='!隠蔽（壁・床の中）')o.valvehide='!隠蔽'});
   if(s.code&&s.custNo===undefined){const m=/^(\d{11})-(\d{1,4})$/.exec(s.code);if(m){s.custNo=m[1];s.seq=m[2]}}
   // 部屋の紐づけを名前から番号へ（旧データの移行）
   s.measures.forEach(m=>{if((m.kind==='開口部'||m.kind==='設備')&&m.room&&!m.roomId){const r=s.measures.find(x=>x.kind==='部屋'&&x.place===m.room);if(r)m.roomId=r.id}});
@@ -2337,8 +2339,9 @@ function render(){
   ({info:renderInfo,check:renderCheck,measure:renderMeasure,report:renderReport})[tab]();
 }
 
-const APP_VER='v32'; // sw.js の VERSION と同じ値にする
+const APP_VER='v33'; // sw.js の VERSION と同じ値にする
 const NOTES=[ // 更新履歴（新しい順。古いものは消してよい）
+['v33','11/27',['報告書の各ページの下（左）に「RF支援システムSENSE」を小さく表示','止水栓の選択肢を「隠蔽」だけの表記に変更（注意の赤扱いは今のまま）']],
 ['v32','11/25',['排水芯の欄に「測れないときは空欄で大丈夫」の説明を追加']],
 ['v31','11/25',['止水栓に「隠蔽」と、給水管の「架橋ポリ」の項目を追加']],
 ['v30','11/25',['アプリ名を「SENSE調査」に変更（図面アプリは「SENSE図面」）']],
@@ -3027,7 +3030,7 @@ async function buildReportK(s,opt,K){
         x+=cw});
       y+=h}
   }
-  pages.forEach((c,i)=>{const g=c.getContext('2d');g.setTransform(RS*K,0,0,RS*K,0,0);g.font=font(18);g.fillStyle='#68717d';g.textAlign='center';g.textBaseline='top';g.fillText(`${i+1} / ${pages.length}`,PW/2,PH-MG+20);g.textAlign='right';g.fillText('作成アプリ '+APP_VER,PW-MG,PH-MG+20)});
+  pages.forEach((c,i)=>{const g=c.getContext('2d');g.setTransform(RS*K,0,0,RS*K,0,0);g.font=font(18);g.fillStyle='#68717d';g.textAlign='center';g.textBaseline='top';g.fillText(`${i+1} / ${pages.length}`,PW/2,PH-MG+20);g.textAlign='right';g.fillText('作成アプリ '+APP_VER,PW-MG,PH-MG+20);g.textAlign='left';g.fillText('RF支援システムSENSE',MG,PH-MG+20)});
   pages.at=at;pages.fill=(y-MG)/(PH-MG*2);
   return pages;
 }
